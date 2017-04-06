@@ -6,6 +6,8 @@ import frappe
 import unittest, copy
 from frappe.utils import nowdate, add_days, flt
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry, get_qty_after_transaction
+from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import unlink_payment_on_cancel_of_invoice
+from erpnext.accounts.doctype.pos_profile.test_pos_profile import make_pos_profile
 from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import set_perpetual_inventory
 from erpnext.exceptions import InvalidAccountCurrency, InvalidCurrency
 from erpnext.stock.doctype.serial_no.serial_no import SerialNoWarehouseError
@@ -18,6 +20,12 @@ class TestSalesInvoice(unittest.TestCase):
 		w.insert()
 		w.submit()
 		return w
+
+	def setUp(self):
+		unlink_payment_on_cancel_of_invoice()
+
+	def tearDown(self):
+		unlink_payment_on_cancel_of_invoice(0)
 
 	def test_timestamp_change(self):
 		w = frappe.copy_doc(test_records[0])
@@ -78,6 +86,28 @@ class TestSalesInvoice(unittest.TestCase):
 		self.assertEquals(si.base_grand_total, 1627.05)
 		self.assertEquals(si.grand_total, 1627.05)
 
+	def test_payment_entry_unlink_against_invoice(self):
+		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
+		si = frappe.copy_doc(test_records[0])
+		si.is_pos = 0
+		si.insert()
+		si.submit()
+
+		pe = get_payment_entry("Sales Invoice", si.name, bank_account="_Test Bank - _TC")
+		pe.reference_no = "1"
+		pe.reference_date = nowdate()
+		pe.paid_from_account_currency = si.currency
+		pe.paid_to_account_currency = si.currency
+		pe.source_exchange_rate = 1
+		pe.target_exchange_rate = 1
+		pe.paid_amount = si.grand_total
+		pe.insert()
+		pe.submit()
+
+		unlink_payment_on_cancel_of_invoice(0)
+		si = frappe.get_doc('Sales Invoice', si.name)
+		self.assertRaises(frappe.LinkExistsError, si.cancel)
+
 	def test_sales_invoice_calculation_export_currency(self):
 		si = frappe.copy_doc(test_records[2])
 		si.currency = "USD"
@@ -132,11 +162,50 @@ class TestSalesInvoice(unittest.TestCase):
 		self.assertEquals(si.base_grand_total, 1628)
 		self.assertEquals(si.grand_total, 32.56)
 
+	def test_sales_invoice_with_discount_and_inclusive_tax(self):
+		si = create_sales_invoice(qty=100, rate=50, do_not_save=True)
+		si.append("taxes", {
+			"charge_type": "On Net Total",
+			"account_head": "_Test Account Service Tax - _TC",
+			"cost_center": "_Test Cost Center - _TC",
+			"description": "Service Tax",
+			"rate": 14,
+			'included_in_print_rate': 1
+		})
+		si.insert()
+
+		# with inclusive tax
+		self.assertEquals(si.net_total, 4385.96)
+		self.assertEquals(si.grand_total, 5000)
+
+		si.reload()
+
+		# additional discount
+		si.discount_amount = 100
+		si.apply_discount_on = 'Net Total'
+
+		si.save()
+
+		# with inclusive tax and additional discount
+		self.assertEquals(si.net_total, 4285.96)
+		self.assertEquals(si.grand_total, 4885.99)
+
+		si.reload()
+
+		# additional discount on grand total
+		si.discount_amount = 100
+		si.apply_discount_on = 'Grand Total'
+
+		si.save()
+
+		# with inclusive tax and additional discount
+		self.assertEquals(si.net_total, 4298.24)
+		self.assertEquals(si.grand_total, 4900.00)
+
 	def test_sales_invoice_discount_amount(self):
 		si = frappe.copy_doc(test_records[3])
 		si.discount_amount = 104.95
 		si.append("taxes", {
-			"doctype": "Sales Taxes and Charges",
 			"charge_type": "On Previous Row Amount",
 			"account_head": "_Test Account Service Tax - _TC",
 			"cost_center": "_Test Cost Center - _TC",
@@ -438,7 +507,7 @@ class TestSalesInvoice(unittest.TestCase):
 
 	def test_pos_gl_entry_with_perpetual_inventory(self):
 		set_perpetual_inventory()
-		self.make_pos_profile()
+		make_pos_profile()
 
 		self._insert_purchase_receipt()
 		pos = copy.deepcopy(test_records[1])
@@ -457,7 +526,7 @@ class TestSalesInvoice(unittest.TestCase):
 
 	def test_pos_change_amount(self):
 		set_perpetual_inventory()
-		self.make_pos_profile()
+		make_pos_profile()
 
 		self._insert_purchase_receipt()
 		pos = copy.deepcopy(test_records[1])
@@ -479,7 +548,7 @@ class TestSalesInvoice(unittest.TestCase):
 
 		set_perpetual_inventory()
 
-		self.make_pos_profile()
+		make_pos_profile()
 		self._insert_purchase_receipt()
 
 		pos = copy.deepcopy(test_records[1])
@@ -489,7 +558,7 @@ class TestSalesInvoice(unittest.TestCase):
 							{'mode_of_payment': 'Cash', 'account': 'Cash - _TC', 'amount': 330}]
 
 		invoice_data = [{'09052016142': pos}]
-		si = make_invoice(invoice_data)
+		si = make_invoice(invoice_data).get('invoice')
 		self.assertEquals(si[0], '09052016142')
 
 		sales_invoice = frappe.get_all('Sales Invoice', fields =["*"], filters = {'offline_pos_name': '09052016142', 'docstatus': 1})
@@ -542,80 +611,6 @@ class TestSalesInvoice(unittest.TestCase):
 		set_perpetual_inventory(0)
 
 		frappe.db.sql("delete from `tabPOS Profile`")
-
-	def make_pos_profile(self):
-		pos_profile = frappe.get_doc({
-			"company": "_Test Company",
-			"cost_center": "_Test Cost Center - _TC",
-			"currency": "INR",
-			"doctype": "POS Profile",
-			"expense_account": "_Test Account Cost for Goods Sold - _TC",
-			"income_account": "Sales - _TC",
-			"name": "_Test POS Profile",
-			"naming_series": "_T-POS Profile-",
-			"selling_price_list": "_Test Price List",
-			"territory": "_Test Territory",
-			"warehouse": "_Test Warehouse - _TC",
-			"write_off_account": "_Test Write Off - _TC",
-			"write_off_cost_center": "_Test Write Off Cost Center - _TC"
-		})
-
-		if not frappe.db.exists("POS Profile", "_Test POS Profile"):
-			pos_profile.insert()
-
-	def test_si_gl_entry_with_perpetual_inventory_and_update_stock_with_warehouse_but_no_account(self):
-		set_perpetual_inventory()
-		frappe.delete_doc("Account", "_Test Warehouse No Account - _TC")
-
-		# insert purchase receipt
-		from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import test_records \
-			as pr_test_records
-		pr = frappe.copy_doc(pr_test_records[0])
-		pr.naming_series = "_T-Purchase Receipt-"
-		pr.get("items")[0].warehouse = "_Test Warehouse No Account - _TC"
-		pr.insert()
-		pr.submit()
-
-		si_doc = copy.deepcopy(test_records[1])
-		si_doc["update_stock"] = 1
-		# si_doc["posting_time"] = "12:05"
-		si_doc.get("items")[0]["warehouse"] = "_Test Warehouse No Account - _TC"
-
-		si = frappe.copy_doc(si_doc)
-		si.insert()
-		si.submit()
-
-		# check stock ledger entries
-		sle = frappe.db.sql("""select * from `tabStock Ledger Entry`
-			where voucher_type = 'Sales Invoice' and voucher_no = %s""",
-			si.name, as_dict=1)[0]
-		self.assertTrue(sle)
-		self.assertEquals([sle.item_code, sle.warehouse, sle.actual_qty],
-			["_Test Item", "_Test Warehouse No Account - _TC", -1.0])
-
-		# check gl entries
-		gl_entries = frappe.db.sql("""select account, debit, credit
-			from `tabGL Entry` where voucher_type='Sales Invoice' and voucher_no=%s
-			order by account asc, debit asc""", si.name, as_dict=1)
-		self.assertTrue(gl_entries)
-
-		expected_gl_entries = dict((d[0], d) for d in [
-			[si.debit_to, 630.0, 0.0],
-			[si_doc.get("items")[0]["income_account"], 0.0, 500.0],
-			[si_doc.get("taxes")[0]["account_head"], 0.0, 80.0],
-			[si_doc.get("taxes")[1]["account_head"], 0.0, 50.0],
-		])
-		for i, gle in enumerate(gl_entries):
-			self.assertEquals(expected_gl_entries[gle.account][0], gle.account)
-			self.assertEquals(expected_gl_entries[gle.account][1], gle.debit)
-			self.assertEquals(expected_gl_entries[gle.account][2], gle.credit)
-
-		si.cancel()
-		gle = frappe.db.sql("""select * from `tabGL Entry`
-			where voucher_type='Sales Invoice' and voucher_no=%s""", si.name)
-
-		self.assertFalse(gle)
-		set_perpetual_inventory(0)
 
 	def test_sales_invoice_gl_entry_with_perpetual_inventory_no_item_code(self):
 		set_perpetual_inventory()
@@ -961,54 +956,98 @@ class TestSalesInvoice(unittest.TestCase):
 
 	def test_create_so_with_margin(self):
 		si = create_sales_invoice(item_code="_Test Item", qty=1, do_not_submit=True)
-		price_list_rate = si.items[0].price_list_rate
+		price_list_rate = 100
+		si.items[0].price_list_rate = price_list_rate
 		si.items[0].margin_type = 'Percentage'
 		si.items[0].margin_rate_or_amount = 25
 		si.insert()
+		self.assertEqual(si.get("items")[0].rate, flt((price_list_rate*25)/100 + price_list_rate))
 
-		self.assertNotEquals(si.get("items")[0].rate, flt((price_list_rate*25)/100 + price_list_rate))
-		si.items[0].margin_rate_or_amount = 25
+	def test_outstanding_amount_after_advance_jv_cancelation(self):
+		from erpnext.accounts.doctype.journal_entry.test_journal_entry \
+			import test_records as jv_test_records
+
+		jv = frappe.copy_doc(jv_test_records[0])
+		jv.insert()
+		jv.submit()
+
+		si = frappe.copy_doc(test_records[0])
+		si.append("advances", {
+			"doctype": "Sales Invoice Advance",
+			"reference_type": "Journal Entry",
+			"reference_name": jv.name,
+			"reference_row": jv.get("accounts")[0].name,
+			"advance_amount": 400,
+			"allocated_amount": 300,
+			"remarks": jv.remark
+		})
+		si.insert()
 		si.submit()
+		si.load_from_db()
 
-		self.assertNotEquals(si.get("items")[0].rate, flt((price_list_rate*25)/100 + price_list_rate))
+		#check outstanding after advance allocation
+		self.assertEqual(flt(si.outstanding_amount), flt(si.grand_total - si.total_advance, si.precision("outstanding_amount")))
 
-	def test_party_status(self):
-		from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
-		from frappe.utils import random_string
+		#added to avoid Document has been modified exception
+		jv = frappe.get_doc("Journal Entry", jv.name)
+		jv.cancel()
 
-		customer_name = 'test customer for status'
+		si.load_from_db()
+		#check outstanding after advance cancellation
+		self.assertEqual(flt(si.outstanding_amount), flt(si.grand_total + si.total_advance, si.precision("outstanding_amount")))
 
-		if frappe.db.exists('Customer', customer_name):
-			customer = frappe.get_doc('Customer', customer_name)
-			customer.db_set('status', 'Active')
-		else:
-			customer = frappe.get_doc({
-				'doctype': 'Customer',
-				'customer_name': customer_name,
-				'customer_group': 'Commercial',
-				'customer_type': 'Individual',
-				'territory': 'Rest of the World'
-			}).insert()
-
-		self.assertEquals(frappe.db.get_value('Customer', customer.name, 'status'), 'Active')
-
-		invoice = create_sales_invoice(customer="test customer for status",
-			debit_to="_Test Receivable - _TC",
-			currency="USD", conversion_rate=50)
-
-		self.assertEquals(frappe.db.get_value('Customer', customer.name, 'status'), 'Open')
-
-		pe = get_payment_entry(invoice.doctype, invoice.name)
-		pe.reference_no = random_string(10)
-		pe.reference_date = invoice.posting_date
+	def test_outstanding_amount_after_advance_payment_entry_cancelation(self):
+		pe = frappe.get_doc({
+			"doctype": "Payment Entry",
+			"payment_type": "Receive",
+			"party_type": "Customer",
+			"party": "_Test Customer",
+			"company": "_Test Company",
+			"paid_from_account_currency": "INR",
+			"paid_to_account_currency": "INR",
+			"source_exchange_rate": 1,
+			"target_exchange_rate": 1,
+			"reference_no": "1",
+			"reference_date": nowdate(),
+			"received_amount": 300,
+			"paid_amount": 300,
+			"paid_from": "_Test Receivable - _TC",
+			"paid_to": "_Test Cash - _TC"
+		})
 		pe.insert()
 		pe.submit()
 
-		self.assertEquals(frappe.db.get_value('Customer', customer.name, 'status'), 'Active')
+		si = frappe.copy_doc(test_records[0])
+		si.is_pos = 0
+		si.append("advances", {
+			"doctype": "Sales Invoice Advance",
+			"reference_type": "Payment Entry",
+			"reference_name": pe.name,
+			"advance_amount": 300,
+			"allocated_amount": 300,
+			"remarks": pe.remarks
+		})
+		si.insert()
+		si.submit()
+
+		si.load_from_db()
+
+		#check outstanding after advance allocation
+		self.assertEqual(flt(si.outstanding_amount), flt(si.grand_total - si.total_advance, si.precision("outstanding_amount")))
+
+		#added to avoid Document has been modified exception
+		pe = frappe.get_doc("Payment Entry", pe.name)
+		pe.cancel()
+
+		si.load_from_db()
+		#check outstanding after advance cancellation
+		self.assertEqual(flt(si.outstanding_amount), flt(si.grand_total + si.total_advance, si.precision("outstanding_amount")))
 
 def create_sales_invoice(**args):
 	si = frappe.new_doc("Sales Invoice")
 	args = frappe._dict(args)
+	if args.posting_date:
+		si.set_posting_time = 1
 	si.posting_date = args.posting_date or nowdate()
 
 	si.company = args.company or "_Test Company"

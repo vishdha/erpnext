@@ -3,41 +3,20 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.desk.reportview import get_match_cond
-from frappe.model.db_query import DatabaseQuery
+from frappe.desk.reportview import get_match_cond, get_filters_cond
 from frappe.utils import nowdate
+from collections import defaultdict
 
-def get_filters_cond(doctype, filters, conditions):
-	if filters:
-		flt = filters
-		if isinstance(filters, dict):
-			filters = filters.items()
-			flt = []
-			for f in filters:
-				if isinstance(f[1], basestring) and f[1][0] == '!':
-					flt.append([doctype, f[0], '!=', f[1][1:]])
-				else:
-					value = frappe.db.escape(f[1]) if isinstance(f[1], basestring) else f[1]
-					flt.append([doctype, f[0], '=', value])
-
-		query = DatabaseQuery(doctype)
-		query.filters = flt
-		query.conditions = conditions
-		query.build_filter_conditions(flt, conditions)
-
-		cond = ' and ' + ' and '.join(query.conditions)
-	else:
-		cond = ''
-	return cond
 
  # searches for active employees
 def employee_query(doctype, txt, searchfield, start, page_len, filters):
+	conditions = []
 	return frappe.db.sql("""select name, employee_name from `tabEmployee`
 		where status = 'Active'
 			and docstatus < 2
 			and ({key} like %(txt)s
 				or employee_name like %(txt)s)
-			{mcond}
+			{fcond} {mcond}
 		order by
 			if(locate(%(_txt)s, name), locate(%(_txt)s, name), 99999),
 			if(locate(%(_txt)s, employee_name), locate(%(_txt)s, employee_name), 99999),
@@ -45,6 +24,7 @@ def employee_query(doctype, txt, searchfield, start, page_len, filters):
 			name, employee_name
 		limit %(start)s, %(page_len)s""".format(**{
 			'key': searchfield,
+			'fcond': get_filters_cond(doctype, filters, conditions),
 			'mcond': get_match_cond(doctype)
 		}), {
 			'txt': "%%%s%%" % txt,
@@ -86,7 +66,7 @@ def customer_query(doctype, txt, searchfield, start, page_len, filters):
 		fields = ["name", "customer_group", "territory"]
 	else:
 		fields = ["name", "customer_name", "customer_group", "territory"]
-		
+
 	meta = frappe.get_meta("Customer")
 	fields = fields + [f for f in meta.get_search_fields() if not f in fields]
 
@@ -369,3 +349,46 @@ def get_expense_account(doctype, txt, searchfield, start, page_len, filters):
 			'company': filters.get("company", ""),
 			'txt': "%%%s%%" % frappe.db.escape(txt)
 		})
+
+
+@frappe.whitelist()
+def warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+	# Should be used when item code is passed in filters.
+	conditions, bin_conditions = [], []
+	filter_dict = get_doctype_wise_filters(filters)
+
+	sub_query = """ select round(`tabBin`.actual_qty, 2) from `tabBin`
+		where `tabBin`.warehouse = `tabWarehouse`.name
+		{bin_conditions} """.format(
+		bin_conditions=get_filters_cond(doctype, filter_dict.get("Bin"), bin_conditions))
+
+	response = frappe.db.sql("""select `tabWarehouse`.name,
+		CONCAT_WS(" : ", "Actual Qty", ifnull( ({sub_query}), 0) ) as actual_qty
+		from `tabWarehouse`
+		where
+		   `tabWarehouse`.`{key}` like %(txt)s
+			{fcond} {mcond}
+		order by
+			`tabWarehouse`.name desc
+		limit
+			%(start)s, %(page_len)s
+		""".format(
+			sub_query=sub_query,
+			key=frappe.db.escape(searchfield),
+			fcond=get_filters_cond(doctype, filter_dict.get("Warehouse"), conditions),
+			mcond=get_match_cond(doctype)
+		),
+		{
+			"txt": "%%%s%%" % frappe.db.escape(txt),
+			"start": start,
+			"page_len": page_len
+		})
+	return response
+
+
+def get_doctype_wise_filters(filters):
+	# Helper function to seperate filters doctype_wise
+	filter_dict = defaultdict(list)
+	for row in filters:
+		filter_dict[row[0]].append(row)
+	return filter_dict

@@ -1,13 +1,31 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-{% include 'erpnext/buying/doctype/purchase_common/purchase_common.js' %};
+{% include 'erpnext/public/js/controllers/buying.js' %};
 
 frappe.ui.form.on('Material Request', {
+	setup: function(frm) {
+		frm.custom_make_buttons = {
+			'Stock Entry': 'Issue Material',
+			'Purchase Order': 'Purchase Order',
+			'Request for Quotation': 'Request for Quotation',
+			'Supplier Quotation': 'Supplier Quotation',
+			'Production Order': 'Production Order'
+		}
+	},
 	onload: function(frm) {
+		// add item, if previous view was item
+		erpnext.utils.add_item(frm);
+
 		// formatter for material request item
 		frm.set_indicator_formatter('item_code',
-			function(doc) { return (doc.qty<=doc.ordered_qty) ? "green" : "orange" })
+			function(doc) { return (doc.qty<=doc.ordered_qty) ? "green" : "orange" }),
+
+		frm.fields_dict["items"].grid.get_field("warehouse").get_query = function(doc, cdt, cdn){
+			return{
+				filters: {'company': doc.company}
+			}
+		}
 	}
 });
 
@@ -37,7 +55,7 @@ erpnext.buying.MaterialRequestController = erpnext.buying.BuyingController.exten
 
 		if(doc.docstatus==0) {
 			cur_frm.add_custom_button(__("Get Items from BOM"),
-				cur_frm.cscript.get_items_from_bom, "icon-sitemap", "btn-default");
+				cur_frm.cscript.get_items_from_bom, "fa fa-sitemap", "btn-default");
 		}
 
 		if(doc.docstatus == 1 && doc.status != 'Stopped') {
@@ -65,7 +83,7 @@ erpnext.buying.MaterialRequestController = erpnext.buying.BuyingController.exten
 
 				if(doc.material_request_type === "Manufacture" && doc.status === "Submitted")
 					cur_frm.add_custom_button(__("Production Order"),
-					this.raise_production_orders, __("Make"));
+					function() { me.raise_production_orders() }, __("Make"));
 
 				cur_frm.page.set_inner_btn_group_as_primary(__("Make"));
 
@@ -196,10 +214,16 @@ erpnext.buying.MaterialRequestController = erpnext.buying.BuyingController.exten
 	},
 
 	raise_production_orders: function() {
+		var me = this;
 		frappe.call({
 			method:"erpnext.stock.doctype.material_request.material_request.raise_production_orders",
 			args: {
-				"material_request": cur_frm.doc.name
+				"material_request": me.frm.doc.name
+			},
+			callback: function(r) {
+				if(r.message.length) {
+					me.frm.reload_doc();
+				}
 			}
 		});
 	}

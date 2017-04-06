@@ -55,9 +55,11 @@ class ProductionOrder(Document):
 				if not self.expected_delivery_date:
 					self.expected_delivery_date = so[0].delivery_date
 
-				self.project = so[0].project
+				if so[0].project:
+					self.project = so[0].project
 
-				self.validate_production_order_against_so()
+				if not self.material_request:
+					self.validate_production_order_against_so()
 			else:
 				frappe.throw(_("Sales Order {0} is not valid").format(self.sales_order))
 
@@ -88,7 +90,7 @@ class ProductionOrder(Document):
 		total_qty = flt(ordered_qty_against_so) + flt(self.qty)
 
 		# get qty from Sales Order Item table
-		so_item_qty = frappe.db.sql("""select sum(qty) from `tabSales Order Item`
+		so_item_qty = frappe.db.sql("""select sum(stock_qty) from `tabSales Order Item`
 			where parent = %s and item_code = %s""",
 			(self.sales_order, self.production_item))[0][0]
 		# get qty from Packing Item table
@@ -115,7 +117,7 @@ class ProductionOrder(Document):
 		'''Update status of production order if unknown'''
 		if not status:
 			status = self.get_status(status)
-			
+
 		if status != self.status:
 			self.db_set("status", status)
 
@@ -211,14 +213,33 @@ class ProductionOrder(Document):
 
 	def set_production_order_operations(self):
 		"""Fetch operations from BOM and set in 'Production Order'"""
-		if not self.bom_no or cint(frappe.db.get_single_value("Manufacturing Settings", "disable_capacity_planning")):
-			return
+		
+		if not self.bom_no \
+			or cint(frappe.db.get_single_value("Manufacturing Settings", "disable_capacity_planning")):
+				return
+			
 		self.set('operations', [])
-		operations = frappe.db.sql("""select operation, description, workstation, idx,
-			hour_rate, time_in_mins, "Pending" as status from `tabBOM Operation`
-			where parent = %s order by idx""", self.bom_no, as_dict=1)
+		
+		if self.use_multi_level_bom:
+			bom_list = frappe.get_doc("BOM", self.bom_no).traverse_tree()
+		else:
+			bom_list = [self.bom_no]
+		
+		operations = frappe.db.sql("""
+			select 
+				operation, description, workstation, idx,
+				base_hour_rate as hour_rate, time_in_mins, 
+				"Pending" as status, parent as bom
+			from
+				`tabBOM Operation`
+			where
+				 parent in (%s) order by idx
+		"""	% ", ".join(["%s"]*len(bom_list)), tuple(bom_list), as_dict=1)
+			
 		self.set('operations', operations)
 		self.calculate_time()
+
+		return check_if_scrap_warehouse_mandatory(self.bom_no)
 
 	def calculate_time(self):
 		bom_qty = frappe.db.get_value("BOM", self.bom_no, "quantity")
@@ -240,7 +261,7 @@ class ProductionOrder(Document):
 			holidays[holiday_list] = holiday_list_days
 
 		return holidays[holiday_list]
-		
+
 	def make_time_logs(self, open_new=False):
 		"""Capacity Planning. Plan time logs based on earliest availablity of workstation after
 			Planned Start Date. Time logs will be created and remain in Draft mode and must be submitted
@@ -253,16 +274,15 @@ class ProductionOrder(Document):
 		plan_days = frappe.db.get_single_value("Manufacturing Settings", "capacity_planning_for_days") or 30
 
 		timesheet = make_timesheet(self.name)
-		workstation_list = []
-		last_workstation_idx = {}
 		timesheet.set('time_logs', [])
 
 		for i, d in enumerate(self.operations):
-			if d.workstation and d.status != 'Completed':
-				last_workstation_idx[d.workstation] = i # set last row index of workstation
-				self.set_start_end_time_for_workstation(d, workstation_list, last_workstation_idx.get(d.workstation))
-				
+			
+			if d.status != 'Completed':
+				self.set_start_end_time_for_workstation(d, i)
+
 				args = self.get_operations_data(d)
+
 				add_timesheet_detail(timesheet, args)
 				original_start_time = d.planned_start_time
 
@@ -289,7 +309,7 @@ class ProductionOrder(Document):
 		if timesheet and open_new:
 			return timesheet
 
-		if timesheet:
+		if timesheet and timesheet.get("time_logs"):
 			timesheet.save()
 			timesheets.append(timesheet.name)
 
@@ -300,9 +320,9 @@ class ProductionOrder(Document):
 
 	def get_operations_data(self, data):
 		return {
-			'from_time': data.planned_start_time,
+			'from_time': get_datetime(data.planned_start_time),
 			'hours': data.time_in_mins / 60.0,
-			'to_time': data.planned_end_time,
+			'to_time': get_datetime(data.planned_end_time),
 			'project': self.project,
 			'operation': data.operation,
 			'operation_id': data.name,
@@ -310,13 +330,12 @@ class ProductionOrder(Document):
 			'completed_qty': flt(self.qty) - flt(data.completed_qty)
 		}
 
-	def set_start_end_time_for_workstation(self, data, workstation_list, index):
+	def set_start_end_time_for_workstation(self, data, index):
 		"""Set start and end time for given operation. If first operation, set start as
 		`planned_start_date`, else add time diff to end time of earlier operation."""
 
-		if data.workstation not in workstation_list:
+		if index == 0:
 			data.planned_start_time = self.planned_start_date
-			workstation_list.append(data.workstation)
 		else:
 			data.planned_start_time = get_datetime(self.operations[index-1].planned_end_time)\
 								+ get_mins_between_operations()
@@ -366,7 +385,8 @@ class ProductionOrder(Document):
 		if frappe.db.get_value("Item", self.production_item, "has_variants"):
 			frappe.throw(_("Production Order cannot be raised against a Item Template"), ItemHasVariantError)
 
-		validate_end_of_life(self.production_item)
+		if self.production_item:
+			validate_end_of_life(self.production_item)
 
 	def validate_qty(self):
 		if not self.qty > 0:
@@ -446,19 +466,51 @@ class ProductionOrder(Document):
 
 
 @frappe.whitelist()
-def get_item_details(item):
-	res = frappe.db.sql("""select stock_uom, description
-		from `tabItem` where disabled=0 and (end_of_life is null or end_of_life='0000-00-00' or end_of_life > %s)
-		and name=%s""", (nowdate(), item), as_dict=1)
+def get_item_details(item, project = None):
+	res = frappe.db.sql("""
+		select stock_uom, description
+		from `tabItem` 
+		where disabled=0 
+			and (end_of_life is null or end_of_life='0000-00-00' or end_of_life > %s)
+			and name=%s
+	""", (nowdate(), item), as_dict=1)
+	
 	if not res:
 		return {}
 
 	res = res[0]
-	res["bom_no"] = frappe.db.get_value("BOM", filters={"item": item, "is_default": 1})
+
+	filters = {"item": item, "is_default": 1}
+
+	if project:
+		filters = {"item": item, "project": project}
+
+	res["bom_no"] = frappe.db.get_value("BOM", filters = filters)
+
 	if not res["bom_no"]:
 		variant_of= frappe.db.get_value("Item", item, "variant_of")
+
 		if variant_of:
 			res["bom_no"] = frappe.db.get_value("BOM", filters={"item": variant_of, "is_default": 1})
+
+	if not res["bom_no"]:
+		if project:
+			frappe.throw(_("Default BOM for {0} not found for Project {1}").format(item, project))
+		frappe.throw(_("Default BOM for {0} not found").format(item))
+
+	res['project'] = frappe.db.get_value('BOM', res['bom_no'], 'project')
+	res.update(check_if_scrap_warehouse_mandatory(res["bom_no"]))
+
+	return res
+
+@frappe.whitelist()
+def check_if_scrap_warehouse_mandatory(bom_no):
+	res = {"set_scrap_wh_mandatory": False }
+	bom = frappe.get_doc("BOM", bom_no)
+
+	if len(bom.scrap_items) > 0:
+		res["set_scrap_wh_mandatory"] = True
+
 	return res
 
 @frappe.whitelist()
@@ -504,9 +556,9 @@ def get_events(start, end, filters=None):
 		planned_end_date, status
 		from `tabProduction Order`
 		where ((ifnull(planned_start_date, '0000-00-00')!= '0000-00-00') \
-				and (planned_start_date between %(start)s and %(end)s) \
-			or ((ifnull(planned_start_date, '0000-00-00')!= '0000-00-00') \
-				and planned_end_date between %(start)s and %(end)s)) {conditions}
+				and (planned_start_date <= %(end)s) \
+			and ((ifnull(planned_start_date, '0000-00-00')!= '0000-00-00') \
+				and planned_end_date >= %(start)s)) {conditions}
 		""".format(conditions=conditions), {
 			"start": start,
 			"end": end
@@ -520,7 +572,7 @@ def make_timesheet(production_order):
 	timesheet.production_order = production_order
 	return timesheet
 
-@frappe.whitelist()	
+@frappe.whitelist()
 def add_timesheet_detail(timesheet, args):
 	if isinstance(timesheet, unicode):
 		timesheet = frappe.get_doc('Timesheet', timesheet)

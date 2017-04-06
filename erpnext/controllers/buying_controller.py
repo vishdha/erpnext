@@ -6,9 +6,10 @@ import frappe
 from frappe import _, msgprint
 from frappe.utils import flt,cint, cstr
 
-from erpnext.setup.utils import get_company_currency
 from erpnext.accounts.party import get_party_details
 from erpnext.stock.get_item_details import get_conversion_factor
+from erpnext.buying.utils import validate_for_items
+from erpnext.stock.stock_ledger import get_valuation_rate
 
 from erpnext.controllers.stock_controller import StockController
 
@@ -40,9 +41,7 @@ class BuyingController(StockController):
 			# self.validate_purchase_return()
 			self.validate_rejected_warehouse()
 			self.validate_accepted_rejected_qty()
-
-			pc_obj = frappe.get_doc('Purchase Common')
-			pc_obj.validate_for_items(self)
+			validate_for_items(self)
 
 			#sub-contracting
 			self.validate_for_subcontracting()
@@ -62,7 +61,7 @@ class BuyingController(StockController):
 		if getattr(self, "supplier", None):
 			self.update_if_missing(get_party_details(self.supplier, party_type="Supplier", ignore_permissions=self.flags.ignore_permissions))
 
-		self.set_missing_item_details()
+		self.set_missing_item_details(for_validate)
 
 	def set_supplier_from_item_default(self):
 		if self.meta.get_field("supplier") and not self.supplier:
@@ -88,9 +87,8 @@ class BuyingController(StockController):
 
 	def set_total_in_words(self):
 		from frappe.utils import money_in_words
-		company_currency = get_company_currency(self.company)
 		if self.meta.get_field("base_in_words"):
-			self.base_in_words = money_in_words(self.base_grand_total, company_currency)
+			self.base_in_words = money_in_words(self.base_grand_total, self.company_currency)
 		if self.meta.get_field("in_words"):
 			self.in_words = money_in_words(self.grand_total, self.currency)
 
@@ -178,6 +176,9 @@ class BuyingController(StockController):
 			for item in self.get("items"):
 				item.rm_supp_cost = 0.0
 
+		if self.is_subcontracted == "No" and self.get("supplied_items"):
+			self.set('supplied_items', [])
+
 	def update_raw_materials_supplied(self, item, raw_material_table):
 		bom_items = self.get_items_from_bom(item.item_code, item.bom)
 		raw_materials_cost = 0
@@ -222,8 +223,8 @@ class BuyingController(StockController):
 					"serial_no": rm.serial_no
 				})
 				if not rm.rate:
-					from erpnext.stock.stock_ledger import get_valuation_rate
-					rm.rate = get_valuation_rate(bom_item.item_code, self.supplier_warehouse)
+					rm.rate = get_valuation_rate(bom_item.item_code, self.supplier_warehouse,
+						self.doctype, self.name, currency=self.company_currency)
 			else:
 				rm.rate = bom_item.rate
 
@@ -302,6 +303,7 @@ class BuyingController(StockController):
 	# validate accepted and rejected qty
 	def validate_accepted_rejected_qty(self):
 		for d in self.get("items"):
+			self.validate_negative_quantity(d, ["received_qty","qty", "rejected_qty"])
 			if not flt(d.received_qty) and flt(d.qty):
 				d.received_qty = flt(d.qty) - flt(d.rejected_qty)
 
@@ -314,6 +316,16 @@ class BuyingController(StockController):
 			# Check Received Qty = Accepted Qty + Rejected Qty
 			if ((flt(d.qty) + flt(d.rejected_qty)) != flt(d.received_qty)):
 				frappe.throw(_("Accepted + Rejected Qty must be equal to Received quantity for Item {0}").format(d.item_code))
+
+	def validate_negative_quantity(self, item_row, field_list):
+		if self.is_return:
+			return
+
+		item_row = item_row.as_dict()
+		for fieldname in field_list:
+			if flt(item_row[fieldname]) < 0:
+				frappe.throw(_("Row #{0}: {1} can not be negative for item {2}".format(item_row['idx'],
+					frappe.get_meta(item_row.doctype).get_label(fieldname), item_row['item_code'])))
 
 	def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
 		self.update_ordered_qty()

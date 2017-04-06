@@ -2,10 +2,10 @@
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, erpnext
 from frappe import _, throw
 from frappe.utils import today, flt, cint, fmt_money, formatdate, getdate
-from erpnext.setup.utils import get_company_currency, get_exchange_rate
+from erpnext.setup.utils import get_exchange_rate
 from erpnext.accounts.utils import get_fiscal_years, validate_fiscal_year, get_account_currency
 from erpnext.utilities.transaction_base import TransactionBase
 from erpnext.controllers.recurring_document import convert_to_recurring, validate_recurring_document
@@ -22,9 +22,12 @@ class AccountsController(TransactionBase):
 	@property
 	def company_currency(self):
 		if not hasattr(self, "__company_currency"):
-			self.__company_currency = get_company_currency(self.company)
+			self.__company_currency = erpnext.get_company_currency(self.company)
 
 		return self.__company_currency
+
+	def onload(self):
+		self.get("__onload").make_payment_via_journal_entry = frappe.db.get_single_value('Accounts Settings', 'make_payment_via_journal_entry')
 
 	def validate(self):
 		if self.get("_action") and self._action != "update_after_submit":
@@ -59,6 +62,11 @@ class AccountsController(TransactionBase):
 
 		if self.doctype == 'Purchase Invoice':
 			self.validate_paid_amount()
+
+	def before_print(self):
+		if self.doctype in ['Purchase Order', 'Sales Order']:
+			if self.get("group_same_items"):
+				self.group_similar_items()
 
 	def validate_paid_amount(self):
 		if hasattr(self, "is_pos") or hasattr(self, "is_paid"):
@@ -105,7 +113,7 @@ class AccountsController(TransactionBase):
 				date_field = "transaction_date"
 
 			if date_field and self.get(date_field):
-				validate_fiscal_year(self.get(date_field), self.fiscal_year,
+				validate_fiscal_year(self.get(date_field), self.fiscal_year, self.company,
 					self.meta.get_label(date_field), self)
 
 	def validate_due_date(self):
@@ -119,6 +127,11 @@ class AccountsController(TransactionBase):
 			validate_due_date(self.posting_date, self.due_date, "Supplier", self.supplier, self.company)
 
 	def set_price_list_currency(self, buying_or_selling):
+		if self.meta.get_field("posting_date"):
+			transaction_date = self.posting_date
+		else:
+			transaction_date = self.transaction_date
+
 		if self.meta.get_field("currency"):
 			# price list part
 			fieldname = "selling_price_list" if buying_or_selling.lower() == "selling" \
@@ -131,8 +144,8 @@ class AccountsController(TransactionBase):
 					self.plc_conversion_rate = 1.0
 
 				elif not self.plc_conversion_rate:
-					self.plc_conversion_rate = get_exchange_rate(
-						self.price_list_currency, self.company_currency)
+					self.plc_conversion_rate = get_exchange_rate(self.price_list_currency,
+						self.company_currency, transaction_date)
 
 			# currency
 			if not self.currency:
@@ -142,9 +155,9 @@ class AccountsController(TransactionBase):
 				self.conversion_rate = 1.0
 			elif not self.conversion_rate:
 				self.conversion_rate = get_exchange_rate(self.currency,
-					self.company_currency)
+					self.company_currency, transaction_date)
 
-	def set_missing_item_details(self):
+	def set_missing_item_details(self, for_validate=False):
 		"""set missing item values"""
 		from erpnext.stock.get_item_details import get_item_details
 
@@ -196,7 +209,7 @@ class AccountsController(TransactionBase):
 								(1.0 - (flt(item.discount_percentage) / 100.0)), item.precision("rate"))
 
 			if self.doctype == "Purchase Invoice":
-				self.set_expense_account()
+				self.set_expense_account(for_validate)
 
 	def set_taxes(self):
 		if not self.meta.get_field("taxes"):
@@ -413,7 +426,7 @@ class AccountsController(TransactionBase):
 					max_allowed_amt = flt(ref_amt * (100 + tolerance) / 100)
 
 					if total_billed_amt - max_allowed_amt > 0.01:
-						frappe.throw(_("Cannot overbill for Item {0} in row {1} more than {2}. To allow overbilling, please set in Stock Settings").format(item.item_code, item.idx, max_allowed_amt))
+						frappe.throw(_("Cannot overbill for Item {0} in row {1} more than {2}. To allow over-billing, please set in Buying Settings").format(item.item_code, item.idx, max_allowed_amt))
 
 	def get_company_default(self, fieldname):
 		from erpnext.accounts.utils import get_company_default
@@ -558,6 +571,42 @@ class AccountsController(TransactionBase):
 								frappe.throw(_("Row #{0}: Asset {1} cannot be submitted, it is already {2}")
 									.format(d.idx, d.asset, asset.status))
 
+	def delink_advance_entries(self, linked_doc_name):
+		total_allocated_amount = 0
+		for adv in self.advances:
+			consider_for_total_advance = True
+			if adv.reference_name == linked_doc_name:
+				frappe.db.sql("""delete from `tab{0} Advance`
+					where name = %s""".format(self.doctype), adv.name)
+				consider_for_total_advance = False
+
+			if consider_for_total_advance:
+				total_allocated_amount += flt(adv.allocated_amount, adv.precision("allocated_amount"))
+
+		frappe.db.set_value(self.doctype, self.name, "total_advance",
+			total_allocated_amount, update_modified=False)
+
+	def group_similar_items(self):
+		group_item_qty = {}
+		group_item_amount = {}
+
+		for item in self.items:
+			group_item_qty[item.item_code] = group_item_qty.get(item.item_code, 0) + item.qty
+			group_item_amount[item.item_code] = group_item_amount.get(item.item_code, 0) + item.amount
+
+		duplicate_list = []
+
+		for item in self.items:
+			if item.item_code in group_item_qty:
+				item.qty = group_item_qty[item.item_code]
+				item.amount = group_item_amount[item.item_code]
+				del group_item_qty[item.item_code]
+			else:
+				duplicate_list.append(item)
+
+		for item in duplicate_list:
+			self.remove(item)
+
 @frappe.whitelist()
 def get_tax_rate(account_head):
 	return frappe.db.get_value("Account", account_head, ["tax_rate", "account_name"], as_dict=True)
@@ -662,7 +711,7 @@ def get_advance_journal_entries(party_type, party, party_account, amount_field,
 			.format(order_doctype, order_condition))
 
 	reference_condition = " and (" + " or ".join(conditions) + ")" if conditions else ""
-	
+
 	journal_entries = frappe.db.sql("""
 		select
 			"Journal Entry" as reference_type, t1.name as reference_name,
@@ -718,3 +767,12 @@ def get_advance_payment_entries(party_type, party, party_account,
 			""".format(party_account_field), (party_account, party_type, party, payment_type), as_dict=1)
 
 	return list(payment_entries_against_order) + list(unallocated_payment_entries)
+
+def update_invoice_status():
+	# Daily update the status of the invoices
+
+	frappe.db.sql(""" update `tabSales Invoice` set status = 'Overdue'
+		where due_date < CURDATE() and docstatus = 1 and outstanding_amount > 0""")
+
+	frappe.db.sql(""" update `tabPurchase Invoice` set status = 'Overdue'
+		where due_date < CURDATE() and docstatus = 1 and outstanding_amount > 0""")

@@ -62,7 +62,7 @@ For purchasing a new asset, create and submit the asset record with all the depr
 On submission of the invoice, the "Fixed Asset Account" will be debited and payable account will be credited. It also updates purchase date, supplier and Purchase Invoice no. in the Asset master.
 
 
-## Sale an Asset
+## Sell an Asset
 
 To sale an asset, open the asset record and create a Sales Invoice by clicking on "Sale Asset". On submission of the Sales Invoice, following entries will take place:
 
@@ -89,3 +89,5 @@ The movement of the assets (from one warehouse to another) is also tracked via A
 There is also a dedicated button "Transfer Asset" inside the Asset form to track the Asset Movement.
 
 <img class="screenshot" alt="Asset" src="{{docs_base_url}}/assets/img/accounts/asset-movement-using-button.png">
+
+{next}

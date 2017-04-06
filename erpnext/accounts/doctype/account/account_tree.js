@@ -1,3 +1,5 @@
+frappe.provide("frappe.treeview_settings")
+
 frappe.treeview_settings["Account"] = {
 	breadcrumbs: "Accounts",
 	title: __("Chart Of Accounts"),
@@ -25,18 +27,30 @@ frappe.treeview_settings["Account"] = {
 		{fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
 			description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 		{fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-			options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n')},
+			options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n'),
+			depends_on: 'eval:doc.is_group && !doc.parent_account'},
 		{fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-			options: ['', 'Bank', 'Cash', 'Stock', 'Tax', 'Chargeable', 'Fixed Asset'].join('\n'),
+			options: ['', 'Accumulated Depreciation', 'Bank', 'Cash', 'Chargeable', 'Cost of Goods Sold', 'Depreciation',
+				'Equity', 'Expense Account', 'Expenses Included In Valuation', 'Fixed Asset', 'Income Account', 'Payable', 'Receivable',
+				'Round Off', 'Stock', 'Stock Adjustment', 'Stock Received But Not Billed', 'Tax', 'Temporary'].join('\n'),
 			description: __("Optional. This setting will be used to filter in various transactions.")
 		},
 		{fieldtype:'Float', fieldname:'tax_rate', label:__('Tax Rate'),
-			depends_on: 'eval:doc.is_group==1&&doc.account_type=="Tax"'},
+			depends_on: 'eval:doc.is_group==0&&doc.account_type=="Tax"'},
 		{fieldtype:'Link', fieldname:'warehouse', label:__('Warehouse'), options:"Warehouse",
-			depends_on: 'eval:(!doc.is_group&&doc.account_type=="Warehouse")'},
+			depends_on: 'eval:(!doc.is_group&&doc.account_type=="Stock")',
+			get_query: function() {
+				return {
+					filters:{
+						"company": frappe.treeview_settings.filters["company"]
+					}
+				}
+			}
+		},
 		{fieldtype:'Link', fieldname:'account_currency', label:__('Currency'), options:"Currency",
 			description: __("Optional. Sets company's default currency, if not specified.")}
 	],
+	ignore_fields:["parent_account"],
 	onrender: function(node) {
 		var dr_or_cr = node.data.balance < 0 ? "Cr" : "Dr";
 		if (node.data && node.data.balance!==undefined) {

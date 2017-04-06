@@ -4,21 +4,18 @@
 erpnext.taxes_and_totals = erpnext.payments.extend({
 	setup: function() {},
 	apply_pricing_rule_on_item: function(item){
-		if(!item.margin_type){
-			item.margin_rate_or_amount = 0.0;
-		}
-
 		if(item.margin_type == "Percentage"){
-			item.total_margin = item.price_list_rate + item.price_list_rate * ( item.margin_rate_or_amount / 100);
+			item.total_margin = flt(item.price_list_rate) 
+				+ flt(item.price_list_rate) * ( flt(item.margin_rate_or_amount) / 100);
 		}else{
-			item.total_margin = item.price_list_rate + item.margin_rate_or_amount;
+			item.total_margin = flt(item.price_list_rate) + flt(item.margin_rate_or_amount);
 		}
 
-		item.rate = flt(item.total_margin , 2);
+		item.rate = flt(item.total_margin , precision("rate", item));
 
 		if(item.discount_percentage){
 			discount_value = flt(item.total_margin) * flt(item.discount_percentage) / 100;
-			item.rate = flt((item.total_margin) - (discount_value), precision('rate'));
+			item.rate = flt((item.total_margin) - (discount_value), precision('rate', item));
 		}
 	},
 
@@ -591,11 +588,13 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 	calculate_paid_amount: function(){
 		var me = this;
 		var paid_amount = base_paid_amount = 0.0;
-		$.each(this.frm.doc['payments'] || [], function(index, data){
-			data.base_amount = flt(data.amount * me.frm.doc.conversion_rate, precision("base_amount"));
-			paid_amount += data.amount;
-			base_paid_amount += data.base_amount;
-		})
+		if(this.frm.doc.is_pos) {
+			$.each(this.frm.doc['payments'] || [], function(index, data){
+				data.base_amount = flt(data.amount * me.frm.doc.conversion_rate, precision("base_amount"));
+				paid_amount += data.amount;
+				base_paid_amount += data.base_amount;
+			})
+		}
 
 		this.frm.doc.paid_amount = flt(paid_amount, precision("paid_amount"));
 		this.frm.doc.base_paid_amount = flt(base_paid_amount, precision("base_paid_amount"));

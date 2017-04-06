@@ -13,7 +13,7 @@ from frappe.model.mapper import get_mapped_doc
 from erpnext.stock.stock_balance import update_bin_qty, get_indented_qty
 from erpnext.controllers.buying_controller import BuyingController
 from erpnext.manufacturing.doctype.production_order.production_order import get_item_details
-
+from erpnext.buying.utils import check_for_closed_status, validate_for_items
 
 form_grid_templates = {
 	"items": "templates/form_grid/material_request_grid.html"
@@ -46,7 +46,7 @@ class MaterialRequest(BuyingController):
 					docstatus = 1 and parent != %s""", (item, so_no, self.name))
 				already_indented = already_indented and flt(already_indented[0][0]) or 0
 
-				actual_so_qty = frappe.db.sql("""select sum(qty) from `tabSales Order Item`
+				actual_so_qty = frappe.db.sql("""select sum(stock_qty) from `tabSales Order Item`
 					where parent = %s and item_code = %s and docstatus = 1""", (so_no, item))
 				actual_so_qty = actual_so_qty and flt(actual_so_qty[0][0]) or 0
 
@@ -72,12 +72,9 @@ class MaterialRequest(BuyingController):
 		from erpnext.controllers.status_updater import validate_status
 		validate_status(self.status, ["Draft", "Submitted", "Stopped", "Cancelled"])
 
-		pc_obj = frappe.get_doc('Purchase Common')
-		pc_obj.validate_for_items(self)
+		validate_for_items(self)
 
 		# self.set_title()
-
-
 		# self.validate_qty_against_so()
 		# NOTE: Since Item BOM and FG quantities are combined, using current data, it cannot be validated
 		# Though the creation of Material Request from a Production Plan can be rethought to fix this
@@ -112,9 +109,7 @@ class MaterialRequest(BuyingController):
 		self.update_requested_qty()
 
 	def on_cancel(self):
-		pc_obj = frappe.get_doc('Purchase Common')
-
-		pc_obj.check_for_closed_status(self.doctype, self.name)
+		check_for_closed_status(self.doctype, self.name)
 
 		self.update_requested_qty()
 
@@ -371,6 +366,7 @@ def raise_production_orders(material_request):
 	mr= frappe.get_doc("Material Request", material_request)
 	errors =[]
 	production_orders = []
+	default_wip_warehouse = frappe.db.get_single_value("Manufacturing Settings", "default_wip_warehouse")
 	for d in mr.items:
 		if (d.qty - d.ordered_qty) >0:
 			if frappe.db.get_value("BOM", {"item": d.item_code, "is_default": 1}):
@@ -378,6 +374,7 @@ def raise_production_orders(material_request):
 				prod_order.production_item = d.item_code
 				prod_order.qty = d.qty - d.ordered_qty
 				prod_order.fg_warehouse = d.warehouse
+				prod_order.wip_warehouse = default_wip_warehouse
 				prod_order.description = d.description
 				prod_order.stock_uom = d.uom
 				prod_order.expected_delivery_date = d.schedule_date
@@ -390,11 +387,11 @@ def raise_production_orders(material_request):
 				prod_order.save()
 				production_orders.append(prod_order.name)
 			else:
-				errors.append(d.item_code + " in Row " + cstr(d.idx))
+				errors.append(_("Row {0}: Bill of Materials not found for the Item {1}").format(d.idx, d.item_code))
 	if production_orders:
 		message = ["""<a href="#Form/Production Order/%s" target="_blank">%s</a>""" % \
 			(p, p) for p in production_orders]
-		msgprint(_("The following Production Orders were created:" + '\n' + new_line_sep(message)))
+		msgprint(_("The following Production Orders were created:") + '\n' + new_line_sep(message))
 	if errors:
-		msgprint(_("Productions Orders cannot be raised for:" + '\n' + new_line_sep(errors)))
+		frappe.throw(_("Productions Orders cannot be raised for:") + '\n' + new_line_sep(errors))
 	return production_orders
