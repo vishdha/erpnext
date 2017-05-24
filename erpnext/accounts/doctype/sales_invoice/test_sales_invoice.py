@@ -737,6 +737,12 @@ class TestSalesInvoice(unittest.TestCase):
 		self.assertFalse(frappe.db.get_value("Serial No", serial_nos[0], "warehouse"))
 		self.assertEquals(frappe.db.get_value("Serial No", serial_nos[0],
 			"delivery_document_no"), si.name)
+		self.assertEquals(frappe.db.get_value("Serial No", serial_nos[0], "sales_invoice"),
+			si.name)
+
+		# check if the serial number is already linked with any other Sales Invoice
+		_si = frappe.copy_doc(si.as_dict())
+		self.assertRaises(frappe.ValidationError, _si.insert)
 
 		return si
 
@@ -750,6 +756,7 @@ class TestSalesInvoice(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("Serial No", serial_nos[0], "warehouse"), "_Test Warehouse - _TC")
 		self.assertFalse(frappe.db.get_value("Serial No", serial_nos[0],
 			"delivery_document_no"))
+		self.assertFalse(frappe.db.get_value("Serial No", serial_nos[0], "sales_invoice"))
 
 	def test_serialize_status(self):
 		serial_no = frappe.get_doc({
@@ -767,6 +774,27 @@ class TestSalesInvoice(unittest.TestCase):
 		si.insert()
 
 		self.assertRaises(SerialNoWarehouseError, si.submit)
+
+	def test_serial_numbers_against_delivery_note(self):
+		""" 
+			check if the sales invoice item serial numbers and the delivery note items
+			serial numbers are same
+		"""
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
+		from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
+		from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_invoice
+		from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
+
+		se = make_serialized_item()
+		serial_nos = get_serial_nos(se.get("items")[0].serial_no)
+
+		dn = create_delivery_note(item=se.get("items")[0].item_code, serial_no=serial_nos[0])
+		dn.submit()
+
+		si = make_sales_invoice(dn.name)
+		si.save()
+
+		self.assertEquals(si.get("items")[0].serial_no, dn.get("items")[0].serial_no)
 
 	def test_invoice_due_date_against_customers_credit_days(self):
 		# set customer's credit days
@@ -1042,6 +1070,25 @@ class TestSalesInvoice(unittest.TestCase):
 		si.load_from_db()
 		#check outstanding after advance cancellation
 		self.assertEqual(flt(si.outstanding_amount), flt(si.grand_total + si.total_advance, si.precision("outstanding_amount")))
+
+	def test_multiple_uom_in_selling(self):
+		si = frappe.copy_doc(test_records[1])
+
+		si.items[0].uom = "_Test UOM 1"
+		si.items[0].conversion_factor = None
+		si.items[0].price_list_rate = None
+		si.save()
+
+		expected_values = {
+			"keys": ["price_list_rate", "stock_uom", "uom", "conversion_factor", "rate", "amount",
+				"base_price_list_rate", "base_rate", "base_amount"],
+			"_Test Item": [1000, "_Test UOM", "_Test UOM 1", 10.0, 1000, 1000, 1000, 1000, 1000]
+		}
+
+		# check if the conversion_factor and price_list_rate is calculated according to uom
+		for d in si.get("items"):
+			for i, k in enumerate(expected_values["keys"]):
+				self.assertEquals(d.get(k), expected_values[d.item_code][i])
 
 def create_sales_invoice(**args):
 	si = frappe.new_doc("Sales Invoice")
