@@ -338,10 +338,7 @@ cur_frm.cscript.hide_fields = function(doc) {
 	cur_frm.refresh_fields();
 }
 
-cur_frm.cscript.update_stock = function(doc, dt, dn) {
-	cur_frm.cscript.hide_fields(doc, dt, dn);
-	this.frm.fields_dict.items.grid.toggle_reqd("item_code", doc.update_stock? true: false)
-}
+
 
 cur_frm.cscript['Make Delivery Note'] = function() {
 	frappe.model.open_mapped_doc({
@@ -536,6 +533,12 @@ frappe.ui.form.on('Sales Invoice Timesheet', {
 				}
 			})
 		}
+	}
+})
+
+frappe.ui.form.on('Sales Invoice Item', {
+	refresh: function(frm) {
+		frm.refresh_field('update_stock');
 	}
 })
 
