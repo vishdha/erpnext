@@ -1,7 +1,8 @@
 $.extend(frappe.test_data, {
 	'Customer': {
 		'Test Customer 1': [
-			{customer_name: 'Test Customer 1'}
+			{customer_name: 'Test Customer 1'},
+			{delivery_date:	frappe.datetime.add_days(frappe.defaults.get_default("year_end_date"), 1)},
 		],
 		'Test Customer 2': [
 			{customer_name: 'Test Customer 2'}
