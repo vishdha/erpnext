@@ -28,7 +28,7 @@ QUnit.test("test quotation", function(assert) {
 	]);
 });
 
-QUnit.only("test sales order", function(assert) {
+QUnit.test("test sales order", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	frappe.run_serially([
