@@ -28,6 +28,7 @@ QUnit.test("test quotation", function(assert) {
 	]);
 });
 
+
 QUnit.test("test sales order", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
