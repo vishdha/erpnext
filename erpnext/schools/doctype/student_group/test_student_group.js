@@ -59,7 +59,7 @@ QUnit.test('Test: Student Group', function(assert){
 					() => frappe.tests.click_button('Get Students'),
 					() => frappe.timeout(1),
 					() => {
-						assert.equal(cur_frm.doc.students.length, 5, 'Successfully fetched list of students');
+						assert.equal(cur_frm.doc.students.length, 5, 'Successfully fetched list of students'+cur_frm.doc.students.length);
 					},
 				);
 			});

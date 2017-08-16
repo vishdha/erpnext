@@ -1,4 +1,4 @@
-	QUnit.test("test:POS Profile", function(assert) {
+QUnit.test("test:POS Profile", function(assert) {
 	assert.expect(1);
 	let done = assert.async();
 
