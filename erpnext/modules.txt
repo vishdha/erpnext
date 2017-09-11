@@ -16,3 +16,5 @@ Maintenance
 Schools
 Regional
 Healthcare
+Subscription
+Non Profit
