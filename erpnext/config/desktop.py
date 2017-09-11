@@ -293,5 +293,12 @@ def get_data():
 			"_doctype": "Restaurant",
 			"link": "List/Restaurant",
 			"label": _("Restaurant")
+		},
+		{
+			"module_name": "Non Profit",
+			"color": "#DE2B37",
+			"icon": "octicon octicon-heart",
+			"type": "module",
+			"label": _("Non Profit")
 		}
 	]
