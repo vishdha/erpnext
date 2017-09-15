@@ -63,4 +63,4 @@ jobs:
         - bench --verbose run-setup-wizard-ui-test
         - bench execute erpnext.setup.utils.enable_all_roles_and_domains
         - bench run-ui-tests --app erpnext
-      env: Client Side test
+      env: Client Side Test
