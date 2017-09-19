@@ -1,0 +1,3 @@
+erpnext.demo.domains
+erpnext.demo
+erpnext.demo.demo

@@ -1,0 +1,5 @@
+erpnext.demo.setup.manufacture
+erpnext.demo.setup.setup_data
+erpnext.demo.setup.education
+erpnext.demo.setup
+erpnext.demo.setup.healthcare

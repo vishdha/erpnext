@@ -1,0 +1,10 @@
+erpnext.demo.user.hr
+erpnext.demo.user.stock
+erpnext.demo.user.fixed_asset
+erpnext.demo.user.sales
+erpnext.demo.user.schools
+erpnext.demo.user.purchase
+erpnext.demo.user.manufacturing
+erpnext.demo.user.projects
+erpnext.demo.user.accounts
+erpnext.demo.user
