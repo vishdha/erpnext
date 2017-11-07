@@ -59,9 +59,15 @@ jobs:
         - bench run-tests
       env: Server Side Test
     - # stage
+      env:
+        - "TEST_GROUP=1"
+        - "TEST_GROUP=2"
+        - "TEST_GROUP=3"
+        - "TEST_GROUP=4"
+        - "TEST_GROUP=5"
+        - "TEST_GROUP=6"
+
       script:
         - bench --verbose run-setup-wizard-ui-test
         - bench execute erpnext.setup.utils.enable_all_roles_and_domains
-        - bench run-ui-tests --app erpnext
-      env: Client Side Test
-
+        - bundle exec parallel_test bench run-ui-tests --app erpnext -n 6 --only-group $TEST_GROUP --group-by filesize --type rspec
