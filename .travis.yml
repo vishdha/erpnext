@@ -68,3 +68,4 @@ jobs:
 
       script:
         - bench run-ui-tests --app erpnext
+      env: Client Side Test
