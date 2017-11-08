@@ -51,6 +51,11 @@ before_script:
   - bench start &
   - sleep 10
 
+env:
+  - FOO=  - bench --verbose run-setup-wizard-ui-test
+  - FOO=  - bench execute erpnext.setup.utils.enable_all_roles_and_domains
+
+script: echo $FOO
 
 jobs:
   include:
@@ -60,10 +65,6 @@ jobs:
         - bench run-tests
       env: Server Side Test
     - # stage
-      env:
-        - FOO=  - bench --verbose run-setup-wizard-ui-test
-        - FOO=  - bench execute erpnext.setup.utils.enable_all_roles_and_domains
 
-
-      script: echo $FOO
-        - bench run-ui-tests --app erpnext $TEST_GROUP
+      script:
+        - bench run-ui-tests --app erpnext
