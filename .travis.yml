@@ -52,12 +52,14 @@ before_script:
   - sleep 10
 
 
-env: Server Side Test
-script:
-  - set -e
-  - bench run-tests
-
 jobs:
+  include:
+    - stage: server test
+      script:
+        - set -e
+        - bench run-tests
+      env: Server Side Test
+
   include:
     - stage: test
       script:
