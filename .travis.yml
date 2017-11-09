@@ -51,28 +51,21 @@ before_script:
   - bench start &
   - sleep 10
 
-
-jobs:
+# Build matrix
+matrix:
   include:
+
+    # Lint only in Node.js 0.12
     - stage: server test
       script:
         - set -e
         - bench run-tests
       env: Server Side Test
 
-  include:
-    - stage: test
-      script:
-        - bench --verbose run-setup-wizard-ui-test
-      env: Run Setup Wizard
     - # stage
 
       script:
-        -  bench execute erpnext.setup.utils.enable_all_roles_and_domains
-      env: Enabled All Domain
-
-    - stage: Merge Test
-
-      script:
+        - bench --verbose run-setup-wizard-ui-test
+        - bench execute erpnext.setup.utils.enable_all_roles_and_domains
         - bench run-ui-tests --app erpnext
       env: Client Side Test
