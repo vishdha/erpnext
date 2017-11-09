@@ -59,11 +59,10 @@ env:
 script: if [$FOO == server]; then
           - set -e
           - bench run-tests
-        fi
         if [$FOO == pre-client]; then
           - bench --verbose run-setup-wizard-ui-test
           - bench execute erpnext.setup.utils.enable_all_roles_and_domains
-        fi
+
 jobs:
   include:
     - stage: test
