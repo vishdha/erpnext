@@ -1,5 +1,4 @@
 language: python
-cache: bundler
 dist: trusty
 
 addons:
@@ -11,6 +10,9 @@ addons:
 
 python:
   - "2.7"
+
+cache:
+  pip: true
 
 services:
   - mysql
