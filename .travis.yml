@@ -51,21 +51,19 @@ before_script:
   - bench start &
   - sleep 10
 
-# Build matrix
-matrix:
+
+env:
+  - FOO=  - set -e
+          - bench run-tests
+  - FOO=  - bench --verbose run-setup-wizard-ui-test
+          - bench execute erpnext.setup.utils.enable_all_roles_and_domains
+
+script: $FOO
+
+jobs:
   include:
-
-    # Lint only in Node.js 0.12
-    - stage: server test
+    - stage: test
       script:
-        - set -e
-        - bench run-tests
-      env: Server Side Test
-
-    - # stage
-
-      script:
-        - bench --verbose run-setup-wizard-ui-test
-        - bench execute erpnext.setup.utils.enable_all_roles_and_domains
         - bench run-ui-tests --app erpnext
-      env: Client Side Test
+      env: FOO= - bench --verbose run-setup-wizard-ui-test
+                - bench execute erpnext.setup.utils.enable_all_roles_and_domains
