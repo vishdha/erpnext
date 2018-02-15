@@ -5,4 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.db.sql(""" update `tabSingles` set 'b2c_limit' = 250000 where doctype = 'GST Settings'""")
+	frappe.reload_doc("regional", "doctype", "gst_settings")
+	gst_settings = frappe.get_doc("GST Settings")
+	gst_settings.b2c_limit = 250000
+	gst_settings.save()
