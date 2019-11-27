@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.utils import getdate, validate_email_add, today, add_years, format_datetime
+from frappe.utils import getdate, validate_email_add, today, add_years, format_datetime, has_gravatar
 from frappe.model.naming import set_name_by_naming_series
 from frappe import throw, _, scrub
 from frappe.permissions import add_user_permission, remove_user_permission, \
@@ -48,8 +48,9 @@ class Employee(NestedSet):
 		if self.job_applicant:
 			self.validate_onboarding_process()
 
-		if self.user_id:
+		if self.user_id and not self.image:
 			self.validate_user_details()
+			self.image = has_gravatar(self.user_id)
 		else:
 			existing_user_id = frappe.db.get_value("Employee", self.name, "user_id")
 			if existing_user_id:
