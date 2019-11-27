@@ -1,5 +1,4 @@
 {
- "actions": [],
  "creation": "2013-08-02 13:45:23",
  "doctype": "DocType",
  "document_type": "Other",
@@ -10,7 +9,6 @@
   "retirement_age",
   "emp_created_by",
   "column_break_4",
-  "stop_birthday_reminders",
   "expense_approver_mandatory_in_expense_claim",
   "payroll_settings",
   "include_holidays_in_total_working_days",
@@ -20,6 +18,9 @@
   "email_salary_slip_to_employee",
   "encrypt_salary_slips_in_emails",
   "password_policy",
+  "birthday_reminder_settings_section",
+  "stop_birthday_reminders",
+  "birthday_email_template",
   "leave_settings",
   "leave_approval_notification_template",
   "leave_status_notification_template",
@@ -55,13 +56,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "description": "Don't send Employee Birthday Reminders",
-   "fieldname": "stop_birthday_reminders",
-   "fieldtype": "Check",
-   "label": "Stop Birthday Reminders"
-  },
-  {
    "default": "1",
    "fieldname": "expense_approver_mandatory_in_expense_claim",
    "fieldtype": "Check",
@@ -78,6 +72,13 @@
    "fieldname": "include_holidays_in_total_working_days",
    "fieldtype": "Check",
    "label": "Include holidays in Total no. of Working Days"
+  },
+  {
+   "default": "0",
+   "description": "If checked, hides and disables Rounded Total field in Salary Slips",
+   "fieldname": "disable_rounded_total",
+   "fieldtype": "Check",
+   "label": "Disable Rounded Total"
   },
   {
    "fieldname": "max_working_hours_against_timesheet",
@@ -110,6 +111,25 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Password Policy"
+  },
+  {
+   "fieldname": "birthday_reminder_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Birthday Reminder Settings"
+  },
+  {
+   "default": "0",
+   "description": "Don't send Employee Birthday Reminders",
+   "fieldname": "stop_birthday_reminders",
+   "fieldtype": "Check",
+   "label": "Stop Birthday Reminders"
+  },
+  {
+   "depends_on": "eval:doc.stop_birthday_reminders == 0",
+   "fieldname": "birthday_email_template",
+   "fieldtype": "Link",
+   "label": "Birthday Email Template",
+   "options": "Email Template"
   },
   {
    "collapsible": 1,
@@ -146,6 +166,12 @@
    "label": "Show Leaves Of All Department Members In Calendar"
   },
   {
+   "default": "0",
+   "fieldname": "auto_leave_encashment",
+   "fieldtype": "Check",
+   "label": "Auto Leave Encashment"
+  },
+  {
    "collapsible": 1,
    "fieldname": "hiring_settings",
    "fieldtype": "Section Break",
@@ -156,26 +182,12 @@
    "fieldname": "check_vacancies",
    "fieldtype": "Check",
    "label": "Check Vacancies On Job Offer Creation"
-  },
-  {
-   "default": "0",
-   "fieldname": "auto_leave_encashment",
-   "fieldtype": "Check",
-   "label": "Auto Leave Encashment"
-  },
-  {
-   "default": "0",
-   "description": "If checked, hides and disables Rounded Total field in Salary Slips",
-   "fieldname": "disable_rounded_total",
-   "fieldtype": "Check",
-   "label": "Disable Rounded Total"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
- "links": [],
- "modified": "2019-12-31 14:28:32.004121",
+ "modified": "2020-06-10 07:03:32.431532",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "HR Settings",
