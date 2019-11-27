@@ -48,9 +48,8 @@ class Employee(NestedSet):
 		if self.job_applicant:
 			self.validate_onboarding_process()
 
-		if self.user_id and not self.image:
+		if self.user_id:
 			self.validate_user_details()
-			self.image = has_gravatar(self.user_id)
 		else:
 			existing_user_id = frappe.db.get_value("Employee", self.name, "user_id")
 			if existing_user_id:
@@ -61,10 +60,10 @@ class Employee(NestedSet):
 		self.employee_name = ' '.join(filter(lambda x: x, [self.first_name, self.middle_name, self.last_name]))
 
 	def validate_user_details(self):
+		if not self.image:
+			self.image = has_gravatar(self.user_id)
 		data = frappe.db.get_value('User',
-			self.user_id, ['enabled', 'user_image'], as_dict=1)
-		if data.get("user_image"):
-			self.image = data.get("user_image")
+			self.user_id, ['enabled'], as_dict=1)
 		self.validate_for_enabled_user_id(data.get("enabled", 0))
 		self.validate_duplicate_user_id()
 
