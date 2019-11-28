@@ -62,9 +62,9 @@ class Employee(NestedSet):
 	def validate_user_details(self):
 		if not self.image:
 			self.image = has_gravatar(self.user_id)
-		data = frappe.db.get_value('User',
-			self.user_id, ['enabled'], as_dict=1)
-		self.validate_for_enabled_user_id(data.get("enabled", 0))
+		enabled = frappe.db.get_value('User',
+			self.user_id, 'enabled')
+		self.validate_for_enabled_user_id(enabled)
 		self.validate_duplicate_user_id()
 
 	def update_nsm_model(self):
