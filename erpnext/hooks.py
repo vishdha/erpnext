@@ -219,7 +219,8 @@ doc_events = {
 	}
 }
 
-cancel_exempt_doctypes = [
+# On cancel event Payment Entry will be exempted and all linked submittable doctype will get cancelled.
+auto_cancel_exempt_doctypes = [
 	"Payment Entry"
 ]
 
