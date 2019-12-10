@@ -52,8 +52,10 @@ class LeaveApplication(Document):
 		self.notify_employee()
 		self.reload()
 
-	def on_cancel(self):
+	def before_cancel(self):
 		self.status = "Cancelled"
+
+	def on_cancel(self):
 		# notify leave applier about cancellation
 		self.notify_employee()
 		self.cancel_attendance()
