@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from frappe.utils import getdate, validate_email_address, today, add_years, format_datetime, cstr
+from frappe.utils import add_years, cstr, getdate, has_gravatar, today, validate_email_address
 from frappe.model.naming import set_name_by_naming_series
 from frappe import throw, _, scrub
 from frappe.permissions import add_user_permission, remove_user_permission, \
@@ -61,11 +61,11 @@ class Employee(NestedSet):
 		self.employee_name = ' '.join(filter(lambda x: x, [self.first_name, self.middle_name, self.last_name]))
 
 	def validate_user_details(self):
-		data = frappe.db.get_value('User',
-			self.user_id, ['enabled', 'user_image'], as_dict=1)
-		if data.get("user_image"):
-			self.image = data.get("user_image")
-		self.validate_for_enabled_user_id(data.get("enabled", 0))
+		if not self.image:
+			self.image = has_gravatar(self.user_id)
+		enabled = frappe.db.get_value('User',
+			self.user_id, 'enabled')
+		self.validate_for_enabled_user_id(enabled)
 		self.validate_duplicate_user_id()
 
 	def update_nsm_model(self):
