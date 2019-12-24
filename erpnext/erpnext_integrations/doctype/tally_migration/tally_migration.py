@@ -18,7 +18,6 @@ from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import
 from frappe import _
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
-from frappe.model.naming import getseries, revert_series_if_last
 from frappe.utils.data import format_datetime
 
 
