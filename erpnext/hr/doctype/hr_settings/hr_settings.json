@@ -182,8 +182,9 @@
   {
    "depends_on": "eval:doc.restrict_backdated_leave_application == 1",
    "fieldname": "role_allowed_to_create_backdated_leave_application",
-   "fieldtype": "Data",
-   "label": "Role Allowed to Create Backdated Leave Application"
+   "fieldtype": "Link",
+   "label": "Role Allowed to Create Backdated Leave Application",
+   "options": "Role"
   },
   {
    "default": "0",
@@ -196,7 +197,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-01-06 17:26:36.009469",
+ "modified": "2020-01-06 17:31:53.399460",
  "modified_by": "vishal@gmail.com",
  "module": "HR",
  "name": "HR Settings",
