@@ -77,6 +77,12 @@ class LeaveApplication(Document):
 						frappe.throw(_("{0} applicable after {1} working days").format(self.leave_type, leave_type.applicable_after))
 
 	def validate_dates(self):
+		if frappe.db.get_single_value("HR Settings", "restrict_backdated_leave_application"):
+			if self.from_date and self.from_date < frappe.utils.today():
+				allowed_role = frappe.db.get_single_value("HR Settings", "role_allowed_to_create_backdated_leave_application")
+				if allowed_role not in frappe.get_roles():
+					frappe.throw(_("Only users with the {0} role can create backdated leave applications").format(allowed_role))
+
 		if self.from_date and self.to_date and (getdate(self.to_date) < getdate(self.from_date)):
 			frappe.throw(_("To date cannot be before from date"))
 
@@ -588,7 +594,7 @@ def get_leave_entries(employee, leave_type, from_date, to_date):
 			is_carry_forward, is_expired
 		FROM `tabLeave Ledger Entry`
 		WHERE employee=%(employee)s AND leave_type=%(leave_type)s
-			AND docstatus=1 
+			AND docstatus=1
 			AND (leaves<0
 				OR is_expired=1)
 			AND (from_date between %(from_date)s AND %(to_date)s
