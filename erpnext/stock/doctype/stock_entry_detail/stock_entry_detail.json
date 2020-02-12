@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "hash",
  "creation": "2013-03-29 18:22:12",
  "doctype": "DocType",
@@ -63,7 +64,12 @@
   "column_break_51",
   "transferred_qty",
   "reference_purchase_receipt",
-  "project"
+  "project",
+  "item_weight_details_section",
+  "weight_per_unit",
+  "total_weight",
+  "column_break_62",
+  "weight_uom"
  ],
  "fields": [
   {
@@ -490,11 +496,36 @@
    "no_copy": 1,
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "item_weight_details_section",
+   "fieldtype": "Section Break",
+   "label": "Item Weight Details"
+  },
+  {
+   "fieldname": "weight_per_unit",
+   "fieldtype": "Float",
+   "label": "Weight Per Unit"
+  },
+  {
+   "fieldname": "total_weight",
+   "fieldtype": "Float",
+   "label": "Total Weight"
+  },
+  {
+   "fieldname": "column_break_62",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "weight_uom",
+   "fieldtype": "Data",
+   "label": "Weight UOM"
   }
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2019-08-20 14:01:02.319754",
+ "links": [],
+ "modified": "2020-02-12 01:36:04.875265",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Entry Detail",

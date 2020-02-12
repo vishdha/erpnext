@@ -762,7 +762,7 @@ class StockEntry(StockController):
 
 	def get_item_details(self, args=None, for_update=False):
 		item = frappe.db.sql("""select i.name, i.stock_uom, i.description, i.image, i.item_name, i.item_group,
-				i.has_batch_no, i.sample_quantity, i.has_serial_no,
+				i.has_batch_no, i.sample_quantity, i.has_serial_no, i.weight_per_unit, i.weight_uom,
 				id.expense_account, id.buying_cost_center
 			from `tabItem` i LEFT JOIN `tabItem Default` id ON i.name=id.parent and id.company=%s
 			where i.name=%s
@@ -776,7 +776,6 @@ class StockEntry(StockController):
 		item = item[0]
 		item_group_defaults = get_item_group_defaults(item.name, self.company)
 		brand_defaults = get_brand_defaults(item.name, self.company)
-
 		ret = frappe._dict({
 			'uom'			      	: item.stock_uom,
 			'stock_uom'				: item.stock_uom,
@@ -793,7 +792,10 @@ class StockEntry(StockController):
 			'serial_no'				: '',
 			'has_serial_no'			: item.has_serial_no,
 			'has_batch_no'			: item.has_batch_no,
-			'sample_quantity'		: item.sample_quantity
+			'sample_quantity'		: item.sample_quantity,
+			'weight_per_unit'		: item.weight_per_unit,
+			'weight_uom'			: item.weight_uom,
+			'total_weight'			: float(item.weight_per_unit * args.get('qty'))
 		})
 
 		# update uom
