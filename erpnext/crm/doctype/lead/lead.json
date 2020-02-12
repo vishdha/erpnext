@@ -242,7 +242,8 @@
    "depends_on": "eval: doc.__islocal",
    "fieldname": "address_title",
    "fieldtype": "Data",
-   "label": "Address Title"
+   "label": "Address Title",
+   "print_hide": 1
   },
   {
    "depends_on": "eval: doc.__islocal",

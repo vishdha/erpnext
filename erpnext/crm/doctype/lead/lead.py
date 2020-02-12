@@ -197,6 +197,7 @@ class Lead(SellingController):
 
 		# update contact links
 		if self.contact_doc:
+			self.contact_doc.address = self.address_doc.name if self.address_doc else None
 			self.contact_doc.append("links", {
 				"link_doctype": "Lead",
 				"link_name": self.name,
