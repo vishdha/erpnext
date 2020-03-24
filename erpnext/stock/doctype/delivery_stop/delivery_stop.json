@@ -189,20 +189,22 @@
    "label": "Delivery Window"
   },
   {
-   "fetch_from": "customer.delivery_start_time",
+   "fetch_from": "delivery_note.delivery_start_time",
    "fieldname": "delivery_start_time",
    "fieldtype": "Time",
-   "label": "Delivery Start Time"
+   "label": "Delivery Start Time",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_18",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "customer.delivery_end_time",
+   "fetch_from": "delivery_note.delivery_end_time",
    "fieldname": "delivery_end_time",
    "fieldtype": "Time",
-   "label": "Delivery End Time"
+   "label": "Delivery End Time",
+   "read_only": 1
   }
  ],
  "istable": 1,
