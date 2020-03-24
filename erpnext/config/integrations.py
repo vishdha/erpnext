@@ -25,6 +25,17 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Webhook"),
+			"icon": "fa fa-star",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "TaxJar Settings",
+					"description": _("TaxJar settings"),
+				}
+			]
+		},
+		{
 			"label": _("Settings"),
 			"items": [
 				{

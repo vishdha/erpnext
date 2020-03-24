@@ -28,6 +28,7 @@
   "disabled",
   "is_internal_customer",
   "represents_company",
+  "exempt_from_sales_tax",
   "allowed_to_transact_section",
   "companies",
   "currency_and_price_list",

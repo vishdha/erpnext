@@ -240,9 +240,16 @@ doc_events = {
 		"validate": "erpnext.portal.doctype.products_settings.products_settings.home_page_is_products"
 	},
 	"Sales Invoice": {
-		"on_submit": ["erpnext.regional.create_transaction_log", "erpnext.regional.italy.utils.sales_invoice_on_submit"],
-		"on_cancel": "erpnext.regional.italy.utils.sales_invoice_on_cancel",
-		"on_trash": "erpnext.regional.check_deletion_permission"
+		"on_submit": [
+					"erpnext.regional.create_transaction_log", 
+					"erpnext.regional.italy.utils.sales_invoice_on_submit",
+					"erpnext.erpnext_integrations.taxjar_integration.create_transaction"
+		],
+		"on_cancel": [
+					"erpnext.regional.italy.utils.sales_invoice_on_cancel",
+					"erpnext.erpnext_integrations.taxjar_integration.delete_transaction"
+		],
+		"on_trash":  "erpnext.regional.check_deletion_permission",
 	},
 	"Payment Entry": {
 		"on_submit": ["erpnext.regional.create_transaction_log", "erpnext.accounts.doctype.payment_request.payment_request.make_status_as_paid"],
@@ -263,12 +270,24 @@ doc_events = {
 	},
 	"Email Unsubscribe": {
 		"after_insert": "erpnext.crm.doctype.email_campaign.email_campaign.unsubscribe_recipient"
+	},
+	('Quotation', 'Sales Order', 'Sales Invoice'): {
+		'validate': ["erpnext.erpnext_integrations.taxjar_integration.set_sales_tax"]
 	}
 }
 
+<<<<<<< HEAD
 # To maintain data integrity, we exempt payments from being auto-cancelled when related documents
 # are cancelled; payments will be unlinked instead whenever linked invoices are cancelled
 auto_cancel_exempt_doctypes = ["Payment Entry"]
+=======
+# On cancel event Payment Entry will be exempted and all linked submittable doctype will get cancelled.
+# to maintain data integrity we exempted payment entry. it will un-link when sales invoice get cancelled.
+# if payment entry not in auto ca	ncel exempted doctypes it will cancel payment entry.
+auto_cancel_exempted_doctypes= [
+	"Payment Entry"
+]
+>>>>>>> 8595064d0b... feat: Taxjar Integration Added
 
 scheduler_events = {
 	"all": [

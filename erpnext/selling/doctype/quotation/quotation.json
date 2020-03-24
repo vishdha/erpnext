@@ -57,6 +57,7 @@
   "column_break_34",
   "shipping_rule",
   "section_break_36",
+  "exempt_from_sales_tax",
   "taxes_and_charges",
   "taxes",
   "sec_tax_breakup",
@@ -923,6 +924,12 @@
    "label": "Lost Reasons",
    "options": "Lost Reason Detail",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "exempt_from_sales_tax",
+   "fieldtype": "Check",
+   "label": "Exempt From Sales Tax"
   }
  ],
  "icon": "fa fa-shopping-cart",
@@ -930,7 +937,7 @@
  "is_submittable": 1,
  "links": [],
  "max_attachments": 1,
- "modified": "2019-12-30 19:14:56.630270",
+ "modified": "2020-03-23 21:37:11.691510",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Quotation",
