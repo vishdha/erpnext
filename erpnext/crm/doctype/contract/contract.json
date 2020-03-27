@@ -24,6 +24,7 @@
   "ip_address",
   "sb_contract",
   "contract_template",
+  "contract_sections",
   "contract_terms",
   "sb_fulfilment",
   "requires_fulfilment",
@@ -223,10 +224,18 @@
    "options": "Contract",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "description": "The contract terms will be generated as per the sequence defined in the table",
+   "fieldname": "contract_sections",
+   "fieldtype": "Table",
+   "label": "Contract Sections",
+   "options": "Contract Template Section"
   }
  ],
  "is_submittable": 1,
- "modified": "2019-09-30 00:56:41.559681",
+ "links": [],
+ "modified": "2020-03-27 04:38:49.583558",
  "modified_by": "Administrator",
  "module": "CRM",
  "name": "Contract",
