@@ -27,6 +27,7 @@ class ShiftType(Document):
 		}
 		logs = frappe.db.get_list('Employee Checkin', fields="*", filters=filters, order_by="employee,time")
 		for key, group in itertools.groupby(logs, key=lambda x: (x['employee'], x['shift_actual_start'])):
+			print("=========================employee===============")
 			single_shift_logs = list(group)
 			attendance_status, working_hours, late_entry, early_exit = self.get_attendance(single_shift_logs)
 			mark_attendance_and_link_log(single_shift_logs, attendance_status, key[1].date(), working_hours, late_entry, early_exit, self.name)
@@ -41,6 +42,7 @@ class ShiftType(Document):
 		"""
 		late_entry = early_exit = False
 		total_working_hours, in_time, out_time = calculate_working_hours(logs, self.determine_check_in_and_check_out, self.working_hours_calculation_based_on)
+		print("================total_working_hours====================", total_working_hours, in_time, out_time)
 		if cint(self.enable_entry_grace_period) and in_time and in_time > logs[0].shift_start + timedelta(minutes=cint(self.late_entry_grace_period)):
 			late_entry = True
 		
@@ -48,9 +50,12 @@ class ShiftType(Document):
 			early_exit = True
 			
 		if self.working_hours_threshold_for_absent and total_working_hours < self.working_hours_threshold_for_absent:
+			print("=====================================absent================", total_working_hours)
 			return 'Absent', total_working_hours, late_entry, early_exit
 		if self.working_hours_threshold_for_half_day and total_working_hours < self.working_hours_threshold_for_half_day:
+			print("=====================================half Days================", total_working_hours)
 			return 'Half Day', total_working_hours, late_entry, early_exit
+		print("=====================================present================", total_working_hours)
 		return 'Present', total_working_hours, late_entry, early_exit
 
 	def mark_absent_for_dates_with_no_attendance(self, employee):
@@ -62,7 +67,9 @@ class ShiftType(Document):
 			date_of_joining = employee_creation.date()
 		start_date = max(getdate(self.process_attendance_after), date_of_joining)
 		actual_shift_datetime = get_actual_start_end_datetime_of_shift(employee, get_datetime(self.last_sync_of_checkin), True)
+		print("==============================actual_shift_datetime===========================", actual_shift_datetime)
 		last_shift_time = actual_shift_datetime[0] if actual_shift_datetime[0] else get_datetime(self.last_sync_of_checkin)
+		print("=============================last_shift_time================================", last_shift_time)
 		prev_shift = get_employee_shift(employee, last_shift_time.date()-timedelta(days=1), True, 'reverse')
 		if prev_shift:
 			end_date = min(prev_shift.start_datetime.date(), relieving_date) if relieving_date else prev_shift.start_datetime.date()
