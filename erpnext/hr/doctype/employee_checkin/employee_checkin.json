@@ -13,7 +13,6 @@
   "column_break_4",
   "time",
   "device_id",
-  "time_zone",
   "skip_auto_attendance",
   "attendance",
   "shift_start",
@@ -105,15 +104,10 @@
    "fieldtype": "Datetime",
    "hidden": 1,
    "label": "Shift Actual End"
-  },
-  {
-   "fieldname": "time_zone",
-   "fieldtype": "Select",
-   "label": "Time Zone"
   }
  ],
  "links": [],
- "modified": "2020-04-01 03:23:24.690336",
+ "modified": "2020-04-06 05:56:44.583590",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Employee Checkin",
