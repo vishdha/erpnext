@@ -1229,16 +1229,18 @@
    "label": "Delivery End time"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "affirm_id",
    "fieldtype": "Data",
-   "label": "Affirm ID"
+   "label": "Affirm ID",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2020-04-10 07:29:58.383597",
+ "modified": "2020-04-13 00:20:00.545700",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",
