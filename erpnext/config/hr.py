@@ -229,6 +229,11 @@ def get_data():
 					"name": "Employee Tax Exemption Sub Category",
 					"dependencies": ["Employee"]
 				},
+				{
+					"type": "doctype",
+					"name": "Employee Compensation",
+					"dependencies": ["Employee"]
+				},
 			]
 		},
 		{
