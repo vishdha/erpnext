@@ -23,7 +23,6 @@
   "delivery_date",
   "po_no",
   "po_date",
-  "affirm_id",
   "tax_id",
   "contact_info",
   "customer_address",
@@ -1227,20 +1226,13 @@
    "fieldname": "delivery_end_time",
    "fieldtype": "Time",
    "label": "Delivery End time"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "affirm_id",
-   "fieldtype": "Data",
-   "label": "Affirm ID",
-   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
  "links": [],
- "modified": "2020-04-13 00:20:00.545700",
+ "modified": "2020-04-22 01:41:07.798403",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",
