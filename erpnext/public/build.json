@@ -57,12 +57,5 @@
         "stock/dashboard/item_dashboard.html",
         "stock/dashboard/item_dashboard_list.html",
         "stock/dashboard/item_dashboard.js"
-	],
-	"js/affirm_gateway_embed.js": [
-        "public/js/affirm/affirm_gateway_summary.html",
-		"public/js/affirm/embed.js"
-    ],
-    "css/affirm_gateway_embed.css": [
-        "public/css/affirm/affirm_gateway_embed.css"
-    ]
+	]
 }
