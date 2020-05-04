@@ -1,14 +1,6 @@
 {% extends "templates/web.html" %}
 {% from "erpnext/templates/includes/order/order_macros.html" import item_name_and_description %}
 
-{% block style %}
-	<style>
-		#pay-for-order {
-			color: #fff;
-		}
-	</style>
-{% endblock %}
-
 {% block breadcrumbs %}
 	{% include "templates/includes/breadcrumbs.html" %}
 {% endblock %}
@@ -132,7 +124,7 @@
 					<strong>Payment</strong>
 				</div>
 			</div>
-			<div class="panel-body text-muted small">
+			<div class="panel-body small">
 				<div class="row">
 					<div class="form-column col-sm-3">
 					{% if available_loyalty_points %}
