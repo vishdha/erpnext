@@ -211,7 +211,8 @@ def item_query(doctype, txt, searchfield, start, page_len, filters, as_dict=Fals
 		limit %(start)s, %(page_len)s """.format(
 			key=searchfield,
 			columns=columns,
-			scond=searchfields,
+			scond=" or ".join([field + " like %(txt)s" for field in searchfields]),
+			extra_cond=extra_cond,
 			fcond=get_filters_cond(doctype, filters, conditions).replace('%', '%%'),
 			mcond=get_match_cond(doctype).replace('%', '%%'),
 			description_cond = description_cond),
@@ -277,10 +278,10 @@ def get_project_name(doctype, txt, searchfield, start, page_len, filters):
 
 
 def get_delivery_notes_to_be_billed(doctype, txt, searchfield, start, page_len, filters, as_dict):
-	fields = get_fields("Delivery Note", ["name", "customer", "posting_date"])
+	fields = get_fields("Project", ["name", "customer", "posting_date"])
 
 	return frappe.db.sql("""
-		select %(fields)s
+		select {fields}
 		from `tabDelivery Note`
 		where `tabDelivery Note`.`%(key)s` like %(txt)s and
 			`tabDelivery Note`.docstatus = 1
@@ -582,6 +583,6 @@ def get_fields(doctype, fields=[]):
 	fields.extend(meta.get_search_fields())
 
 	if meta.title_field and not meta.title_field.strip() in fields:
-		fields.insert(1, meta.title_field.strip())
+		fields.insert(meta.title_field.strip(), 1)
 
 	return unique(fields)

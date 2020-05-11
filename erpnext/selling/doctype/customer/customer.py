@@ -352,20 +352,20 @@ def get_customer_list(doctype, txt, searchfield, start, page_len, filters=None):
 		match_conditions += "{}".format(filter_conditions)
 
 	return frappe.db.sql("""
-			select %s
-			from `tabCustomer`
-			where docstatus < 2
-				and (%s like %s or customer_name like %s)
-					{match_conditions}
-			order by
-				case when name like %s then 0 else 1 end,
-				case when customer_name like %s then 0 else 1 end,
-				name, customer_name limit %s, %s
+		select %s
+		from `tabCustomer`
+		where docstatus < 2
+			and (%s like %s or customer_name like %s)
+			{match_conditions}
+		order by
+			case when name like %s then 0 else 1 end,
+			case when customer_name like %s then 0 else 1 end,
+			name, customer_name limit %s, %s
 		""".format(match_conditions=match_conditions) % (", ".join(fields), searchfield, "%s", "%s", "%s", "%s", "%s", "%s"),
-			("%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, start, page_len))
+		("%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, start, page_len))
 
 
-def check_credit_limit(customer, company, reference_doctype, reference_document, ignore_outstanding_sales_order=False, extra_amount=0):
+def check_credit_limit(customer, company, ignore_outstanding_sales_order=False, extra_amount=0):
 	customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
 	if extra_amount > 0:
 		customer_outstanding += flt(extra_amount)
