@@ -153,10 +153,10 @@ def get_batch_qty(batch_no=None, warehouse=None, item_code=None):
 
 	out = 0
 	if batch_no and warehouse:
-		out = float(frappe.db.sql("""select sum(actual_qty), stock_uom
+		out = frappe.db.sql("""select sum(actual_qty) as qty, stock_uom
 			from `tabStock Ledger Entry`
 			where warehouse=%s and batch_no=%s""",
-			(warehouse, batch_no))[0][0] or 0)
+			(warehouse, batch_no), as_dict=1)
 
 	if batch_no and not warehouse:
 		out = frappe.db.sql('''select warehouse, sum(actual_qty) as qty, stock_uom
@@ -230,8 +230,8 @@ def set_batch_nos(doc, warehouse_field, throw=False):
 				d.batch_no = get_batch_no(d.item_code, warehouse, qty, throw, d.serial_no)
 			else:
 				batch_qty = get_batch_qty(batch_no=d.batch_no, warehouse=warehouse)
-				if flt(batch_qty, d.precision("qty")) < flt(qty, d.precision("qty")):
-					frappe.throw(_("Row #{0}: The batch {1} has only {2} qty. Please select another batch which has {3} qty available or split the row into multiple rows, to deliver/issue from multiple batches").format(d.idx, d.batch_no, batch_qty, qty))
+				if flt(batch_qty[0].qty, d.precision("qty")) < flt(qty, d.precision("qty")):
+					frappe.throw(_("Row #{0}: The batch {1} has only {2} {3} qty . Please select another batch which has {4} qty available or split the row into multiple rows, to deliver/issue from multiple batches").format(d.idx, d.batch_no, batch_qty[0].qty, batch_qty[0].stock_uom, qty))
 
 @frappe.whitelist()
 def get_batch_no(item_code, warehouse, qty=1, throw=False, serial_no=None):
