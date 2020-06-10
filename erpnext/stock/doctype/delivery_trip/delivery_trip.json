@@ -9,10 +9,12 @@
   "naming_series",
   "company",
   "column_break_2",
+  "package_total",
   "email_notification_sent",
   "section_break_3",
   "driver",
   "driver_name",
+  "driver_email",
   "driver_address",
   "total_distance",
   "uom",
@@ -168,11 +170,23 @@
    "fieldtype": "Link",
    "label": "Driver Address",
    "options": "Address"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "package_total",
+   "fieldtype": "Currency",
+   "label": "Package Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "driver_email",
+   "fieldtype": "Data",
+   "label": "Driver Email",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
- "links": [],
- "modified": "2020-01-26 22:37:14.824021",
+ "modified": "2020-06-10 04:22:55.816139",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Trip",

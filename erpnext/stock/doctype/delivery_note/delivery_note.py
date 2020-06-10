@@ -310,29 +310,30 @@ class DeliveryNote(SellingController):
 	def make_return_invoice(self):
 		if frappe.db.get_value('Delivery Note', self.return_against, 'per_billed') != 100:
 			frappe.throw(_("Cannot Issue Credit Note if Delvery Note {0} is not billed.").format(self.return_against))
-		 
+
 		return_invoices = defaultdict(list)
 		for item in self.items:
 			if item.against_sales_invoice:
 				return_invoices[item.against_sales_invoice].append(item.item_code)
-		
+
 		if not return_invoices:
 			for sales_invoice in frappe.db.sql("select parent from `tabSales Invoice Item` where delivery_note = %s", self.return_against, as_dict=1):
 				return_invoices[sales_invoice.parent].append(item.item_code)
 
 		for invoice, items in return_invoices.items():
-			return_invoice = make_sales_invoice(self.name)
-			return_invoice.is_return = True
-			return_invoice.return_against = invoice
-			return_invoice.items = list(filter(lambda x: x.item_code in items, return_invoice.items))
-			return_invoice.save()
-			return_invoice.submit()
+			try:
+				return_invoice = make_sales_invoice(self.name)
+				return_invoice.is_return = True
+				return_invoice.return_against = invoice
+				return_invoice.items = list(filter(lambda x: x.item_code in items, return_invoice.items))
+				return_invoice.save()
+				return_invoice.submit()
 
-			credit_note_link = frappe.utils.get_link_to_form('Sales Invoice', return_invoice.name)
+				credit_note_link = frappe.utils.get_link_to_form('Sales Invoice', return_invoice.name)
 
-			frappe.msgprint(_("Credit Note {0} has been created automatically").format(credit_note_link))
-		except:
-			frappe.throw(_("Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"))
+				frappe.msgprint(_("Credit Note {0} has been created automatically").format(credit_note_link))
+			except:
+				frappe.throw(_("Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"))
 
 def update_billed_amount_based_on_so(so_detail, update_modified=True):
 	# Billed against Sales Order directly
