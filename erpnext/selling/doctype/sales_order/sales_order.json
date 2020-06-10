@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2013-06-18 12:39:59",
@@ -207,14 +208,6 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "skip_delivery_note",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Skip Delivery Note",
-   "print_hide": 1
-  },
-  {
    "fieldname": "column_break1",
    "fieldtype": "Column Break",
    "oldfieldtype": "Column Break",
@@ -333,12 +326,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "contact_phone",
-   "fieldtype": "Data",
-   "label": "Phone",
-   "read_only": 1
-  },
-  {
    "fieldname": "contact_mobile",
    "fieldtype": "Small Text",
    "label": "Mobile No",
@@ -354,16 +341,16 @@
    "read_only": 1
   },
   {
-   "fieldname": "company_address",
-   "fieldtype": "Link",
-   "label": "Company Address Name",
-   "options": "Address"
-  },
-  {
    "fieldname": "company_address_display",
    "fieldtype": "Small Text",
    "label": "Company Address",
    "read_only": 1
+  },
+  {
+   "fieldname": "company_address",
+   "fieldtype": "Link",
+   "label": "Company Address Name",
+   "options": "Address"
   },
   {
    "fieldname": "col_break46",
@@ -557,13 +544,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "label": "Total Net Weight",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -575,6 +555,13 @@
    "fieldtype": "Currency",
    "label": "Net Total",
    "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_net_weight",
+   "fieldtype": "Float",
+   "label": "Total Net Weight",
    "print_hide": 1,
    "read_only": 1
   },
@@ -1189,12 +1176,27 @@
    "fieldname": "update_auto_repeat_reference",
    "fieldtype": "Button",
    "label": "Update Auto Repeat Reference"
+  },
+  {
+   "fieldname": "contact_phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "skip_delivery_note",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Skip Delivery Note",
+   "print_hide": 1
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
- "modified": "2020-06-10 06:03:26.080345",
+ "links": [],
+ "modified": "2020-04-17 12:50:39.640534",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",

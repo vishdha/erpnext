@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2013-05-24 19:29:05",
@@ -244,6 +245,16 @@
    "read_only": 1
   },
   {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "label": "Project",
+   "oldfieldname": "project_name",
+   "oldfieldtype": "Link",
+   "options": "Project",
+   "print_hide": 1
+  },
+  {
    "default": "0",
    "fieldname": "is_pos",
    "fieldtype": "Check",
@@ -292,6 +303,12 @@
    "print_hide": 1,
    "remember_last_selected_value": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
   },
   {
    "bold": 1,
@@ -369,32 +386,6 @@
    "fieldname": "update_billed_amount_in_sales_order",
    "fieldtype": "Check",
    "label": "Update Billed Amount in Sales Order"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "accounting_dimensions_section",
-   "fieldtype": "Section Break",
-   "label": "Accounting Dimensions"
-  },
-  {
-   "fieldname": "project",
-   "fieldtype": "Link",
-   "in_global_search": 1,
-   "label": "Project",
-   "oldfieldname": "project_name",
-   "oldfieldtype": "Link",
-   "options": "Project",
-   "print_hide": 1
-  },
-  {
-   "fieldname": "dimension_col_break",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cost_center",
-   "fieldtype": "Link",
-   "label": "Cost Center",
-   "options": "Cost Center"
   },
   {
    "collapsible": 1,
@@ -710,13 +701,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "label": "Total Net Weight",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -728,6 +712,13 @@
    "fieldtype": "Currency",
    "label": "Net Total",
    "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_net_weight",
+   "fieldtype": "Float",
+   "label": "Total Net Weight",
    "print_hide": 1,
    "read_only": 1
   },
@@ -1283,6 +1274,17 @@
    "print_hide": 1
   },
   {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Print Language",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_84",
+   "fieldtype": "Column Break"
+  },
+  {
    "allow_on_submit": 1,
    "fieldname": "select_print_heading",
    "fieldtype": "Link",
@@ -1293,17 +1295,6 @@
    "options": "Print Heading",
    "print_hide": 1,
    "report_hide": 1
-  },
-  {
-   "fieldname": "column_break_84",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "language",
-   "fieldtype": "Data",
-   "label": "Print Language",
-   "print_hide": 1,
-   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -1563,12 +1554,23 @@
    "print_hide": 1,
    "print_hide_if_no_value": 1,
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  },
+  {
+   "fieldname": "dimension_col_break",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 181,
  "is_submittable": 1,
- "modified": "2020-06-10 06:02:58.098334",
+ "links": [],
+ "modified": "2020-05-19 17:00:57.208696",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2013-05-24 19:29:09",
@@ -324,18 +325,6 @@
    "width": "100px"
   },
   {
-   "fieldname": "section_break_18",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "pick_list",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Pick List",
-   "options": "Pick List",
-   "read_only": 1
-  },
-  {
    "collapsible": 1,
    "depends_on": "customer",
    "fieldname": "contact_info",
@@ -614,13 +603,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "label": "Total Net Weight",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -632,6 +614,13 @@
    "fieldtype": "Currency",
    "label": "Net Total",
    "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_net_weight",
+   "fieldtype": "Float",
+   "label": "Total Net Weight",
    "print_hide": 1,
    "read_only": 1
   },
@@ -1230,12 +1219,25 @@
    "oldfieldtype": "Table",
    "options": "Sales Team",
    "print_hide": 1
+  },
+  {
+   "fieldname": "pick_list",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Pick List",
+   "options": "Pick List",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
- "modified": "2020-06-10 06:03:35.738717",
+ "links": [],
+ "modified": "2020-05-19 17:03:45.880106",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

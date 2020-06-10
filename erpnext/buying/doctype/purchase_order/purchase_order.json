@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2013-05-21 16:16:39",
@@ -498,13 +499,6 @@
    "label": "Raw Materials Supplied"
   },
   {
-   "depends_on": "supplied_items",
-   "fieldname": "set_reserve_warehouse",
-   "fieldtype": "Link",
-   "label": "Set Reserve Warehouse",
-   "options": "Warehouse"
-  },
-  {
    "fieldname": "supplied_items",
    "fieldtype": "Table",
    "label": "Supplied Items",
@@ -548,13 +542,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "label": "Total Net Weight",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -572,16 +559,26 @@
    "read_only": 1
   },
   {
+   "fieldname": "total_net_weight",
+   "fieldtype": "Float",
+   "label": "Total Net Weight",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "taxes_section",
    "fieldtype": "Section Break",
    "oldfieldtype": "Section Break",
    "options": "fa fa-money"
   },
   {
-   "fieldname": "tax_category",
+   "fieldname": "taxes_and_charges",
    "fieldtype": "Link",
-   "label": "Tax Category",
-   "options": "Tax Category"
+   "label": "Purchase Taxes and Charges Template",
+   "oldfieldname": "purchase_other_charges",
+   "oldfieldtype": "Link",
+   "options": "Purchase Taxes and Charges Template",
+   "print_hide": 1
   },
   {
    "fieldname": "column_break_50",
@@ -597,15 +594,6 @@
   {
    "fieldname": "section_break_52",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "taxes_and_charges",
-   "fieldtype": "Link",
-   "label": "Purchase Taxes and Charges Template",
-   "oldfieldname": "purchase_other_charges",
-   "oldfieldtype": "Link",
-   "options": "Purchase Taxes and Charges Template",
-   "print_hide": 1
   },
   {
    "fieldname": "taxes",
@@ -1049,12 +1037,26 @@
    "fieldname": "update_auto_repeat_reference",
    "fieldtype": "Button",
    "label": "Update Auto Repeat Reference"
+  },
+  {
+   "fieldname": "tax_category",
+   "fieldtype": "Link",
+   "label": "Tax Category",
+   "options": "Tax Category"
+  },
+  {
+   "depends_on": "supplied_items",
+   "fieldname": "set_reserve_warehouse",
+   "fieldtype": "Link",
+   "label": "Set Reserve Warehouse",
+   "options": "Warehouse"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
- "modified": "2020-06-10 06:03:15.249169",
+ "links": [],
+ "modified": "2020-04-17 13:04:28.185197",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Purchase Order",
