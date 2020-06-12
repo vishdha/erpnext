@@ -354,6 +354,7 @@ def check_credit_limit(customer, company, ignore_outstanding_sales_order=False, 
 		if not credit_controller_role or credit_controller_role not in frappe.get_roles():
 			# form a list of emails for the credit controller users
 			credit_controller_users = get_users_with_role(credit_controller_role or "Sales Master Manager")
+			credit_controller_users = [user[0] for user in credit_controller_users]
 
 			# form a list of emails and names to show to the user
 			credit_controller_users_list = [user for user in credit_controller_users if frappe.db.exists("Employee", {"prefered_email": user})]
