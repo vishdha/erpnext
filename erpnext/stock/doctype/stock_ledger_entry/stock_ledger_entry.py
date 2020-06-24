@@ -43,7 +43,7 @@ class StockLedgerEntry(Document):
 			batch.calculate_batch_qty()
 			batch.save()
 
-		if not self.get("via_landed_cost_voucher") and self.voucher_type != 'Stock Reconciliation':
+		if not self.get("via_landed_cost_voucher"):
 			from erpnext.stock.doctype.serial_no.serial_no import process_serial_no
 			process_serial_no(self)
 
