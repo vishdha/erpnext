@@ -2,15 +2,17 @@
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
-from six import text_type
+
+from six import string_types, text_type
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.naming import make_autoname, revert_series_if_last
-from frappe.utils import flt, cint, get_link_to_form
-from frappe.utils.jinja import render_template
+from frappe.model.naming import make_autoname
+from frappe.utils import cint, flt, get_link_to_form
 from frappe.utils.data import add_days
-from six import string_types
+from frappe.utils.jinja import render_template
+
 
 class UnableToSelectBatchError(frappe.ValidationError):
 	pass
@@ -106,15 +108,16 @@ class Batch(Document):
 	def onload(self):
 		self.image = frappe.db.get_value('Item', self.item, 'image')
 
-	def after_delete(self):
-		revert_series_if_last(get_batch_naming_series(), self.name)
-
 	def validate(self):
 		self.item_has_batch_enabled()
+		self.calculate_batch_qty()
 
 	def item_has_batch_enabled(self):
 		if frappe.db.get_value("Item", self.item, "has_batch_no") == 0:
 			frappe.throw(_("The selected item cannot have Batch"))
+
+	def calculate_batch_qty(self):
+		self.batch_qty = frappe.db.get_value("Stock Ledger Entry", {"docstatus": 1, "batch_no": self.batch_id}, "sum(actual_qty)")
 
 	def before_save(self):
 		has_expiry_date, shelf_life_in_days = frappe.db.get_value('Item', self.item, ['has_expiry_date', 'shelf_life_in_days'])

@@ -1521,8 +1521,9 @@ class TestSalesInvoice(unittest.TestCase):
 
 		shipping_charge = {
 			"doctype": "Sales Taxes and Charges",
-			"category": "Valuation and Total",
+			"category": "Total",
 			"charge_type": "Actual",
+			"add_deduct_tax": "Add",
 			"account_head": shipping_rule.account,
 			"cost_center": shipping_rule.cost_center,
 			"tax_amount": shipping_amount,

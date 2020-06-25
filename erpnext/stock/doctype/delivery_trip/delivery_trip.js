@@ -79,7 +79,35 @@ frappe.ui.form.on('Delivery Trip', {
 		}, () => {
 			frm.reload_doc();
 		});
+	},
 
+	driver: function (frm) {
+		if (frm.doc.driver) {
+			frappe.db.get_value("Delivery Trip", {
+				docstatus: ["<", 2],
+				driver: frm.doc.driver,
+				departure_time: [">", frappe.datetime.nowdate()]
+			}, "name", (r) => {
+				if (r) {
+					let confirm_message = `${frm.doc.driver_name} has already been assigned a Delivery Trip
+											today (${r.name}). Do you want to modify that instead?`;
+
+					frappe.confirm(__(confirm_message), function () {
+						frappe.set_route("Form", "Delivery Trip", r.name);
+					});
+				};
+			});
+
+			frappe.call({
+				method: "erpnext.stock.doctype.delivery_trip.delivery_trip.get_driver_email",
+				args: {
+					driver: frm.doc.driver
+				},
+				callback: (data) => {
+					frm.set_value("driver_email", data.message.email);
+				}
+			});
+		};
 	},
 
 	optimize_route: function (frm) {
@@ -157,6 +185,18 @@ frappe.ui.form.on('Delivery Stop', {
 					else {
 						frappe.model.set_value(cdt, cdn, "address", '');
 						frappe.model.set_value(cdt, cdn, "contact", '');
+					}
+				}
+			});
+
+
+			frappe.call({
+				method: "erpnext.stock.doctype.delivery_trip.delivery_trip.get_delivery_window",
+				args: { doctype : "Delivery Note" , docname : row.delivery_note, customer : row.customer },
+				callback: function (r) {
+					if(r.message && (r.message.delivery_start_time || r.message.delivery_end_time) ){
+						frappe.model.set_value(cdt, cdn, "delivery_start_time", r.message.delivery_start_time);
+						frappe.model.set_value(cdt, cdn, "delivery_end_time", r.message.delivery_end_time);
 					}
 				}
 			});

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "naming_series:",
  "creation": "2013-01-10 16:34:13",
@@ -65,6 +66,14 @@
    "read_only": 1
   },
   {
+   "depends_on": "working_hours",
+   "fieldname": "working_hours",
+   "fieldtype": "Float",
+   "label": "Working Hours",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
    "default": "Present",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -73,7 +82,7 @@
    "no_copy": 1,
    "oldfieldname": "status",
    "oldfieldtype": "Select",
-   "options": "\nPresent\nAbsent\nOn Leave\nHalf Day",
+   "options": "\nPresent\nAbsent\nOn Leave\nHalf Day\nWork From Home",
    "reqd": 1,
    "search_index": 1
   },
@@ -128,6 +137,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "shift",
+   "fieldtype": "Link",
+   "label": "Shift",
+   "options": "Shift Type"
+  },
+  {
    "fieldname": "attendance_request",
    "fieldtype": "Link",
    "label": "Attendance Request",
@@ -143,20 +158,6 @@
    "options": "Attendance",
    "print_hide": 1,
    "read_only": 1
-  },
-  {
-   "depends_on": "working_hours",
-   "fieldname": "working_hours",
-   "fieldtype": "Float",
-   "label": "Working Hours",
-   "precision": "1",
-   "read_only": 1
-  },
-  {
-   "fieldname": "shift",
-   "fieldtype": "Link",
-   "label": "Shift",
-   "options": "Shift Type"
   },
   {
    "default": "0",

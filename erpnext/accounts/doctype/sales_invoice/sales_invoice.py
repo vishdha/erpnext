@@ -326,7 +326,7 @@ class SalesInvoice(SellingController):
 				validate_against_credit_limit = True
 				break
 		if validate_against_credit_limit:
-			check_credit_limit(self.customer, self.company, bypass_credit_limit_check_at_sales_order)
+			check_credit_limit(self.customer, self.company,  self.doctype, self.name, bypass_credit_limit_check_at_sales_order)
 
 	def set_missing_values(self, for_validate=False):
 		pos = self.set_pos_fields(for_validate)
@@ -552,6 +552,8 @@ class SalesInvoice(SellingController):
 					continue
 
 				for d in self.get('items'):
+					if not d.item_code: continue
+
 					is_stock_item = frappe.get_cached_value('Item', d.item_code, 'is_stock_item')
 					if (d.item_code and is_stock_item ==1 and not d.get(key.lower().replace(' ', '_')) and not self.get(value[1])):
 						msgprint(_("{0} is mandatory for Item {1}").format(key, d.item_code), raise_exception=1)
@@ -574,14 +576,14 @@ class SalesInvoice(SellingController):
 
 	def validate_item_code(self):
 		for d in self.get('items'):
-			if not d.item_code:
+			if not d.item_code and self.is_opening == "No":
 				msgprint(_("Item Code required at Row No {0}").format(d.idx), raise_exception=True)
 
 	def validate_warehouse(self):
 		super(SalesInvoice, self).validate_warehouse()
 
 		for d in self.get_item_list():
-			if not d.warehouse and frappe.get_cached_value("Item", d.item_code, "is_stock_item"):
+			if not d.warehouse and d.item_code and frappe.get_cached_value("Item", d.item_code, "is_stock_item"):
 				frappe.throw(_("Warehouse required for stock Item {0}").format(d.item_code))
 
 	def validate_delivery_note(self):
@@ -792,13 +794,15 @@ class SalesInvoice(SellingController):
 		for tax in self.get("taxes"):
 			if flt(tax.base_tax_amount_after_discount_amount):
 				account_currency = get_account_currency(tax.account_head)
+				dr_or_cr = "credit" if tax.add_deduct_tax == "Add" else "debit"
+
 				gl_entries.append(
 					self.get_gl_dict({
 						"account": tax.account_head,
 						"against": self.customer,
-						"credit": flt(tax.base_tax_amount_after_discount_amount,
+						dr_or_cr: flt(tax.base_tax_amount_after_discount_amount,
 							tax.precision("tax_amount_after_discount_amount")),
-						"credit_in_account_currency": (flt(tax.base_tax_amount_after_discount_amount,
+						dr_or_cr + "_in_account_currency": (flt(tax.base_tax_amount_after_discount_amount,
 							tax.precision("base_tax_amount_after_discount_amount")) if account_currency==self.company_currency else
 							flt(tax.tax_amount_after_discount_amount, tax.precision("tax_amount_after_discount_amount"))),
 						"cost_center": tax.cost_center

@@ -7,7 +7,7 @@ from frappe import throw, _
 import frappe.defaults
 from frappe.utils import cint, flt, get_fullname, cstr
 from frappe.contacts.doctype.address.address import get_address_display
-from erpnext.shopping_cart.doctype.shopping_cart_settings.shopping_cart_settings import get_shopping_cart_settings
+from erpnext.shopping_cart.doctype.shopping_cart_settings.shopping_cart_settings import get_shopping_cart_settings, get_default_payment_gateway_account
 from frappe.utils.nestedset import get_root_of
 from erpnext.accounts.utils import get_account_name
 from erpnext.utilities.product import get_qty_in_stock
@@ -78,8 +78,10 @@ def place_order():
 
 			if is_stock_item:
 				item_stock = get_qty_in_stock(item.item_code, "website_warehouse")
+				if not cint(item_stock.in_stock):
+					throw(_("{1} Not in Stock").format(item.item_code))
 				if item.qty > item_stock.stock_qty[0][0]:
-					throw(_("Only {0} in stock for item {1}").format(item_stock.stock_qty[0][0], item.item_code))
+					throw(_("Only {0} in Stock for item {1}").format(item_stock.stock_qty[0][0], item.item_code))
 
 	sales_order.flags.ignore_permissions = True
 	sales_order.insert()
@@ -337,20 +339,16 @@ def set_price_list_and_rate(quotation, cart_settings):
 def _set_price_list(cart_settings, quotation=None):
 	"""Set price list based on customer or shopping cart default"""
 	from erpnext.accounts.party import get_default_price_list
-
-	# check if customer price list exists
+	party_name = quotation.get("party_name") if quotation else get_party().get("name")
 	selling_price_list = None
-	if quotation and quotation.get("party_name"):
-		selling_price_list = frappe.db.get_value('Customer', quotation.get("party_name"), 'default_price_list')
 
-	# else check for territory based price list
+	# check if default customer price list exists
+	if party_name:
+		selling_price_list = get_default_price_list(frappe.get_doc("Customer", party_name))
+
+	# check default price list in shopping cart
 	if not selling_price_list:
 		selling_price_list = cart_settings.price_list
-
-	party_name = quotation.get("party_name") if quotation else get_party().get("name")
-
-	if not selling_price_list and party_name:
-		selling_price_list = get_default_price_list(frappe.get_doc("Customer", party_name))
 
 	if quotation:
 		quotation.selling_price_list = selling_price_list
@@ -433,8 +431,8 @@ def get_party(user=None):
 		return customer
 
 def get_debtors_account(cart_settings):
-	payment_gateway_account_currency = \
-		frappe.get_doc("Payment Gateway Account", cart_settings.payment_gateway_account).currency
+	payment_gateway_account = get_default_payment_gateway_account(cart_settings)
+	payment_gateway_account_currency = frappe.get_doc("Payment Gateway Account", payment_gateway_account).currency
 
 	account_name = _("Debtors ({0})".format(payment_gateway_account_currency))
 

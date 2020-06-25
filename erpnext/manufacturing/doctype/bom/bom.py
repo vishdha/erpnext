@@ -101,13 +101,17 @@ class BOM(WebsiteGenerator):
 		if self.routing:
 			self.set("operations", [])
 			for d in frappe.get_all("BOM Operation", fields = ["*"],
-				filters = {'parenttype': 'Routing', 'parent': self.routing}):
-				child = self.append('operations', d)
+				filters = {'parenttype': 'Routing', 'parent': self.routing}, order_by="idx"):
+				child = self.append('operations', {
+					"operation": d.operation,
+					"workstation": d.workstation,
+					"description": d.description,
+					"time_in_mins": d.time_in_mins,
+					"batch_size": d.batch_size,
+					"operating_cost": d.operating_cost,
+					"idx": d.idx
+				})
 				child.hour_rate = flt(d.hour_rate / self.conversion_rate, 2)
-
-	def validate_rm_item(self, item):
-		if (item[0]['name'] in [it.item_code for it in self.items]) and item[0]['name'] == self.item:
-			frappe.throw(_("BOM #{0}: Raw material cannot be same as main Item").format(self.name))
 
 	def set_bom_material_details(self):
 		for item in self.get("items"):
@@ -138,7 +142,6 @@ class BOM(WebsiteGenerator):
 			args = json.loads(args)
 
 		item = self.get_item_det(args['item_code'])
-		self.validate_rm_item(item)
 
 		args['bom_no'] = args['bom_no'] or item and cstr(item[0]['default_bom']) or ''
 		args['transfer_for_manufacture'] = (cstr(args.get('include_item_in_manufacturing', '')) or

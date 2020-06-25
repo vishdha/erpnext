@@ -35,6 +35,7 @@ def set_default_settings(args):
 	stock_settings.auto_indent = 1
 	stock_settings.auto_insert_price_list_rate_if_missing = 1
 	stock_settings.automatically_set_serial_nos_based_on_fifo = 1
+	stock_settings.automatically_set_batch_nos_based_on_fifo = 1
 	stock_settings.set_qty_in_transactions_based_on_serial_no_input = 1
 	stock_settings.save()
 
@@ -62,6 +63,7 @@ def set_default_settings(args):
 	hr_settings.emp_created_by = "Naming Series"
 	hr_settings.leave_approval_notification_template = _("Leave Approval Notification")
 	hr_settings.leave_status_notification_template = _("Leave Status Notification")
+	hr_settings.birthday_email_template = _("Birthday Email Notification")
 	hr_settings.save()
 
 def set_no_copy_fields_in_variant_settings():

@@ -267,6 +267,12 @@ def install(country=None):
 	records += [{'doctype': 'Email Template', 'name': _("Dispatch Notification"), 'response': response,\
 		'subject': _("Your order is out for delivery!"), 'owner': frappe.session.user}]
 
+	base_path = frappe.get_app_path("erpnext", "templates", "emails")
+	response = frappe.read_file(os.path.join(base_path, "birthday_email_notification.html"))
+
+	records += [{'doctype': 'Email Template', 'name': _("Birthday Email Notification"), 'response': response,\
+		'subject': _("Happy Birthday!"), 'owner': frappe.session.user}]
+
 	# Records for the Supplier Scorecard
 	from erpnext.buying.doctype.supplier_scorecard.supplier_scorecard import make_default_records
 	make_default_records()
@@ -335,13 +341,14 @@ def add_uom_data():
 				"category_name": _(d.get("category"))
 			}).insert(ignore_permissions=True)
 
-		uom_conversion = frappe.get_doc({
-			"doctype": "UOM Conversion Factor",
-			"category": _(d.get("category")),
-			"from_uom": _(d.get("from_uom")),
-			"to_uom": _(d.get("to_uom")),
-			"value": d.get("value")
-		}).insert(ignore_permissions=True)
+		if not frappe.db.exists("UOM Conversion Factor", {"from_uom": _(d.get("from_uom")), "to_uom": _(d.get("to_uom"))}):
+			uom_conversion = frappe.get_doc({
+				"doctype": "UOM Conversion Factor",
+				"category": _(d.get("category")),
+				"from_uom": _(d.get("from_uom")),
+				"to_uom": _(d.get("to_uom")),
+				"value": d.get("value")
+			}).insert(ignore_permissions=True)
 
 def add_market_segments():
 	records = [
@@ -456,6 +463,7 @@ def install_defaults(args=None):
 	stock_settings.auto_indent = 1
 	stock_settings.auto_insert_price_list_rate_if_missing = 1
 	stock_settings.automatically_set_serial_nos_based_on_fifo = 1
+	stock_settings.automatically_set_batch_nos_based_on_fifo = 1
 	stock_settings.set_qty_in_transactions_based_on_serial_no_input = 1
 	stock_settings.save()
 

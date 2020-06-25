@@ -217,7 +217,7 @@ class SalesOrder(SellingController):
 		if not cint(frappe.db.get_value("Customer Credit Limit",
 			{'parent': self.customer, 'parenttype': 'Customer', 'company': self.company},
 			"bypass_credit_limit_check")):
-			check_credit_limit(self.customer, self.company)
+			check_credit_limit(self.customer, self.company, self.doctype, self.name)
 
 	def check_nextdoc_docstatus(self):
 		# Checks Delivery Note
@@ -868,7 +868,8 @@ def make_purchase_order(source_name, for_supplier=None, selected_items=[], targe
 			 		],
 					"field_no_map": [
 						"rate",
-						"price_list_rate"
+						"price_list_rate",
+						"item_tax_template"
 					],
 					"postprocess": update_item,
 					"condition": lambda doc: doc.ordered_qty < doc.qty and doc.supplier == supplier and doc.item_code in selected_items

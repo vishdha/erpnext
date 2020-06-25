@@ -667,3 +667,21 @@ execute:frappe.delete_doc_if_exists("Page", "appointment-analytic")
 erpnext.patches.v12_0.unset_customer_supplier_based_on_type_of_item_price
 erpnext.patches.v12_0.set_serial_no_status #2020-05-21
 erpnext.patches.v12_0.update_price_list_currency_in_bom
+erpnext.patches.v12_0.update_uom_conversion_factor
+erpnext.patches.v12_0.set_italian_import_supplier_invoice_permissions
+execute:frappe.reload_doc("HR", "doctype", "Employee Advance")
+erpnext.patches.v12_0.move_due_advance_amount_to_pending_amount
+erpnext.patches.v11_0.update_package_total_in_delivery_trips
+erpnext.patches.v12_0.set_is_completed_field_in_sales_orders
+erpnext.patches.v12_0.set_total_batch_quantity
+erpnext.patches.v12_0.enable_auto_select_batches_in_stock_settings
+erpnext.patches.v12_0.set_lead_title_field
+erpnext.patches.v12_0.add_default_birthday_email_template
+erpnext.patches.v12_0.set_employee_preferred_emails
+erpnext.patches.v12_0.set_job_offer_applicant_email
+erpnext.patches.v12_0.add_affirm_integration_field
+erpnext.patches.v12_0.update_payment_gateway_account_in_shopping_cart_settings
+erpnext.patches.v12_0.add_taxjar_integration_field
+erpnext.patches.v12_0.update_uom_conversion_factor
+erpnext.patches.v12_0.update_sales_taxes_and_charges_template
+erpnext.patches.v13_0.setup_remove_assignment_on_task

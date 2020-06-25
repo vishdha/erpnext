@@ -20,6 +20,9 @@ def get_template():
 
 	args = frappe.local.form_dict
 
+	if getdate(args.from_date) > getdate(args.to_date):
+		frappe.throw(_("To Date should be greater than From Date"))
+
 	w = UnicodeWriter()
 	w = add_header(w)
 
@@ -117,6 +120,15 @@ def upload():
 		raise frappe.PermissionError
 
 	from frappe.utils.csvutils import read_csv_content
+
+	if getattr(frappe.local, "uploaded_file", None):
+		fname = frappe.local.uploaded_file
+	else:
+		fname = frappe.form_dict.filename
+
+	if fname and not fname.lower().endswith(".csv"):
+		frappe.throw(_('The file "{}" is not a valid CSV file'.format(fname)))
+
 	rows = read_csv_content(frappe.local.uploaded_file)
 	if not rows:
 		frappe.throw(_("Please select a csv file"))

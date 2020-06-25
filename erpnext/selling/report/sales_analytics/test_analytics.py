@@ -51,6 +51,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 1",
 				"entity_name": "_Test Customer 1",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 0.0,
@@ -68,6 +70,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 2",
 				"entity_name": "_Test Customer 2",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 0.0,
@@ -85,6 +89,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 3",
 				"entity_name": "_Test Customer 3",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 2000.0,
@@ -101,6 +107,7 @@ class TestAnalytics(unittest.TestCase):
 			}
 		]
 		result = sorted(report[1], key=lambda k: k['entity'])
+		self.maxDiff = None
 		self.assertEqual(expected_data, result)
 
 	def compare_result_for_customer_group(self):
@@ -167,6 +174,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 1",
 				"entity_name": "_Test Customer 1",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 0.0,
@@ -184,6 +193,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 2",
 				"entity_name": "_Test Customer 2",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 0.0,
@@ -201,6 +212,8 @@ class TestAnalytics(unittest.TestCase):
 			{
 				"entity": "_Test Customer 3",
 				"entity_name": "_Test Customer 3",
+				'city': None,
+				'sales_partner': None,
 				"apr_2017": 0.0,
 				"may_2017": 0.0,
 				"jun_2017": 20.0,

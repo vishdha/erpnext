@@ -51,6 +51,10 @@
   "primary_address",
   "default_receivable_accounts",
   "accounts",
+  "delivery_window",
+  "delivery_start_time",
+  "column_break_42",
+  "delivery_end_time",
   "credit_limit_section",
   "payment_terms",
   "credit_limits",
@@ -480,13 +484,37 @@
    "fieldname": "dn_required",
    "fieldtype": "Check",
    "label": "Allow Sales Invoice Creation Without Delivery Note"
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "delivery_end_time",
+   "fieldtype": "Time",
+   "label": "Delivery End Time"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "delivery_window",
+   "fieldtype": "Section Break",
+   "label": "Delivery Window"
+  },
+  {
+   "fieldname": "delivery_start_time",
+   "fieldtype": "Time",
+   "label": "Delivery Start Time"
+  },
+  {
+   "fieldname": "column_break_42",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-user",
  "idx": 363,
  "image_field": "image",
  "links": [],
- "modified": "2020-03-17 11:03:42.706907",
+ "modified": "2020-03-26 03:04:46.953704",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",

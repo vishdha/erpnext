@@ -8,12 +8,15 @@ import frappe.defaults
 from erpnext.controllers.selling_controller import SellingController
 from erpnext.stock.doctype.batch.batch import set_batch_nos
 from erpnext.stock.doctype.serial_no.serial_no import get_delivery_note_serial_no
+from erpnext.stock.doctype.delivery_trip.delivery_trip import get_delivery_window
 from frappe import _
 from frappe.contacts.doctype.address.address import get_company_address
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.utils import get_fetch_values
 from frappe.utils import cint, flt
+
+from collections import defaultdict
 
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
@@ -192,6 +195,12 @@ class DeliveryNote(SellingController):
 		# Check for Approving Authority
 		frappe.get_doc('Authorization Control').validate_approving_authority(self.doctype, self.company, self.base_grand_total, self)
 
+		# We want to close completed sales orders if a credit note is being issued against any item
+		# returns, however, once an order is closed, no accounting entries can be made, so we're only
+		# marking them for closing here, while actually closing them after the other entries are made
+		if self.issue_credit_note:
+			self.close_sales_orders(only_mark=True)
+
 		# update delivered qty in sales order
 		self.update_prevdoc_status()
 		self.update_billing_status()
@@ -200,10 +209,15 @@ class DeliveryNote(SellingController):
 			self.check_credit_limit()
 		elif self.issue_credit_note:
 			self.make_return_invoice()
+
 		# Updating stock ledger should always be called after updating prevdoc status,
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
 		self.update_stock_ledger()
 		self.make_gl_entries()
+
+		# TODO: Close sales orders that are marked for it; find a better way to do this
+		if self.issue_credit_note:
+			self.close_sales_orders()
 
 	def on_cancel(self):
 		super(DeliveryNote, self).on_cancel()
@@ -219,7 +233,6 @@ class DeliveryNote(SellingController):
 		self.update_stock_ledger()
 
 		self.cancel_packing_slips()
-
 		self.make_gl_entries_on_cancel()
 
 	def check_credit_limit(self):
@@ -241,7 +254,7 @@ class DeliveryNote(SellingController):
 					break
 
 		if validate_against_credit_limit:
-			check_credit_limit(self.customer, self.company,
+			check_credit_limit(self.customer, self.company, self.doctype, self.name,
 				bypass_credit_limit_check_at_sales_order, extra_amount)
 
 	def validate_packed_qty(self):
@@ -306,17 +319,48 @@ class DeliveryNote(SellingController):
 		self.load_from_db()
 
 	def make_return_invoice(self):
-		try:
-			return_invoice = make_sales_invoice(self.name)
-			return_invoice.is_return = True
-			return_invoice.save()
-			return_invoice.submit()
+		if frappe.db.get_value('Delivery Note', self.return_against, 'per_billed') != 100:
+			frappe.throw(_("Cannot Issue Credit Note if Delivery Note {0} is not billed.").format(self.return_against))
 
-			credit_note_link = frappe.utils.get_link_to_form('Sales Invoice', return_invoice.name)
+		return_invoices = defaultdict(list)
+		for item in self.items:
+			if item.against_sales_invoice:
+				return_invoices[item.against_sales_invoice].append(item.item_code)
 
-			frappe.msgprint(_("Credit Note {0} has been created automatically").format(credit_note_link))
-		except:
-			frappe.throw(_("Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"))
+		if not return_invoices:
+			for sales_invoice in frappe.db.sql("select parent from `tabSales Invoice Item` where delivery_note = %s", self.return_against, as_dict=1):
+				return_invoices[sales_invoice.parent].append(item.item_code)
+
+		for invoice, items in return_invoices.items():
+			try:
+				return_invoice = make_sales_invoice(self.name)
+				return_invoice.is_return = True
+				return_invoice.return_against = invoice
+				return_invoice.items = list(filter(lambda x: x.item_code in items, return_invoice.items))
+				return_invoice.save()
+				return_invoice.submit()
+
+				credit_note_link = frappe.utils.get_link_to_form('Sales Invoice', return_invoice.name)
+
+				frappe.msgprint(_("Credit Note {0} has been created automatically").format(credit_note_link))
+			except:
+				frappe.throw(_("Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"))
+
+	def close_sales_orders(self, only_mark=False):
+		sales_orders = [item.against_sales_order for item in self.items if item.against_sales_order]
+		sales_orders = list(set(sales_orders))
+
+		for order in sales_orders:
+			so_doc = frappe.get_doc("Sales Order", order)
+
+			if only_mark and so_doc.status == "Completed":
+				so_doc.is_completed = True
+				so_doc.save()
+				continue
+
+			if so_doc.get("is_completed"):
+				so_doc.update_status("Closed")
+
 
 def update_billed_amount_based_on_so(so_detail, update_modified=True):
 	# Billed against Sales Order directly
@@ -428,7 +472,7 @@ def make_sales_invoice(source_name, target_doc=None):
 	def update_item(source_doc, target_doc, source_parent):
 		target_doc.qty = to_make_invoice_qty_map[source_doc.name]
 
-		if source_doc.serial_no and source_parent.per_billed > 0:
+		if source_doc.serial_no and source_parent.per_billed > 0 and not source_parent.is_return:
 			target_doc.serial_no = get_delivery_note_serial_no(source_doc.item_code,
 				target_doc.qty, source_parent.name)
 
@@ -492,7 +536,13 @@ def make_sales_invoice(source_name, target_doc=None):
 
 @frappe.whitelist()
 def make_delivery_trip(source_name, target_doc=None):
+	def update_total(source, target):
+		target.package_total = sum([stop.grand_total for stop in target.delivery_stops])
+
 	def update_stop_details(source_doc, target_doc, source_parent):
+		delivery_window = get_delivery_window(source_parent.doctype, source_parent.name)
+		target_doc.delivery_start_time = delivery_window.delivery_start_time
+		target_doc.delivery_end_time = delivery_window.delivery_end_time
 		target_doc.customer = source_parent.customer
 		target_doc.address = source_parent.shipping_address_name
 		target_doc.customer_address = source_parent.shipping_address
@@ -520,7 +570,7 @@ def make_delivery_trip(source_name, target_doc=None):
 			"condition": lambda item: item.parent not in delivery_notes,
 			"postprocess": update_stop_details
 		}
-	}, target_doc)
+	}, target_doc, update_total)
 
 	return doclist
 

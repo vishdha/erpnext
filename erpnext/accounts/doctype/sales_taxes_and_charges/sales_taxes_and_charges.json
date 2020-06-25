@@ -1,9 +1,13 @@
 {
+ "actions": [],
  "creation": "2013-04-24 11:39:32",
  "doctype": "DocType",
  "document_type": "Setup",
  "editable_grid": 1,
+ "engine": "InnoDB",
  "field_order": [
+  "category",
+  "add_deduct_tax",
   "charge_type",
   "row_id",
   "account_head",
@@ -192,15 +196,31 @@
   {
    "fieldname": "dimension_col_break",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Consider Tax or Charge for",
+   "options": "Total",
+   "reqd": 1
+  },
+  {
+   "fieldname": "add_deduct_tax",
+   "fieldtype": "Select",
+   "label": "Add or Deduct",
+   "options": "Add\nDeduct",
+   "reqd": 1
   }
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2019-05-25 22:59:38.740883",
+ "links": [],
+ "modified": "2020-05-19 03:31:26.950640",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Taxes and Charges",
  "owner": "Administrator",
  "permissions": [],
+ "sort_field": "modified",
  "sort_order": "ASC"
 }
