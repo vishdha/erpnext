@@ -86,6 +86,7 @@ $.extend(shopping_cart, {
 				args: {
 					item_code: opts.item_code,
 					qty: opts.qty,
+					row: opts.row,
 					additional_notes: opts.additional_notes !== undefined ? opts.additional_notes : undefined,
 					with_items: opts.with_items || 0
 				},
@@ -133,11 +134,12 @@ $.extend(shopping_cart, {
 		}
 	},
 
-	shopping_cart_update: function({item_code, qty, cart_dropdown, additional_notes}) {
+	shopping_cart_update: function({item_code, qty, row, cart_dropdown, additional_notes}) {
 		frappe.freeze();
 		shopping_cart.update_cart({
 			item_code,
 			qty,
+			row,
 			additional_notes,
 			with_items: 1,
 			btn: this,
@@ -162,7 +164,7 @@ $.extend(shopping_cart, {
 				oldValue = input.val().trim(),
 				newVal = 0;
 
-			if (btn.attr('data-dir') == 'up') {
+			if (btn.data('dir') == 'up') {
 				newVal = parseInt(oldValue) + 1;
 			} else {
 				if (oldValue > 1) {
@@ -170,7 +172,7 @@ $.extend(shopping_cart, {
 				}
 			}
 			input.val(newVal);
-			var item_code = input.attr("data-item-code");
+			var item_code = input.data("item-code");
 			shopping_cart.shopping_cart_update({item_code, qty: newVal, cart_dropdown: true});
 			return false;
 		});
