@@ -160,7 +160,7 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 					this.frm.add_custom_button(__('Pick List'), () => this.create_pick_list(), __('Create'));
 
 					// delivery note
-					if(flt(doc.per_delivered, 6) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1 && allow_delivery) {
+					if(flt(doc.per_delivered, 6) < 100 && allow_delivery) {
 						this.frm.add_custom_button(__('Delivery Note'), () => this.make_delivery_note_based_on_delivery_date(), __('Create'));
 						this.frm.add_custom_button(__('Work Order'), () => this.make_work_order(), __('Create'));
 					}
@@ -171,8 +171,7 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 					}
 
 					// material request
-					if(!doc.order_type || ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1
-						&& flt(doc.per_delivered, 6) < 100) {
+					if(flt(doc.per_delivered, 6) < 100) {
 						this.frm.add_custom_button(__('Material Request'), () => this.make_material_request(), __('Create'));
 						this.frm.add_custom_button(__('Request for Raw Materials'), () => this.make_raw_material_request(), __('Create'));
 					}
@@ -181,14 +180,13 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 						this.frm.add_custom_button(__('Purchase Order'), () => this.make_purchase_order(), __('Create'));
 
 					// maintenance
-					if(flt(doc.per_delivered, 2) < 100 &&
-							["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
+					if(flt(doc.per_delivered, 2) < 100 && doc.order_type =="Maintenance") {
 						this.frm.add_custom_button(__('Maintenance Visit'), () => this.make_maintenance_visit(), __('Create'));
 						this.frm.add_custom_button(__('Maintenance Schedule'), () => this.make_maintenance_schedule(), __('Create'));
 					}
 
 					// project
-					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1 && allow_delivery) {
+					if(flt(doc.per_delivered, 2) < 100 && allow_delivery) {
 							this.frm.add_custom_button(__('Project'), () => this.make_project(), __('Create'));
 					}
 
