@@ -15,6 +15,7 @@
   "image",
   "parent_batch",
   "manufacturing_date",
+  "display_on_website",
   "column_break_3",
   "batch_qty",
   "stock_uom",
@@ -172,13 +173,19 @@
    "fieldname": "packaged_date",
    "fieldtype": "Date",
    "label": "Packaged On Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "display_on_website",
+   "fieldtype": "Check",
+   "label": "Display on Website"
   }
  ],
  "icon": "fa fa-archive",
  "idx": 1,
  "image_field": "image",
  "max_attachments": 5,
- "modified": "2020-07-21 07:10:13.906100",
+ "modified": "2020-07-28 23:31:23.713919",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Batch",

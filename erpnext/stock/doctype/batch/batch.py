@@ -111,6 +111,7 @@ class Batch(Document):
 	def validate(self):
 		self.item_has_batch_enabled()
 		self.calculate_batch_qty()
+		self.validate_display_on_website()
 
 	def item_has_batch_enabled(self):
 		if frappe.db.get_value("Item", self.item, "has_batch_no") == 0:
@@ -143,6 +144,16 @@ class Batch(Document):
 		name = make_autoname(key)
 
 		return name
+
+	def validate_display_on_website(self):
+		"""
+		Uncheck website display status from all other batches for the current batch's item
+		"""
+
+		batches = frappe.get_all('Batch', filters={'item': self.item, 'name': ['!=', self.name]})
+
+		for batch in batches:
+			frappe.db.set_value('Batch', batch, 'display_on_website', False)
 
 
 @frappe.whitelist()
