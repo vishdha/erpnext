@@ -307,7 +307,8 @@
    "fieldname": "quality_inspection",
    "fieldtype": "Link",
    "label": "Quality Inspection",
-   "options": "Quality Inspection"
+   "options": "Quality Inspection",
+   "read_only": 1
   },
   {
    "fieldname": "accounting",
@@ -505,7 +506,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-06-08 12:57:03.172887",
+ "modified": "2020-07-24 05:50:29.481480",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Entry Detail",
