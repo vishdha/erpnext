@@ -22,6 +22,8 @@
   "expiry_date",
   "harvest_date",
   "packaged_date",
+  "thc",
+  "cbd",
   "source",
   "supplier",
   "column_break_9",
@@ -175,6 +177,18 @@
    "label": "Packaged On Date"
   },
   {
+   "fieldname": "thc",
+   "fieldtype": "Float",
+   "label": "THC %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cbd",
+   "fieldtype": "Float",
+   "label": "CBD %",
+   "read_only": 1
+  },
+  {
    "default": "0",
    "fieldname": "display_on_website",
    "fieldtype": "Check",
@@ -185,7 +199,7 @@
  "idx": 1,
  "image_field": "image",
  "max_attachments": 5,
- "modified": "2020-07-28 23:31:23.713919",
+ "modified": "2020-07-30 03:58:40.547577",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Batch",
