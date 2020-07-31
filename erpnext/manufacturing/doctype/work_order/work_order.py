@@ -767,6 +767,8 @@ def create_job_card(work_order, row, qty=0, auto_create=False):
 		'wip_warehouse': work_order.wip_warehouse
 	})
 
+	doc.get_scrap_items()
+
 	if work_order.transfer_material_against == 'Job Card' and not work_order.skip_transfer:
 		doc.get_required_items()
 
