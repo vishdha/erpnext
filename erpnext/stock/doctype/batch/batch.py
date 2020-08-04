@@ -275,7 +275,7 @@ def get_batch_no(item_code, warehouse, qty=1, throw=False, serial_no=None):
 	return batch_no
 
 
-def get_batches(item_code, warehouse, qty=1, throw=False, serial_no=None):
+def get_batches(item_code, warehouse, qty=1, throw=False, serial_no=None, as_dict=True):
 	from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 	cond = ''
 	if serial_no and frappe.get_cached_value('Item', item_code, 'has_batch_no'):

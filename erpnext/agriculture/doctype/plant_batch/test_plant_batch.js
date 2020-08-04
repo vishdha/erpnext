@@ -12,21 +12,10 @@ QUnit.test("test: Plant Batch", function (assert) {
 		// insert a new Plant Batch
 		() => frappe.tests.make('Plant Batch', [
 			// values to be set
-			{title: 'Basil from seed 2017'},
-			{detected_disease: [
-				[
-					{start_date: '2017-11-21'},
-					{disease: 'Aphids'}
-				]
-			]},
-			{linked_land_unit: [ 
-				[
-					{land_unit: 'Basil Farm'}
-				]
-			]},
-			{crop: 'Basil from seed'},
-			{start_date: '2017-11-11'},
-			{cycle_type: 'Less than a year'}
+			{ title: 'Basil from seed 2017' },
+			{ strain: 'Basil from seed' },
+			{ start_date: '2017-11-11' },
+			{ cycle_type: 'Less than a year' }
 		]),
 		() => assert.equal(cur_frm.doc.name, 'Basil from seed 2017'),
 		() => done()

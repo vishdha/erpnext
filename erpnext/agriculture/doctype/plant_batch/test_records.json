@@ -1,15 +1,8 @@
 [
 	{
-		"doctype": "Crop Cycle",
+		"doctype": "Plant Batch",
+		"strain": "Basil",
 		"title": "Basil from seed 2017",
-		"linked_location": [{
-			"location": "Basil Farm"
-		}],
-		"crop": "Basil from seed",
-		"start_date": "2017-11-11",
-		"detected_disease": [{
-			"disease": "Aphids",
-			"start_date": "2017-11-21"
-		}]
+		"start_date": "2017-11-11"
 	}
 ]

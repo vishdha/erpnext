@@ -58,15 +58,7 @@ QUnit.test("test: Strain", function (assert) {
 					{rate: '1'}
 				]
 			]},
-			{produce: [
-				[
-					{item_code: 'Basil Leaves'},
-					{qty: '100'},
-					{uom: 'Nos'},
-					{rate: '1'}
-				]
-			]},
-			{agriculture_task: [
+			{cultivation_task: [
 				[
 					{task_name: "Plough the field"},
 					{start_day: 1},
@@ -105,7 +97,7 @@ QUnit.test("test: Strain", function (assert) {
 				]
 			]}
 		]),
-		// agriculture task list 
+		// agriculture task list
 		() => {
 			assert.equal(cur_frm.doc.name, 'Basil from seed');
 			assert.equal(cur_frm.doc.period, 15);

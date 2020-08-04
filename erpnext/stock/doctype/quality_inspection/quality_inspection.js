@@ -25,7 +25,7 @@ frappe.ui.form.on("Quality Inspection", {
 								.then(supplier => {
 									if (supplier.message) {
 										frm.set_value("manufacturer_website", supplier.message.website);
-										frm.refresh()
+										frm.refresh();
 									}
 								})
 						}
@@ -84,6 +84,14 @@ frappe.ui.form.on("Quality Inspection", {
 				frm.toggle_display('thc', !!item.message);
 				frm.toggle_display('cbd', !!item.message);
 			})
+	},
+	package_tag: (frm) => {
+		// set package tag from the selected batch, even if empty
+		if (frm.doc.package_tag) {
+			frappe.db.get_value("Package Tag", frm.doc.package_tag, "batch_no", (r) => {
+				frm.set_value("batch_no", r.batch_no);
+			});
+		}
 	}
 })
 
@@ -104,16 +112,16 @@ cur_frm.fields_dict['item_code'].get_query = function (doc, cdt, cdn) {
 	}
 },
 
-	// Serial No based on item_code
-	cur_frm.fields_dict['item_serial_no'].get_query = function (doc, cdt, cdn) {
-		var filters = {};
-		if (doc.item_code) {
-			filters = {
-				'item_code': doc.item_code
-			}
+// Serial No based on item_code
+cur_frm.fields_dict['item_serial_no'].get_query = function (doc, cdt, cdn) {
+	var filters = {};
+	if (doc.item_code) {
+		filters = {
+			'item_code': doc.item_code
 		}
-		return { filters: filters }
 	}
+	return { filters: filters }
+}
 
 cur_frm.set_query("batch_no", function (doc) {
 	return {

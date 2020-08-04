@@ -21,7 +21,6 @@
 		"doctype": "Strain",
 		"title": "Basil from seed",
 		"strain_name": "Basil",
-		"scientific_name": "Ocimum basilicum",
 		"materials_required": [{
 			"item_code": "Basil Seeds",
 			"qty": "25",
@@ -39,13 +38,7 @@
 			"uom": "Nos",
 			"rate": "1"
 		}],
-		"produce": [{
-			"item_code": "Basil Leaves",
-			"qty": "100",
-			"uom": "Nos",
-			"rate": "1"
-		}],
-		"agriculture_task": [{
+		"cultivation_task": [{
 			"task_name": "Plough the field",
 			"start_day": 1,
 			"end_day": 1,

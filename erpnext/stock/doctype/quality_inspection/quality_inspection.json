@@ -1,5 +1,4 @@
 {
- "actions": [],
  "autoname": "naming_series:",
  "creation": "2013-04-30 13:13:03",
  "doctype": "DocType",
@@ -17,6 +16,7 @@
   "item_code",
   "item_serial_no",
   "batch_no",
+  "package_tag",
   "sample_size",
   "column_break1",
   "item_name",
