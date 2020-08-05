@@ -18,7 +18,6 @@ from erpnext.stock.utils import get_bin
 from frappe.model.mapper import get_mapped_doc
 from erpnext.stock.doctype.serial_no.serial_no import update_serial_nos_after_submit, get_serial_nos
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import OpeningEntryAccountError
-
 import json
 
 from six import string_types, itervalues, iteritems
@@ -905,13 +904,34 @@ class StockEntry(StockController):
 
 	def set_scrap_items(self):
 		if self.purpose != "Send to Subcontractor" and self.purpose in ["Manufacture", "Repack"]:
-			scrap_item_dict = self.get_bom_scrap_material(self.fg_completed_qty)
+			scrap_item_dict = {}
+			backflush_scrap_items_based_on = frappe.db.get_single_value("Manufacturing Settings", "backflush_scrap_items_based_on")
+			if backflush_scrap_items_based_on =="BOM":
+				scrap_item_dict = self.get_bom_scrap_material(self.fg_completed_qty)
+			elif backflush_scrap_items_based_on =="Job Card":
+				if flt(self.fg_completed_qty) != flt(frappe.db.get_value("Work Order", self.work_order, 'qty')):
+					frappe.throw(_("For Qty must be same as Work Order Qty if backflush scrap items is based on Job Card."))
+				else:
+					scrap_item_dict = self.get_scrap_material()
 			for item in itervalues(scrap_item_dict):
 				item.idx = ''
 				if self.pro_doc and self.pro_doc.scrap_warehouse:
 					item["to_warehouse"] = self.pro_doc.scrap_warehouse
 
 			self.add_to_stock_entry_detail(scrap_item_dict, bom_no=self.bom_no)
+
+	def get_scrap_material(self):
+		scrap_items = {}
+		job_cards = frappe.get_all("Job Card", filters={'docstatus': 1, 'work_order': self.work_order})
+		for card in job_cards:
+			job_card = frappe.get_doc("Job Card", card.name)
+			for scrap in job_card.scrap_items:
+				if not scrap_items.get(scrap.item_code):
+					scrap_items[scrap.item_code] = scrap.as_dict()
+					scrap_items[scrap.item_code]['qty'] = scrap.stock_qty
+				else:
+					scrap_items[scrap.item_code]['qty'] += scrap.stock_qty
+		return scrap_items
 
 	def set_work_order_details(self):
 		if not getattr(self, "pro_doc", None):
