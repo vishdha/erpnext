@@ -18,9 +18,9 @@
 		"item_group": "Produce"
 	},
 	{
-		"doctype": "Crop",
+		"doctype": "Strain",
 		"title": "Basil from seed",
-		"crop_name": "Basil",
+		"strain_name": "Basil",
 		"scientific_name": "Ocimum basilicum",
 		"materials_required": [{
 			"item_code": "Basil Seeds",

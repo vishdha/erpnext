@@ -101,7 +101,7 @@ def make_plant(source_name, target_doc=None):
 def make_additive_log(source_name, target_doc=None):
 	target_doc = get_mapped_doc("Plant Batch", source_name,
 		{"Plant Batch": {
-			"doctype": "Plant Additives Log",
+			"doctype": "Plant Additive Log",
 			"field_map": {
 			}
 		}}, target_doc)

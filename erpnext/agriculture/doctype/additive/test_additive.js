@@ -2,7 +2,7 @@
 // rename this file from _test_[name] to test_[name] to activate
 // and remove above this line
 
-QUnit.test("test: Additives", function (assert) {
+QUnit.test("test: Additive", function (assert) {
 	let done = assert.async();
 
 	// number of asserts
@@ -14,12 +14,12 @@ QUnit.test("test: Additives", function (assert) {
 			// values to be set
 			{item_code: 'Urea'},
 			{item_name: 'Urea'},
-			{item_group: 'Additives'}
+			{item_group: 'Additive'}
 		]),
-		// insert a new Additives
-		() => frappe.tests.make('Additives', [
+		// insert a new Additive
+		() => frappe.tests.make('Additive', [
 			// values to be set
-			{Additives_name: 'Urea'},
+			{Additive_name: 'Urea'},
 			{item: 'Urea'}
 		]),
 		() => {

@@ -8,7 +8,7 @@ import unittest
 import frappe
 from frappe.utils import datetime
 
-test_dependencies = ["Crop", "Fertilizer", "Location", "Disease"]
+test_dependencies = ["Strain", "Additive", "Location", "Disease"]
 
 
 class TestPlantBatch(unittest.TestCase):

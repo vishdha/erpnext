@@ -48,7 +48,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Plant Additives Log",
+					"name": "Plant Additive Log",
 					"onboard": 1,
 				},
 				{
@@ -58,7 +58,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Additives",
+					"name": "Additive",
 					"onboard": 1,
 				},
 				{
