@@ -28,21 +28,21 @@
    "fieldname": "linked_doctype",
    "fieldtype": "Select",
    "label": "Linked Doctype",
-   "options": "\nWater Analysis\nSoil Analysis\nPlant Analysis\nAdditives\nSoil Texture\nWeather"
+   "options": "\nWater Analysis\nSoil Analysis\nPlant Analysis\nAdditive\nSoil Texture\nWeather"
   },
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.linked_doctype==\"Additives\"",
+   "depends_on": "eval:doc.linked_doctype==\"Additive\"",
    "fieldname": "additive_type",
    "fieldtype": "Link",
    "label": "Additive Type",
    "options": "Additive Type"
   }
  ],
- "modified": "2020-07-19 08:23:46.489232",
+ "modified": "2020-07-19 08:23:46.489234",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Agriculture Analysis Criteria",

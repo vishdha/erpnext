@@ -5,11 +5,11 @@ from frappe import _
 
 def get_data():
 	return {
-		'fieldname': 'additives',
+		'fieldname': 'additive',
 		'transactions': [
 			{
-				'label': _('Additives Log'),
-				'items': ['Plant Additives Log']
+				'label': _('Additive Log'),
+				'items': ['Plant Additive Log']
 			}
 		]
 	}

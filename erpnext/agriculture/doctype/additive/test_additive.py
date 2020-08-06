@@ -6,6 +6,6 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-class TestAdditives(unittest.TestCase):
-	def test_Additives_creation(self):
-		self.assertEqual(frappe.db.exists('Additives', 'Urea'), 'Urea')
+class TestAdditive(unittest.TestCase):
+	def test_Additive_creation(self):
+		self.assertEqual(frappe.db.exists('Additive', 'Urea'), 'Urea')

@@ -5,7 +5,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "additives",
+  "additive",
   "additive_type",
   "column_break_3",
   "actual_date",
@@ -27,15 +27,7 @@
  ],
  "fields": [
   {
-   "fieldname": "additives",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Additives",
-   "options": "Additives",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "additives.additive_type",
+   "fetch_from": "additive.additive_type",
    "fieldname": "additive_type",
    "fieldtype": "Link",
    "label": "Additive Type",
@@ -43,7 +35,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": "additives.default_supplier",
+   "fetch_from": "additive.default_supplier",
    "fetch_if_empty": 1,
    "fieldname": "supplier",
    "fieldtype": "Link",
@@ -109,24 +101,24 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Plant Additives Log",
+   "options": "Plant Additive Log",
    "print_hide": 1,
    "read_only": 1
   },
   {
-   "fetch_from": "additives.product_trade_name",
+   "fetch_from": "additive.product_trade_name",
    "fieldname": "product_trade_name",
    "fieldtype": "Data",
    "label": "Product Trade Name"
   },
   {
-   "fetch_from": "additives.default_application_device",
+   "fetch_from": "additive.default_application_device",
    "fieldname": "application_device",
    "fieldtype": "Data",
    "label": "Application Device"
   },
   {
-   "fetch_from": "additives.item",
+   "fetch_from": "additive.item",
    "fieldname": "item",
    "fieldtype": "Link",
    "label": "Item",
@@ -153,13 +145,21 @@
    "label": "UOM",
    "options": "UOM",
    "reqd": 1
+  },
+  {
+   "fieldname": "additive",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Additive",
+   "options": "Additive",
+   "reqd": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2020-07-20 07:13:49.019688",
+ "modified": "2020-08-05 06:00:20.144226",
  "modified_by": "Administrator",
  "module": "Agriculture",
- "name": "Plant Additives Log",
+ "name": "Plant Additive Log",
  "owner": "Administrator",
  "permissions": [
   {
@@ -192,6 +192,6 @@
  "restrict_to_domain": "Agriculture",
  "sort_field": "modified",
  "sort_order": "DESC",
- "title_field": "additives",
+ "title_field": "additive",
  "track_changes": 1
 }

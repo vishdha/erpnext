@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-test_dependencies = ["Fertilizer"]
+test_dependencies = ["Additive"]
 
 class TestStrain(unittest.TestCase):
 	def test_strain_period(self):

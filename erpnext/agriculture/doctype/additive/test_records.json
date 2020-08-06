@@ -6,8 +6,9 @@
 		"item_group": "Fertilizer"
 	},
 	{
-		"doctype": "Fertilizer",
-		"fertilizer_name": "Urea",
+		"doctype": "Additive",
+		"additive_name": "Urea",
+		"additive_type": "Fertilizer",
 		"item": "Urea"
 	}
 ]

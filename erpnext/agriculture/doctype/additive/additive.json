@@ -69,10 +69,10 @@
    "options": "Supplier"
   }
  ],
- "modified": "2020-07-19 09:34:43.317892",
+ "modified": "2020-08-05 05:09:36.273812",
  "modified_by": "Administrator",
  "module": "Agriculture",
- "name": "Additives",
+ "name": "Additive",
  "owner": "Administrator",
  "permissions": [
   {
