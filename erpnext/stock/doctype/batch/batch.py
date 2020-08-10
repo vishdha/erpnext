@@ -275,7 +275,7 @@ def get_batch_no(item_code, warehouse, qty=1, throw=False, serial_no=None):
 	return batch_no
 
 
-def get_batches(item_code, warehouse, qty=1, throw=False, serial_no=None):
+def get_batches(item_code, warehouse, qty=1, throw=False, serial_no=None, as_dict=True):
 	from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 	cond = ''
 	if serial_no and frappe.get_cached_value('Item', item_code, 'has_batch_no'):
@@ -295,18 +295,36 @@ def get_batches(item_code, warehouse, qty=1, throw=False, serial_no=None):
 		if batch and len(batch) > 1:
 			return []
 
-		cond = " and `tabBatch`.name = %s" %(frappe.db.escape(batch[0].batch_no))
+		cond = " and batch.name = %s" % (frappe.db.escape(batch[0].batch_no))
 
-	return frappe.db.sql("""
-		select batch_id, sum(`tabStock Ledger Entry`.actual_qty) as qty
-		from `tabBatch`
-			join `tabStock Ledger Entry` ignore index (item_code, warehouse)
-				on (`tabBatch`.batch_id = `tabStock Ledger Entry`.batch_no )
-		where `tabStock Ledger Entry`.item_code = %s and `tabStock Ledger Entry`.warehouse = %s
-			and (`tabBatch`.expiry_date >= CURDATE() or `tabBatch`.expiry_date IS NULL) {0}
-		group by batch_id
-		order by `tabBatch`.expiry_date ASC, `tabBatch`.creation ASC
-	""".format(cond), (item_code, warehouse), as_dict=True)
+	batches = frappe.db.sql("""
+		SELECT
+			batch.batch_id,
+			sum(sle.actual_qty) AS qty
+		FROM
+			`tabBatch` AS batch
+				JOIN `tabStock Ledger Entry` AS sle ignore index (item_code, warehouse)
+					ON (batch.batch_id = sle.batch_no)
+		WHERE
+			sle.item_code = %s
+				AND sle.warehouse = %s
+				AND batch.disabled = 0
+				AND (batch.expiry_date >= CURDATE() or batch.expiry_date IS NULL)
+				{0}
+		GROUP BY
+			batch.batch_id
+		HAVING
+			sum(sle.actual_qty) >= %s
+		ORDER BY
+			batch.expiry_date ASC,
+			batch.creation ASC
+		""".format(cond),
+		(item_code, warehouse, qty),
+		as_dict=as_dict
+	)
+
+	return batches
+
 
 def validate_serial_no_with_batch(serial_nos, item_code):
 	if frappe.get_cached_value("Serial No", serial_nos[0], "item_code") != item_code:
@@ -318,3 +336,17 @@ def validate_serial_no_with_batch(serial_nos, item_code):
 	message = "Serial Nos" if len(serial_nos) > 1 else "Serial No"
 	frappe.throw(_("There is no batch found against the {0}: {1}")
 		.format(message, serial_no_link))
+
+
+@frappe.whitelist()
+def save_thc_cbd(batch_no, thc, cbd):
+	doc = frappe.get_doc('Batch', batch_no)
+	doc.thc = thc
+	doc.cbd = cbd
+	doc.save()
+
+@frappe.whitelist()
+def get_active_batch(item_code):
+	active_batch = frappe.get_all("Batch", {"item": item_code, "display_on_website": 1})
+	active_batch = active_batch[0] if active_batch else {}
+	return active_batch
