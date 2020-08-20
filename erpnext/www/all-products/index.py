@@ -15,8 +15,8 @@ def get_context(context):
 	else:
 		search = field_filters = attribute_filters = None
 
-	context.items = get_products_for_website(field_filters, attribute_filters, search)
-	for item in context.items:
+	context.products = get_products_for_website(field_filters, attribute_filters, search)
+	for item in context.products:
 		item["active_batch"] = get_active_batch(item.name)
 		item["info"] = get_product_info_for_website(item.name)
 
