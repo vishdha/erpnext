@@ -340,10 +340,10 @@ def validate_serial_no_with_batch(serial_nos, item_code):
 
 @frappe.whitelist()
 def update_batch_doc(batch_no, qi_name, item_code):
-	batch_data = get_batch_fields(batch_no)
-	quality_data = get_qi_fields(qi_name)
-	compliance_data = get_ci_fields(item_code)
-	readings_data = get_readings_for_qi(qi_name)
+	batch_data = get_batch_fields(batch_no) or frappe._dict()
+	quality_data = get_qi_fields(qi_name) or frappe._dict()
+	compliance_data = get_ci_fields(item_code) or frappe._dict()
+	readings_data = get_readings_for_qi(qi_name) or frappe._dict()
 
 	frappe.db.set_value("Batch", batch_no, {
 		"thc": quality_data.thc,
