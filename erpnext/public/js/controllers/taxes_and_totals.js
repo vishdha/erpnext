@@ -779,28 +779,27 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 				callback: (r) => {
 					if (r.message) {
 						let taxes = me.frm.doc.taxes;
-						let excise_tax_row = r.message;
-						console.log("excise_tax_row", excise_tax_row);
-						if (excise_tax_row.tax_amount > 0) {
+						let cultivation_tax_row = r.message;
+						if (cultivation_tax_row.tax_amount > 0) {
 							if (taxes && taxes.length > 0) {
 								$.each(taxes, function (i, tax) {
-									if (tax.account_head == excise_tax_row.account_head) {
-										tax.tax_amount = excise_tax_row.tax_amount;
+									if (tax.account_head == cultivation_tax_row.account_head) {
+										tax.tax_amount = cultivation_tax_row.tax_amount;
 										me.frm.refresh_field('taxes');
 									} else {
-										me.frm.add_child('taxes', excise_tax_row);
+										me.frm.add_child('taxes', cultivation_tax_row);
 									}
 									me.calculate_taxes_and_totals();
 								});
 							} else {
-								me.frm.add_child('taxes', excise_tax_row);
+								me.frm.add_child('taxes', cultivation_tax_row);
 								me.frm.refresh_field('taxes');
 								me.calculate_taxes_and_totals();
 							}
-						} else if (excise_tax_row.tax_amount === 0) {
+						} else if (cultivation_tax_row.tax_amount === 0) {
 							if (taxes && taxes.length > 0) {
 								$.each(taxes, function (i, tax) {
-									if (tax.account_head == excise_tax_row.account_head) {
+									if (tax.account_head == cultivation_tax_row.account_head) {
 										me.frm.get_field("taxes").grid.grid_rows[i].remove();
 									}
 								});
