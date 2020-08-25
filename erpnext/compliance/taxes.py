@@ -23,6 +23,8 @@ def calculate_cannabis_tax(doc):
 		# calculate cultivation tax for buying cycle
 		cultivation_taxes = calculate_cultivation_tax(doc)
 		for account, tax in cultivation_taxes.items():
+			if not tax:
+				continue
 			cultivation_tax_row = get_cultivation_tax_row(account, tax)
 			set_taxes(doc, cultivation_tax_row)
 	elif doc.doctype in ("Quotation", "Sales Order", "Sales Invoice", "Delivery Note"):
@@ -43,6 +45,8 @@ def calculate_cannabis_tax(doc):
 			# calculate cultivation tax for selling cycle if customer is a distributor
 			cultivation_taxes = calculate_cultivation_tax(doc)
 			for account, tax in cultivation_taxes.items():
+				if not tax:
+					continue
 				cultivation_tax_row = get_cultivation_tax_row(account, tax)
 				set_taxes(doc, cultivation_tax_row)
 		elif license_for == "Retailer":
@@ -197,6 +201,22 @@ def set_excise_tax(doc):
 
 	excise_tax_row = calculate_excise_tax(doc, compliance_items)
 	return excise_tax_row
+
+@frappe.whitelist()
+def set_cultivation_tax(doc):
+	if isinstance(doc, str):
+		doc = frappe._dict(json.loads(doc))
+
+	compliance_items = frappe.get_all('Compliance Item', fields=['item_code'])
+	if not compliance_items:
+		return
+
+	cultivation_taxes = calculate_cultivation_tax(doc)
+	for account, tax in cultivation_taxes.items():
+		if not tax:
+			continue
+		cultivation_tax_row = get_cultivation_tax_row(account, tax)
+		return cultivation_tax_row
 
 
 @frappe.whitelist()

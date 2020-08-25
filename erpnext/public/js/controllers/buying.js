@@ -151,6 +151,7 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 					},
 					callback: (r) => {
 						this.frm.set_value("license", r.message);
+						this.set_and_update_cultivation_tax();
 
 						if (r.message) {
 							frappe.show_alert({
@@ -224,6 +225,22 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 		}
 
 		this._super(doc, cdt, cdn);
+		this.set_and_update_cultivation_tax();
+	},
+
+	item_code: function(doc, cdt, cdn) {
+		this._super(doc, cdt, cdn);
+		if (this.frm.doc.total) {
+			this.set_and_update_cultivation_tax();
+		}
+	},
+
+	rate: function(doc, cdt, cdn) {
+		this.set_and_update_cultivation_tax();
+	},
+
+	items_remove: function(doc, cdt, cdn) {
+		this.set_and_update_cultivation_tax();
 	},
 
 	received_qty: function(doc, cdt, cdn) {

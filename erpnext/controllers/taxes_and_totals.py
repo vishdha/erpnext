@@ -631,7 +631,6 @@ def get_itemised_tax_breakup_html(doc):
 
 	# get tax breakup data
 	itemised_tax, itemised_taxable_amount = get_itemised_tax_breakup_data(doc)
-
 	get_rounded_tax_amount(itemised_tax, doc.precision("tax_amount", "taxes"))
 
 	update_itemised_tax_data(doc)
