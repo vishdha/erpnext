@@ -2,17 +2,16 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-
 import datetime
+import json
 
 import frappe
-from frappe import _
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from erpnext.accounts.party import get_due_date
+from frappe import _
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.model.document import Document
-from frappe.utils import cint, get_datetime, get_link_to_form, flt
+from frappe.utils import cint, flt, get_datetime, get_link_to_form, nowdate, today
 
 
 class DeliveryTrip(Document):
@@ -254,7 +253,6 @@ class DeliveryTrip(Document):
 		return directions[0] if directions else False
 
 
-
 @frappe.whitelist()
 def get_delivery_window(doctype=None, docname=None, customer=None):
 	"""
@@ -387,6 +385,28 @@ def sanitize_address(address):
 
 
 @frappe.whitelist()
+def validate_unique_delivery_notes(delivery_stops):
+	delivery_stops = json.loads(delivery_stops)
+	delivery_notes = [stop.get("delivery_note") for stop in delivery_stops
+		if stop.get("delivery_note")]
+
+	if not delivery_notes:
+		return []
+
+	existing_trips = frappe.get_all("Delivery Stop",
+		filters={
+			"delivery_note": ["IN", delivery_notes],
+			"docstatus": ["<", 2]
+		},
+		fields=["parent"],
+		distinct=True)
+
+	existing_trips = [stop.parent for stop in existing_trips]
+
+	return existing_trips
+
+
+@frappe.whitelist()
 def notify_customers(delivery_trip):
 	delivery_trip = frappe.get_doc("Delivery Trip", delivery_trip)
 
@@ -437,11 +457,13 @@ def get_attachments(delivery_stop):
 
 	return [attachments]
 
+
 @frappe.whitelist()
 def get_driver_email(driver):
 	employee = frappe.db.get_value("Driver", driver, "employee")
 	email = frappe.db.get_value("Employee", employee, "prefered_email")
 	return {"email": email}
+
 
 @frappe.whitelist()
 def create_or_update_timesheet(trip, action, odometer_value=None):
@@ -465,7 +487,7 @@ def create_or_update_timesheet(trip, action, odometer_value=None):
 		})
 		timesheet.save()
 
-		frappe.db.set_value("Delivery Trip", trip, "status", "In Transit", update_modified=False) # Because we can't status as allow on submit
+		frappe.db.set_value("Delivery Trip", trip, "status", "In Transit", update_modified=False)  # Because we can't set status as allow on submit
 		frappe.db.set_value("Delivery Trip", trip, "odometer_start_value", odometer_value, update_modified=False)
 		frappe.db.set_value("Delivery Trip", trip, "odometer_start_time", time, update_modified=False)
 	elif action == "pause":
@@ -513,6 +535,7 @@ def create_or_update_timesheet(trip, action, odometer_value=None):
 		start_value = frappe.db.get_value("Delivery Trip", trip, "odometer_start_value")
 		frappe.db.set_value("Delivery Trip", trip, "actual_distance_travelled", flt(odometer_value) - start_value, update_modified=False)
 
+
 @frappe.whitelist()
 def make_payment_entry(payment_amount, sales_invoice):
 	payment_entry = get_payment_entry("Sales Invoice", sales_invoice, party_amount=flt(payment_amount))
@@ -523,6 +546,7 @@ def make_payment_entry(payment_amount, sales_invoice):
 	payment_entry.save()
 
 	return payment_entry.name
+
 
 @frappe.whitelist()
 def update_payment_due_date(sales_invoice):
