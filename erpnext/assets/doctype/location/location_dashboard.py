@@ -6,9 +6,6 @@ from frappe import _
 def get_data():
 	return {
 		'fieldname': 'location',
-		'non_standard_fieldnames': {
-			'Harvest': 'harvest_location'
-		},
 		'transactions': [
 			{
 				'label': _('Cultivation & Harvesting'),

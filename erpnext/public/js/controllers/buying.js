@@ -143,20 +143,14 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 		if (this.frm.fields_dict.license) {
 			if (this.frm.doc.supplier) {
 				frappe.call({
-					method: "erpnext.compliance.doctype.compliance_info.compliance_info.get_entity_license",
+					method: "erpnext.compliance.doctype.compliance_info.compliance_info.validate_entity_license",
 					args: {
 						party_type: "Supplier",
-						party_name: this.frm.doc.supplier,
-						doc: this.frm.doc
+						party_name: this.frm.doc.supplier
 					},
 					callback: (r) => {
-						this.frm.set_value("license", r.message);
-
 						if (r.message) {
-							frappe.show_alert({
-								indicator: 'blue',
-								message: __(`The following license was set for ${this.frm.doc.supplier}: ${r.message.bold()}`)
-							});
+							this.frm.set_value("license", r.message);
 						}
 					}
 				});
@@ -277,10 +271,10 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 	reverse_calculate: function () {
 		const me = this;
 		let data = [];
-		let cdt = this.frm.doc.items.map(item => item.doctype)[0];
 
 		for (let row of this.frm.doc.items) {
 			data.push({
+				"doctype": row.doctype,
 				"docname": row.name,
 				"item_code": row.item_code,
 				"item_name": row.item_name,
@@ -326,21 +320,21 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 						},
 						{
 							label: __("Qty"),
-							fieldtype: 'Float',
+							fieldtype: 'Data',
 							fieldname: 'qty',
 							read_only: 1,
 							in_list_view: 1
 						},
 						{
 							label: __("Rate"),
-							fieldtype: 'Float',
+							fieldtype: 'Data',
 							fieldname: 'rate',
 							read_only: 1,
 							in_list_view: 1
 						},
 						{
 							label: __("Amount"),
-							fieldtype: 'Float',
+							fieldtype: 'Data',
 							fieldname: 'amount',
 							in_list_view: 1
 						}
@@ -359,9 +353,8 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 					callback: function (r) {
 						let items = r.message;
 						items.forEach(item => {
-							let cdn = item.docname;
 							let rate = item.amount / item.qty;
-							frappe.model.set_value(cdt, cdn, "rate", rate);
+							frappe.model.set_value(item.doctype, item.docname, "rate", rate);
 						});
 					}
 				})

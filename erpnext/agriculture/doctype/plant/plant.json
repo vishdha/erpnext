@@ -15,8 +15,9 @@
   "plant_id",
   "section_break_3",
   "location",
-  "column_break_11",
   "plant_spacing",
+  "column_break_11",
+  "location_id",
   "plant_spacing_uom",
   "section_break_22",
   "soil_texture",
@@ -67,8 +68,14 @@
    "fieldname": "location",
    "fieldtype": "Link",
    "label": "Location",
-   "options": "Location",
-   "reqd": 1
+   "options": "Location"
+  },
+  {
+   "fetch_from": "location.location_id",
+   "fieldname": "location_id",
+   "fieldtype": "Data",
+   "label": "Location ID",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_3",
@@ -174,7 +181,7 @@
    "reqd": 1
   }
  ],
- "modified": "2020-08-24 07:11:28.909053",
+ "modified": "2020-07-19 05:19:49.982089",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Plant",

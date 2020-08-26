@@ -9,13 +9,7 @@ frappe.query_reports["GSTR-1"] = {
 			"fieldtype": "Link",
 			"options": "Company",
 			"reqd": 1,
-			"get_query": () => {
-				return {
-					filters: {
-						"country": "India"
-					}
-				}
-			}
+			"default": frappe.defaults.get_user_default("Company")
 		},
 		{
 			"fieldname": "company_address",

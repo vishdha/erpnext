@@ -173,10 +173,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Manufacturer",
-				},
-				{
-					"type": "doctype",
 					"name": "Item Variant Settings",
 				},
 			]

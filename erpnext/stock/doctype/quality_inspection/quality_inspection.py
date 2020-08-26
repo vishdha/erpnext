@@ -1,13 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
+from __future__ import unicode_literals
 import frappe
-from erpnext.stock.doctype.batch.batch import update_batch_doc
-from erpnext.stock.doctype.quality_inspection_template.quality_inspection_template import get_template_details
-from frappe import _
 from frappe.model.document import Document
+from erpnext.stock.doctype.quality_inspection_template.quality_inspection_template \
+	import get_template_details
 from frappe.model.mapper import get_mapped_doc
-
 
 class QualityInspection(Document):
 	def validate(self):
@@ -29,11 +28,6 @@ class QualityInspection(Document):
 			child.value = d.value
 			child.status = "Accepted"
 
-	def validate_certificate_of_analysis(self):
-		compliance_item = frappe.db.exists("Compliance Item", self.item_code)
-		if compliance_item and self.inspection_by == "External" and not self.certificate_of_analysis:
-			frappe.throw(_("Please attach a Certificate of Analysis"))
-
 	def get_quality_inspection_template(self):
 		template = ''
 		if self.bom_no:
@@ -45,15 +39,8 @@ class QualityInspection(Document):
 		self.quality_inspection_template = template
 		self.get_item_specification_details()
 
-	def before_submit(self):
-		self.validate_certificate_of_analysis()
-
 	def on_submit(self):
 		self.update_qc_reference()
-		if self.batch_no:
-			self.set_batch_coa()
-		if self.thc or self.cbd:
-			update_batch_doc(self.batch_no, self.name, self.item_code)
 
 	def on_cancel(self):
 		self.update_qc_reference()
@@ -70,10 +57,6 @@ class QualityInspection(Document):
 				where t1.parent = %s and t1.item_code = %s and t1.parent = t2.name"""
 				.format(parent_doc=self.reference_type, child_doc=doctype),
 				(quality_inspection, self.modified, self.reference_name, self.item_code))
-
-	def set_batch_coa(self):
-		if self.certificate_of_analysis:
-			frappe.db.set_value("Batch", self.batch_no, "certificate_of_analysis", self.certificate_of_analysis)
 
 def item_query(doctype, txt, searchfield, start, page_len, filters):
 	if filters.get("from"):
@@ -148,3 +131,4 @@ def get_purchase_item_details(doctype, name, item_code):
 				"qty": item.qty
 			}
 			return data
+
