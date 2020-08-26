@@ -200,7 +200,6 @@ def install(country=None):
 		{'doctype': "Opportunity Type", "name": _("Sales")},
 		{'doctype': "Opportunity Type", "name": _("Support")},
 		{'doctype': "Opportunity Type", "name": _("Maintenance")},
-		{'doctype': "Opportunity Type", "name": _("Investor")},
 
 		{'doctype': "Project Type", "project_type": "Internal"},
 		{'doctype': "Project Type", "project_type": "External"},

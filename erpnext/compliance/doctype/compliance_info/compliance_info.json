@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:license_number",
@@ -111,7 +112,8 @@
    "read_only": 1
   }
  ],
- "modified": "2020-08-13 04:10:14.066375",
+ "links": [],
+ "modified": "2020-08-04 02:12:44.510237",
  "modified_by": "Administrator",
  "module": "Compliance",
  "name": "Compliance Info",
@@ -130,15 +132,13 @@
    "write": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Sales Manager",
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
    "email": 1,
@@ -150,15 +150,13 @@
    "share": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Purchase Manager",
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
    "email": 1,

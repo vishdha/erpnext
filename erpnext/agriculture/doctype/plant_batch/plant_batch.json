@@ -14,14 +14,15 @@
   "plant_batch_id",
   "section_break_3",
   "cycle_type",
-  "start_date",
-  "column_break_12",
   "project",
+  "column_break_12",
+  "start_date",
   "end_date",
   "section_break_7",
   "location",
-  "column_break_11",
   "plant_spacing",
+  "column_break_11",
+  "location_id",
   "plant_spacing_uom",
   "section_break_22",
   "soil_texture",
@@ -128,8 +129,7 @@
    "fieldname": "location",
    "fieldtype": "Link",
    "label": "Location",
-   "options": "Location",
-   "reqd": 1
+   "options": "Location"
   },
   {
    "fieldname": "growth_phase",
@@ -142,6 +142,13 @@
    "fieldname": "strain_id",
    "fieldtype": "Data",
    "label": "Strain ID",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "location.location_id",
+   "fieldname": "location_id",
+   "fieldtype": "Data",
+   "label": "Location ID",
    "read_only": 1
   },
   {
@@ -250,7 +257,7 @@
    "options": "Plant Tag"
   }
  ],
- "modified": "2020-08-24 07:11:04.335892",
+ "modified": "2020-07-19 05:15:47.524712",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Plant Batch",
