@@ -236,10 +236,12 @@ erpnext.buying.BuyingController = erpnext.TransactionController.extend({
 	},
 
 	rate: function(doc, cdt, cdn) {
+		this._super(doc, cdt, cdn);
 		this.set_and_update_cultivation_tax();
 	},
 
 	items_remove: function(doc, cdt, cdn) {
+		this._super(doc, cdt, cdn);
 		this.set_and_update_cultivation_tax();
 	},
 

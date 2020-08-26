@@ -756,16 +756,15 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 		})
 	},
 	set_and_update_cultivation_tax: function () {
-		if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(this.frm.doctype)) {
-			if (!this.frm.doc.license) {
+		const me = this;
+		if (["Quotation", "Sales Invoice", "Delivery Note", "Sales Order"].includes(me.frm.doctype)) {
+			if (!me.frm.doc.license) {
 				return;
 			}
 		}
 
-		const me = this;
-		frappe.db.get_value("Compliance Info", { "name": this.frm.doc.license }, "license_for", (r) => {
-			if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(this.frm.doctype)) {
-				console.log("test");
+		frappe.db.get_value("Compliance Info", { "name": me.frm.doc.license }, "license_for", (r) => {
+			if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(me.frm.doctype)) {
 				if (!r || r.license_for !== "Distributor") {
 					return;
 				}
@@ -774,7 +773,7 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 			frappe.call({
 				method: "erpnext.compliance.taxes.set_cultivation_tax",
 				args: {
-					doc: this.frm.doc
+					doc: me.frm.doc
 				},
 				callback: (r) => {
 					if (r.message) {
