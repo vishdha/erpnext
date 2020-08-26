@@ -8,26 +8,11 @@ frappe.ui.form.on("Quality Inspection", {
 		if (frm.doc.item_code) {
 			if (["Purchase Invoice", "Purchase Receipt"].includes(frm.doc.reference_type)) {
 				if (frm.doc.reference_name) {
-					frappe.call({
-						method: "erpnext.stock.doctype.quality_inspection.quality_inspection.get_purchase_item_details",
-						args: {
-							"doctype": frm.doc.reference_type,
-							"name": frm.doc.reference_name,
-							"item_code": frm.doc.item_code
-						},
+					frm.call({
+						method: "get_purchase_item_details",
+						doc: frm.doc,
 						callback: function (data) {
-							frm.set_value("uom", data.message.uom);
-							frm.set_value("qty", data.message.qty);
-							frm.set_value("manufacturer_name", data.message.supplier);
-							frm.refresh();
-
-							frappe.db.get_value("Supplier", { "supplier_name": data.message.supplier }, "website")
-								.then(supplier => {
-									if (supplier.message) {
-										frm.set_value("manufacturer_website", supplier.message.website);
-										frm.refresh();
-									}
-								})
+							refresh_field(["manufacturer_name", "manufacturer_website", "uom", "qty"]);
 						}
 					})
 				}
@@ -60,18 +45,6 @@ frappe.ui.form.on("Quality Inspection", {
 			});
 		}
 	},
-	on_submit: function (frm) {
-		if (frm.doc.thc || frm.doc.cbd) {
-			frappe.call({
-				method: "erpnext.stock.doctype.batch.batch.save_thc_cbd",
-				args: {
-					"batch_no": frm.doc.batch_no,
-					"thc": frm.doc.thc,
-					"cbd": frm.doc.cbd
-				},
-			})
-		}
-	},
 	onload: (frm) => {
 		if (frm.doc.item_code) {
 			frm.trigger("check_compliance_item");
@@ -91,6 +64,17 @@ frappe.ui.form.on("Quality Inspection", {
 			frappe.db.get_value("Package Tag", frm.doc.package_tag, "batch_no", (r) => {
 				frm.set_value("batch_no", r.batch_no);
 			});
+		}
+	},
+	before_save: (frm) => {
+		if (frm.doc.item_code && frm.doc.inspection_by == "External") {
+			frappe.db.get_value("Compliance Item", { "item_code": frm.doc.item_code }, "item_code")
+				.then(item => {
+					frm.toggle_reqd('certificate_of_analysis', !!item.message);
+				})
+		}
+		else {
+			frm.toggle_reqd('certificate_of_analysis', 0);
 		}
 	}
 })
@@ -118,9 +102,9 @@ cur_frm.fields_dict['item_serial_no'].get_query = function (doc, cdt, cdn) {
 	if (doc.item_code) {
 		filters = {
 			'item_code': doc.item_code
-		}
+		};
 	}
-	return { filters: filters }
+	return { filters: filters };
 }
 
 cur_frm.set_query("batch_no", function (doc) {
