@@ -5,11 +5,12 @@ def get_data():
 	return {
 		'fieldname': 'investor_name',
 		'non_standard_fieldnames': {
-			'Lead': 'party_name',
-			'Opportunity': 'party_name'
+			'Lead': 'lead_name',
+			'Opportunity': 'customer_name'
 		},
 		'transactions': [
 			{
+				'label': _('Reference'),
 				'items': ['Lead', 'Opportunity']
 			}
 		]
