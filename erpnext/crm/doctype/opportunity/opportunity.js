@@ -61,6 +61,13 @@ frappe.ui.form.on("Opportunity", {
 
 	with_items: function(frm) {
 		frm.trigger('toggle_mandatory');
+		frm.toggle_display('service_fee', !frm.doc.with_items);
+		frm.toggle_display('software_fee', !frm.doc.with_items);
+		if (frm.doc.with_items == 1) {
+			frm.trigger("calculate_amount");
+		} else {
+			frm.trigger("calculate_opportunity_cost");
+		}
 	},
 
 	customer_address: function(frm, cdt, cdn) {
@@ -114,6 +121,19 @@ frappe.ui.form.on("Opportunity", {
 				});
 			}
 		}
+	},
+
+	service_fee: function (frm) {
+		frm.trigger("calculate_opportunity_cost");
+	},
+
+	software_fee: function (frm) {
+		frm.trigger("calculate_opportunity_cost");
+	},
+
+	calculate_opportunity_cost: function (frm) {
+		let amount = flt(frm.doc.service_fee) + flt(frm.doc.software_fee);
+		frm.set_value("opportunity_amount", amount);
 	},
 
 	set_contact_link: function(frm) {
