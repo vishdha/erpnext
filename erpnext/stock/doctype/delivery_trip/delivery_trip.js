@@ -459,19 +459,6 @@ frappe.ui.form.on('Delivery Stop', {
 		}
 	},
 
-	visited: function (frm, cdt, cdn) {
-		var row = locals[cdt][cdn];
-		if (row.visited && row.sales_invoice) {
-			if (row.paid_amount !== row.grand_total) {
-				frappe.call({
-					method: "erpnext.stock.doctype.delivery_trip.delivery_trip.update_payment_due_date",
-					args: {
-						sales_invoice: row.sales_invoice
-					}
-				})
-			}
-		}
-	},
 
 	make_payment_entry: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
