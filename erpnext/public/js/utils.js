@@ -831,7 +831,6 @@ $(document).on('app_ready', function() {
 									})
 								},
 								() => {
-									frm.doc.billable = 0;
 									frm.save();
 								}
 							);
