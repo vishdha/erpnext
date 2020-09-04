@@ -223,6 +223,8 @@ class DeliveryNote(SellingController):
 		if self.issue_credit_note:
 			self.close_sales_orders()
 
+		if not self.delivered: self.status = "To Deliver"
+
 	def on_update_after_submit(self):
 		self.status = "Delivered" if self.delivered else "To Deliver"
 

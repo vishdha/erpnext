@@ -461,19 +461,6 @@ frappe.ui.form.on('Delivery Stop', {
 
 	visited: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
-		if (row.visited) {
-			frappe.db.get_value("Sales Invoice", row.sales_invoice, "status")
-				.then(status => {
-					frappe.db.set_value("Delivery Note", row.delivery_note, "delivered", 1)
-					if (status.message.status === "Unpaid") {
-						frappe.db.set_value("Delivery Note", row.delivery_note, "status", "Delivered")
-					}
-					if (status.message.status === "Paid") {
-						frappe.db.set_value("Delivery Note", row.delivery_note, "status", "Completed")
-					}
-				})
-		}
-
 		if (row.visited && row.sales_invoice) {
 			if (row.paid_amount !== row.grand_total) {
 				frappe.call({

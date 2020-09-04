@@ -33,6 +33,7 @@ class DeliveryTrip(Document):
 		self.update_delivery_notes()
 
 	def on_update_after_submit(self):
+		self.is_visited()
 		self.update_status()
 
 	def on_cancel(self):
@@ -46,6 +47,17 @@ class DeliveryTrip(Document):
 		for stop in self.delivery_stops:
 			if not stop.customer_address:
 				stop.customer_address = get_address_display(frappe.get_doc("Address", stop.address).as_dict())
+
+	def is_visited(self):
+		for stop in self.delivery_stops:
+			if stop.visited:
+				status = frappe.db.get_value("Sales Invoice", stop.sales_invoice, "status")
+				if status == "Unpaid":
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Delivered")
+				if status == "Paid":
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Completed")
+			else:
+				frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "To Deliver")
 
 	def update_status(self):
 		status = {
