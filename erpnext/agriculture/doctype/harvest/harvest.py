@@ -14,12 +14,12 @@ class Harvest(Document):
 def create_stock_entry(harvest):
 	harvest = frappe.get_doc(json.loads(harvest))
 	if stock_entry_exists(harvest.get('name')):
-		return frappe.msgprint(_('Stock Entry has been already created against this harvest'))
+		return frappe.msgprint(_('Stock Entry {0} has been already created against this harvest.').format(frappe.utils.get_link_to_form("Stock Entry", harvest.get('name'))))
 
 	stock_entry = frappe.new_doc('Stock Entry')
 	stock_entry.harvest = harvest.get('name')
-	stock_entry.purpose = 'Material Receipt',
-	# stock_entry.set_stock_entry_type()
+	stock_entry.purpose = harvest.get('purpose')
+	stock_entry.stock_entry_type = 'Harvest'
 
 	if harvest.get('strain'):
 		stock_entry = update_stock_entry_based_on_strain(harvest, stock_entry)
@@ -42,23 +42,10 @@ def update_stock_entry_based_on_strain(harvest, stock_entry):
 
 	stock_entry.to_warehouse = strain.target_warehouse
 
-	for location in strain.produced_items:
+	for strain_item in strain.produced_items + strain.byproducts:
 		item = frappe._dict()
-		update_common_item_properties(item, location)
+		item.item_code = strain_item.item_code
 		item.t_warehouse = strain.target_warehouse
-
-		stock_entry.append('items', item)
-
-	for location in strain.byproducts:
-		item = frappe._dict()
-		update_common_item_properties(item, location)
-		item.t_warehouse = strain.target_warehouse
-
 		stock_entry.append('items', item)
 
 	return stock_entry
-
-
-def update_common_item_properties(item, location):
-	item.item_code = location.item_code
-
