@@ -459,7 +459,7 @@ class PurchaseReceipt(BuyingController):
 		for item in self.items:
 			if item.batch_no and item.package_tag:
 				batch_no = frappe.db.get_value("Package Tag", item.package_tag, "batch_no")
-				if item.batch_no != batch_no:
+				if batch_no and item.batch_no != batch_no:
 					frappe.throw(_("Row {0}: Package Tag {1} is already attached to Batch {2}".format(
 						item.idx, frappe.bold(item.package_tag), frappe.bold(batch_no)
 					)))
