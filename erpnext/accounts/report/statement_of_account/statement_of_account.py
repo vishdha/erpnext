@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from erpnext import get_company_currency, get_default_company
 from frappe.utils import getdate, cstr, flt
 from frappe import _, _dict
@@ -274,3 +275,16 @@ def get_addresses(company=None, party_type=None, party=None):
 		"company": company_addr,
 		"party": party_addr
 	}
+
+def notify_party(filters, report):
+	filters = frappe._dict(json.loads(filters))
+	report = frappe._dict(json.loads(report))
+	party = frappe.get_doc('User', filters.party).email
+	frappe.sendmail(
+		recipients = party,
+		subject = report.report_name,
+		message = 'Statement of account',
+		# attachments = attachments,
+		reference_doctype = report.doctype,
+		reference_name = report.report_name
+	)

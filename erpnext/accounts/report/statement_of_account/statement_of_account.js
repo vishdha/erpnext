@@ -109,6 +109,38 @@ frappe.query_reports["Statement of Account"] = {
 			hidden: 1,
 		},
 	],
+	onload: function(report) {
+		console.log("reprt", report)
+		report.page.add_inner_button(__("Notify Party via Email"), function() {
+			var filters = report.get_values();
+			let reporter = frappe.query_reports["Statement of Account"];
+
+			//Always make a new one so that the latest values get updated
+			reporter.notify_party(report, filters);
+		});
+	},
+
+	notify_party: function (report, filters) {
+		console.log("party", filters)
+		if (!filters.party.length) {
+			frappe.throw(__("Missing Party filter value."));
+		} else {
+			frappe.confirm(__("Do you want to notify the party by email?"), function () {
+				frappe.call({
+					method: "erpnext.accounts.report.statement_of_account.statement_of_account.notify_party",
+					args: {
+						"filters": filters,
+						"report": report.report_doc
+					},
+					callback: function (r) {
+						if (!r.exc) {
+							console.log("r", r.message)
+						}
+					}
+				});
+			});
+		}
+	}
 };
 
 erpnext.utils.add_dimensions("Statement of Account", 15);
