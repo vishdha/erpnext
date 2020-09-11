@@ -25,9 +25,10 @@ def create_stock_entry(harvest):
 	if harvest.get('strain'):
 		stock_entry = update_stock_entry_based_on_strain(harvest, stock_entry)
 
-	stock_entry.set_incoming_rate()
-	stock_entry.set_actual_qty()
-	stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
+	if stock_entry.get("items"):
+		stock_entry.set_incoming_rate()
+		stock_entry.set_actual_qty()
+		calculate_rate_and_amount(update_finished_item_rate=False)
 
 	return stock_entry.as_dict()
 
@@ -42,6 +43,12 @@ def update_stock_entry_based_on_strain(harvest, stock_entry):
 	strain = frappe.get_doc("Strain", harvest.get('strain'))
 
 	stock_entry.to_warehouse = strain.target_warehouse
+
+	# if not strain.produced_items:
+	# 	frappe.throw(_("Add items in the Produced Item table"))
+
+	# elif not strain.byproducts:
+	# 	frappe.throw(_("Add items in the byproduct Item table"))
 
 	for strain_item in strain.produced_items + strain.byproducts:
 		item = frappe._dict()
