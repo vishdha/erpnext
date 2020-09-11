@@ -44,12 +44,6 @@ def update_stock_entry_based_on_strain(harvest, stock_entry):
 
 	stock_entry.to_warehouse = strain.target_warehouse
 
-	# if not strain.produced_items:
-	# 	frappe.throw(_("Add items in the Produced Item table"))
-
-	# elif not strain.byproducts:
-	# 	frappe.throw(_("Add items in the byproduct Item table"))
-
 	for strain_item in strain.produced_items + strain.byproducts:
 		item = frappe._dict()
 		item.item_code = strain_item.item_code
