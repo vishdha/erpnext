@@ -13,10 +13,10 @@ class Harvest(Document):
 
 @frappe.whitelist()
 def create_stock_entry(harvest):
-	harvest = frappe.get_doc(json.loads(harvest))
+	harvest = frappe.get_doc("Harvest", harvest)
 	if stock_entry_exists(harvest.get('name')):
-		return frappe.msgprint(_('Stock Entry {0} has been already created against this harvest.').format(frappe.utils.get_link_to_form("Stock Entry", harvest.get('name'))))
-
+		stock_entry_name = frappe.db.get_value("Stock Entry", {"harvest": harvest.get('name')}, fieldname = ['name'])
+		return frappe.msgprint(_('Stock Entry {0} has been already created against this harvest.').format(frappe.utils.get_link_to_form("Stock Entry", stock_entry_name)))
 	stock_entry = frappe.new_doc('Stock Entry')
 	stock_entry.harvest = harvest.get('name')
 	stock_entry.purpose = harvest.get('purpose')
@@ -46,6 +46,8 @@ def update_stock_entry_based_on_strain(harvest, stock_entry):
 	for strain_item in strain.produced_items + strain.byproducts:
 		item = frappe._dict()
 		item.item_code = strain_item.item_code
+		item.uom = frappe.db.get_value("Item", item.item_code, "stock_uom")
+		item.stock_uom = item.uom
 		item.t_warehouse = strain.target_warehouse
 		stock_entry.append('items', item)
 
