@@ -109,7 +109,8 @@
    "fieldname": "byproducts",
    "fieldtype": "Table",
    "label": "By-products",
-   "options": "Strain Item"
+   "options": "Strain Item",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_29",
@@ -119,7 +120,8 @@
    "fieldname": "produced_items",
    "fieldtype": "Table",
    "label": "Produced Items",
-   "options": "Strain Item"
+   "options": "Strain Item",
+   "reqd": 1
   },
   {
    "description": "The minimum distance between each plant for optimum growth",
@@ -178,7 +180,7 @@
    "fieldtype": "Section Break"
   }
  ],
- "modified": "2020-08-25 07:14:38.767079",
+ "modified": "2020-09-11 03:29:59.563317",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Strain",
