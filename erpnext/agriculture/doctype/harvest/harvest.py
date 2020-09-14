@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
 from frappe import _
 from frappe.model.document import Document
 
@@ -28,7 +27,7 @@ def create_stock_entry(harvest):
 	if stock_entry.get("items"):
 		stock_entry.set_incoming_rate()
 		stock_entry.set_actual_qty()
-		calculate_rate_and_amount(update_finished_item_rate=False)
+		stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
 
 	return stock_entry.as_dict()
 

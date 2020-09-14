@@ -109,8 +109,7 @@
    "fieldname": "byproducts",
    "fieldtype": "Table",
    "label": "By-products",
-   "options": "Strain Item",
-   "reqd": 1
+   "options": "Strain Item"
   },
   {
    "fieldname": "section_break_29",
@@ -180,7 +179,7 @@
    "fieldtype": "Section Break"
   }
  ],
- "modified": "2020-09-11 03:29:59.563317",
+ "modified": "2020-09-13 23:46:19.496562",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Strain",
