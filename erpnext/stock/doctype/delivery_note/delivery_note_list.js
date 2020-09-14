@@ -10,8 +10,8 @@ frappe.listview_settings['Delivery Note'] = {
 			return [__("Delivered"), "green", "status,=,Delivered"];
 		} else if (doc.status === "To Deliver") {
 			return [__("To Deliver"), "orange", "status,=,To Deliver"];
-		} else if (doc.status === "Out for Delivery") {
-			return [__("Out for Delivery"), "orange", "status,=,Out for Delivery"];
+		} else if (doc.status === "In Transit") {
+			return [__("In Transit"), "orange", "status,=,In Transit"];
 		} else if (flt(doc.per_billed, 2) < 100) {
 			return [__("To Bill"), "orange", "per_billed,<,100"];
 		} else if (flt(doc.per_billed, 2) == 100) {

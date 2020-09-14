@@ -66,7 +66,7 @@ class DeliveryTrip(Document):
 						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Completed")
 				else:
 					if self.status == "In Transit":
-						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Out for Delivery")
+						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "In Transit")
 					else:
 						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "To Deliver")
 

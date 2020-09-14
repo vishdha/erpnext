@@ -162,7 +162,7 @@ frappe.ui.form.on('Delivery Trip', {
 									}
 								})
 								for(let stops of frm.doc.delivery_stops){
-									frappe.db.set_value("Delivery Note", stops.delivery_note, "status", "Out for Delivery")
+									frappe.db.set_value("Delivery Note", stops.delivery_note, "status", "In Transit")
 								}
 							},
 							__("Enter Odometer Value"));
