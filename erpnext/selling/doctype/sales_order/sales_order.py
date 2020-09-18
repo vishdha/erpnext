@@ -118,6 +118,8 @@ class SalesOrder(SellingController):
 
 	def validate_delivery_day(self):
 		delivery_days = frappe.db.get_value("Customer", self.customer, "delivery_days")
+		if not delivery_days:
+			return
 		customer_delivery_days = json.loads(delivery_days)
 		if customer_delivery_days:
 			delivery_day = calendar.day_name[getdate(self.delivery_date).weekday()]
