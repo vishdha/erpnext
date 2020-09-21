@@ -26,7 +26,7 @@ class TestLandedCostVoucher(unittest.TestCase):
 			},
 			fieldname=["qty_after_transaction", "stock_value"], as_dict=1)
 
-		submit_landed_cost_voucher("Purchase Receipt", pr.name)
+		create_landed_cost_voucher("Purchase Receipt", pr.name, pr.company)
 
 		pr_lc_value = frappe.db.get_value("Purchase Receipt Item", {"parent": pr.name}, "landed_cost_voucher_amount")
 		self.assertEqual(pr_lc_value, 25.0)
@@ -87,7 +87,7 @@ class TestLandedCostVoucher(unittest.TestCase):
 			},
 			fieldname=["qty_after_transaction", "stock_value"], as_dict=1)
 
-		submit_landed_cost_voucher("Purchase Invoice", pi.name)
+		create_landed_cost_voucher("Purchase Invoice", pi.name, pi.company)
 
 		pi_lc_value = frappe.db.get_value("Purchase Invoice Item", {"parent": pi.name},
 			"landed_cost_voucher_amount")
@@ -134,7 +134,7 @@ class TestLandedCostVoucher(unittest.TestCase):
 
 		serial_no_rate = frappe.db.get_value("Serial No", "SN001", "purchase_rate")
 
-		submit_landed_cost_voucher("Purchase Receipt", pr.name)
+		create_landed_cost_voucher("Purchase Receipt", pr.name, pr.company)
 
 		serial_no = frappe.db.get_value("Serial No", "SN001",
 			["warehouse", "purchase_rate"], as_dict=1)
@@ -157,7 +157,7 @@ class TestLandedCostVoucher(unittest.TestCase):
 			})
 		pr.submit()
 
-		lcv = submit_landed_cost_voucher("Purchase Receipt", pr.name, 123.22)
+		lcv = create_landed_cost_voucher("Purchase Receipt", pr.name, pr.company, 123.22)
 
 		self.assertEqual(lcv.items[0].applicable_charges, 41.07)
 		self.assertEqual(lcv.items[2].applicable_charges, 41.08)
@@ -233,7 +233,7 @@ def make_landed_cost_voucher(** args):
 	return lcv
 
 
-def submit_landed_cost_voucher(receipt_document_type, receipt_document, charges=50):
+def create_landed_cost_voucher(receipt_document_type, receipt_document, company, charges=50):
 	ref_doc = frappe.get_doc(receipt_document_type, receipt_document)
 
 	lcv = frappe.new_doc("Landed Cost Voucher")
