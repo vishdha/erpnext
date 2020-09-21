@@ -149,7 +149,7 @@ frappe.ui.form.on('Stock Entry', {
 					});
 					frappe.set_route('Form', 'Material Request', mr.name);
 				});
-			});
+			}, __("Create"));
 		}
 
 		if(frm.doc.items) {
