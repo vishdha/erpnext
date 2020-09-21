@@ -12,6 +12,7 @@ from erpnext.stock.doctype.item.item import set_item_default
 from frappe.contacts.doctype.address.address import get_address_display
 
 from erpnext.controllers.stock_controller import StockController
+from erpnext.controllers.sales_and_purchase_return import get_rate_for_return
 
 class SellingController(StockController):
 	def __setup__(self):
@@ -246,7 +247,9 @@ class SellingController(StockController):
 							'target_warehouse': p.target_warehouse,
 							'company': self.company,
 							'voucher_type': self.doctype,
-							'allow_zero_valuation': d.allow_zero_valuation_rate
+							'allow_zero_valuation': d.allow_zero_valuation_rate,
+							'sales_invoice_item': d.get("sales_invoice_item"),
+							'dn_detail': d.get("dn_detail")
 						}))
 			else:
 				il.append(frappe._dict({
@@ -262,7 +265,9 @@ class SellingController(StockController):
 					'target_warehouse': d.target_warehouse,
 					'company': self.company,
 					'voucher_type': self.doctype,
-					'allow_zero_valuation': d.allow_zero_valuation_rate
+					'allow_zero_valuation': d.allow_zero_valuation_rate,
+					'sales_invoice_item': d.get("sales_invoice_item"),
+					'dn_detail': d.get("dn_detail")
 				}))
 		return il
 
@@ -331,7 +336,7 @@ class SellingController(StockController):
 					d.conversion_factor = get_conversion_factor(d.item_code, d.uom).get("conversion_factor") or 1.0
 				return_rate = 0
 				if cint(self.is_return) and self.return_against and self.docstatus==1:
-					return_rate = self.get_incoming_rate_for_sales_return(d.item_code, self.return_against)
+					return_rate = get_rate_for_return(self.doctype, self.name, d.item_code, self.return_against, item_row=d)
 
 				# On cancellation or if return entry submission, make stock ledger entry for
 				# target warehouse first, to update serial no values properly
@@ -340,7 +345,8 @@ class SellingController(StockController):
 					or (cint(self.is_return) and self.docstatus==2)):
 						sl_entries.append(self.get_sl_entries(d, {
 							"actual_qty": -1*flt(d.qty),
-							"incoming_rate": return_rate
+							"incoming_rate": return_rate,
+							"recalculate_rate": cint(self.is_return)
 						}))
 
 				if d.target_warehouse:
@@ -368,7 +374,8 @@ class SellingController(StockController):
 							})
 						else:
 							target_warehouse_sle.update({
-								"outgoing_rate": return_rate
+								"outgoing_rate": return_rate,
+								"recalculate_rate": 1
 							})
 					sl_entries.append(target_warehouse_sle)
 
@@ -376,7 +383,8 @@ class SellingController(StockController):
 					or (cint(self.is_return) and self.docstatus==1)):
 						sl_entries.append(self.get_sl_entries(d, {
 							"actual_qty": -1*flt(d.qty),
-							"incoming_rate": return_rate
+							"incoming_rate": return_rate,
+							"recalculate_rate": cint(self.is_return)
 						}))
 		self.make_sl_entries(sl_entries)
 
