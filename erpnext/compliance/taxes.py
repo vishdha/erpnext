@@ -20,6 +20,8 @@ def calculate_cannabis_tax(doc):
 		return
 
 	if doc.doctype in ("Purchase Order", "Purchase Invoice", "Purchase Receipt"):
+		if doc.doctype == "Purchase Receipt" and frappe.db.get_single_value("Buying Settings", "disable_cultivation_tax_for_purchase_receipt"):
+			return
 		# calculate cultivation tax for buying cycle
 		cultivation_taxes = calculate_cultivation_tax(doc)
 		for account, tax in cultivation_taxes.items():
