@@ -33,14 +33,11 @@ class QualityInspection(Document):
 			child.value = d.value
 			child.status = "Accepted"
 
-	def validate_certificate_of_analysis(self):
-		compliance_item = frappe.db.exists("Compliance Item", self.item_code)
-		if compliance_item and self.inspection_by == "External" and not self.certificate_of_analysis:
-			frappe.throw(_("Please attach a Certificate of Analysis"))
-
 	def get_quality_inspection_template(self):
 		template = ''
-		if self.bom_no:
+		if self.reference_type == "Job Card" and self.job_card:
+			template = frappe.db.get_value('Job Card', self.job_card, 'quality_inspection_template')
+		elif self.bom_no:
 			template = frappe.db.get_value('BOM', self.bom_no, 'quality_inspection_template')
 
 		if not template:
@@ -59,21 +56,44 @@ class QualityInspection(Document):
 		if self.thc or self.cbd:
 			update_batch_doc(self.batch_no, self.name, self.item_code)
 
+		if self.readings:
+			self.validate_reading_status()
+
 	def on_cancel(self):
 		self.update_qc_reference()
+
+	def validate_certificate_of_analysis(self):
+		is_compliance_item = frappe.db.get_value("Item", self.item_code, "is_compliance_item")
+		if is_compliance_item and self.inspection_by == "External" and not self.certificate_of_analysis:
+			frappe.throw(_("Please attach a Certificate of Analysis"))
+
+	def validate_reading_status(self):
+		for reading in self.readings:
+			if reading.status == 'Rejected':
+				self.status = "Rejected"
+				return
 
 	def update_qc_reference(self):
 		quality_inspection = self.name if self.docstatus == 1 else ""
 		doctype = self.reference_type + ' Item'
 		if self.reference_type == 'Stock Entry':
 			doctype = 'Stock Entry Detail'
+		elif self.reference_type == 'Job Card':
+			doctype = 'Job Card'
 
 		if self.reference_type and self.reference_name:
-			frappe.db.sql("""update `tab{child_doc}` t1, `tab{parent_doc}` t2
-				set t1.quality_inspection = %s, t2.modified = %s
-				where t1.parent = %s and t1.item_code = %s and t1.parent = t2.name"""
-				.format(parent_doc=self.reference_type, child_doc=doctype),
-				(quality_inspection, self.modified, self.reference_name, self.item_code))
+			if doctype != "Job Card":
+				frappe.db.sql("""update `tab{child_doc}` t1, `tab{parent_doc}` t2
+					set t1.quality_inspection = %s, t2.modified = %s
+					where t1.parent = %s and t1.item_code = %s and t1.parent = t2.name"""
+					.format(parent_doc=self.reference_type, child_doc=doctype),
+					(quality_inspection, self.modified, self.reference_name, self.item_code))
+			else:
+				frappe.db.sql("""update `tab{doctype}` t1
+					set t1.quality_inspection = %s
+					where t1.name = %s and t1.production_item = %s"""
+					.format(doctype=self.reference_type),
+					(quality_inspection, self.reference_name, self.item_code))
 
 	def set_batch_coa(self):
 		if self.certificate_of_analysis:
@@ -108,13 +128,22 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 		if filters.get('from') in ['Supplier Quotation Item']:
 			qi_condition = ""
 
-		return frappe.db.sql(""" select item_code from `tab{doc}`
-			where parent=%(parent)s and docstatus < 2 and item_code like %(txt)s
-			{qi_condition} {cond} {mcond}
-			order by item_code limit {start}, {page_len}""".format(doc=filters.get('from'),
-			parent=filters.get('parent'), cond = cond, mcond = mcond, start = start,
-			page_len = page_len, qi_condition = qi_condition),
-			{'parent': filters.get('parent'), 'txt': "%%%s%%" % txt})
+		if filters.get('from') not in ['Job Card']:
+			return frappe.db.sql(""" select item_code from `tab{doc}`
+				where parent=%(parent)s and docstatus < 2 and item_code like %(txt)s
+				{qi_condition} {cond} {mcond}
+				order by item_code limit {start}, {page_len}""".format(doc=filters.get('from'),
+				parent=filters.get('parent'), cond = cond, mcond = mcond, start = start,
+				page_len = page_len, qi_condition = qi_condition),
+				{'parent': filters.get('parent'), 'txt': "%%%s%%" % txt})
+		else:
+			return frappe.db.sql(""" select production_item from `tab{doc}`
+				where name = %(parent)s and docstatus < 2 and production_item like %(txt)s
+				{qi_condition} {cond} {mcond}
+				order by production_item limit {start}, {page_len}""".format(doc=filters.get('from'),
+				cond = cond, mcond = mcond, start = start,
+				page_len = page_len, qi_condition = qi_condition),
+				{'parent': filters.get('parent'), 'txt': "%%%s%%" % txt})
 
 def quality_inspection_query(doctype, txt, searchfield, start, page_len, filters):
 	return frappe.get_all('Quality Inspection',
@@ -150,6 +179,24 @@ def make_quality_inspection(source_name, target_doc=None):
 
 	return doc
 
+@frappe.whitelist()
+def make_quality_inspection_from_job_card(source_name, target_doc=None):
+	def postprocess(source, doc):
+		doc.inspected_by = frappe.session.user
+		doc.get_quality_inspection_template()
+	doc = get_mapped_doc("Job Card", source_name, {
+		'Job Card': {
+			"doctype": "Quality Inspection",
+			"field_map": {
+				"name": "reference_name",
+				"doctype": "reference_type",
+				"production_item":"item_code"
+			},
+		}
+	}, target_doc, postprocess)
+
+	return doc
+
 
 @frappe.whitelist()
 def make_quality_inspections(items):
@@ -165,6 +212,7 @@ def make_quality_inspections(items):
 			"item_code": item.get("item_code"),
 			"sample_size": item.get("sample_size"),
 			"batch_no": item.get("batch_no"),
+			"package_tag":item.get("package_tag"),
 			"inspected_by": frappe.session.user,
 			"inspection_by": "Internal",
 			"quality_inspection_template": frappe.db.get_value('BOM', item.get("item_code"), 'quality_inspection_template')

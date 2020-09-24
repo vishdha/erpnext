@@ -6,7 +6,6 @@ cur_frm.cscript.refresh = cur_frm.cscript.inspection_type;
 frappe.ui.form.on("Quality Inspection", {
 	item_code: function (frm) {
 		if (frm.doc.item_code) {
-			frm.trigger("check_compliance_item");
 			frappe.db.get_value('Item', { name: frm.doc.item_code }, ['has_batch_no', 'has_serial_no'], (r) => {
 				frm.toggle_reqd("batch_no", r.has_batch_no);
 				frm.toggle_reqd("item_serial_no", r.has_serial_no);
@@ -33,18 +32,23 @@ frappe.ui.form.on("Quality Inspection", {
 			});
 		}
 	},
-	onload: (frm) => {
-		if (frm.doc.item_code) {
+	check_compliance_item: function (frm) {
+		frappe.db.get_value("Item", { "item_code": frm.doc.item_code }, "is_compliance_item")
+			.then(item => {
+				frm.toggle_reqd('certificate_of_analysis', item.message.is_compliance_item);
+				frm.toggle_display('thc', item.message.is_compliance_item);
+				frm.toggle_display('cbd', item.message.is_compliance_item);
+			})
+	},
+	inspection_by: function (frm) {
+		if (frm.doc.item_code && frm.doc.inspection_by == "External") {
 			frm.trigger("check_compliance_item");
 		}
-	},
-	check_compliance_item: function (frm) {
-		frappe.db.get_value("Compliance Item", { "item_code": frm.doc.item_code }, "item_code")
-			.then(item => {
-				frm.toggle_reqd('batch_no', !!item.message);
-				frm.toggle_display('thc', !!item.message);
-				frm.toggle_display('cbd', !!item.message);
-			})
+		else {
+			frm.toggle_reqd('certificate_of_analysis', 0);
+			frm.toggle_display('thc', 0);
+			frm.toggle_display('cbd', 0);
+		}
 	},
 	package_tag: (frm) => {
 		// set package tag from the selected batch, even if empty
@@ -54,23 +58,30 @@ frappe.ui.form.on("Quality Inspection", {
 			});
 		}
 	},
-	before_save: (frm) => {
-		if (frm.doc.item_code && frm.doc.inspection_by == "External") {
-			frappe.db.get_value("Compliance Item", { "item_code": frm.doc.item_code }, "item_code")
-				.then(item => {
-					frm.toggle_reqd('certificate_of_analysis', !!item.message);
-				})
-		}
-		else {
-			frm.toggle_reqd('certificate_of_analysis', 0);
+})
+
+frappe.ui.form.on("Quality Inspection Reading", {
+	status: function (frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		if (row.status === "Rejected") {
+			frappe.confirm(__("This will mark the Quality Inspection as 'Rejected'. Are you sure you want to proceed?"),
+				() => { frm.set_value("status", row.status); },
+				() => { frappe.reload_doc() }
+			);
 		}
 	}
 })
 
 // item code based on GRN/DN
 cur_frm.fields_dict['item_code'].get_query = function (doc, cdt, cdn) {
-	const doctype = (doc.reference_type == "Stock Entry") ?
-		"Stock Entry Detail" : doc.reference_type + " Item";
+	let doctype;
+	if (doc.reference_type == "Stock Entry") {
+		doctype = "Stock Entry Detail";
+	} else if (doc.reference_type == "Job Card") {
+		doctype = "Job Card";
+	} else {
+		doctype = doc.reference_type + " Item";
+	}
 
 	if (doc.reference_type && doc.reference_name) {
 		return {

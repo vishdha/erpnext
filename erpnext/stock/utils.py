@@ -375,7 +375,7 @@ def get_items_for_quality_inspection(doc, items):
 	inspection_type_map = {
 		"Purchase Receipt": ["Incoming", "inspection_required_before_purchase"],
 		"Delivery Note": ["Outgoing", "inspection_required_before_delivery"],
-		"Stock Entry": ["In Process", "inspection_required_before_manufacturing"]
+		"Stock Entry": ["In Process", "inspection_required_during_manufacturing"]
 	}
 
 	data = []
@@ -391,6 +391,7 @@ def get_items_for_quality_inspection(doc, items):
 				"item_code": item.get("item_code"),
 				"item_name": item.get("item_name"),
 				"batch_no": item.get('batch_no'),
+				"package_tag":item.get("package_tag"),
 				"qty": item.get("qty"),
 				"inspection_type": inspection_type
 			})

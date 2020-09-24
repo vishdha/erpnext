@@ -19,6 +19,7 @@ from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note a
 class PickList(Document):
 	def validate(self):
 		self.validate_delivery_date()
+		self.validate_stock_qty()
 
 	def before_save(self):
 		# prevent the system from re-calculating the item quantities based on batch locations
@@ -32,7 +33,7 @@ class PickList(Document):
 				continue
 			if not item.serial_no:
 				frappe.throw(_("Row #{0}: {1} does not have any available serial numbers in {2}".format(
-					frappe.bold(item.idx), frappe.bold(item.item_code), frappe.bold(item.warehouse))))
+					item.idx, frappe.bold(item.item_code), frappe.bold(item.warehouse))))
 			if len(item.serial_no.split('\n')) == item.picked_qty:
 				continue
 			frappe.throw(_('For item {0} at row {1}, count of serial numbers does not match with the picked quantity')
@@ -44,6 +45,23 @@ class PickList(Document):
 		order_delivery_dates = [frappe.db.get_value("Sales Order Item", location.get("sales_order_item"), "delivery_date")
 			for location in self.locations if location.get("sales_order_item")]
 		self.delivery_date = min(order_delivery_dates)
+
+	def validate_stock_qty(self):
+		"""User should not allowed to create pick list if sales order item qty exceed."""
+		for item in self.locations:
+			if item.get("sales_order_item"):
+				ordered_item_qty = frappe.db.get_value("Sales Order Item", item.get("sales_order_item"), "qty")
+				prev_picked_qty = frappe.get_all("Pick List Item", filters={"sales_order_item":item.get("sales_order_item"), "docstatus":1}, fields=['sum(qty) as prev_picked_qty'])
+
+				if prev_picked_qty:
+					prev_picked_qty = prev_picked_qty[0].prev_picked_qty
+					pick_list_qty = ordered_item_qty - prev_picked_qty
+					if pick_list_qty > 0 and item.qty > pick_list_qty:
+						frappe.throw(_("Row #{0}: Picked quantity ({1}) for {2} cannot exceed unused ordered qty ({3})").format(item.idx, frappe.bold(item.qty), frappe.bold(item.item_name), frappe.bold(pick_list_qty)))
+
+				if item.qty > ordered_item_qty:
+					frappe.throw(_("Row #{0}: {1}'s quantity ({2}) should be less than or equal to the ordered quantity ({3})").format(
+						item.idx, frappe.bold(item.item_name), frappe.bold(item.qty), frappe.bold(ordered_item_qty)))
 
 	def on_submit(self):
 		self.update_order_package_tag()
@@ -117,6 +135,10 @@ class PickList(Document):
 		for row in self.locations:
 			if not row.picked_qty:
 				row.picked_qty = row.stock_qty
+
+			if row.picked_qty > row.stock_qty:
+				frappe.throw(_("Row #{0}: Picked quantity ({1}) should be less or equal to the stock quantity ({2})").format(
+					row.idx, frappe.bold(row.picked_qty), frappe.bold(row.stock_qty)))
 
 	def update_order_package_tag(self, reset=False):
 		package_tags = [item.package_tag for item in self.locations if item.package_tag]
