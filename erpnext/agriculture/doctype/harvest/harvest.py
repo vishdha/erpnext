@@ -18,7 +18,6 @@ def create_stock_entry(harvest):
 		return frappe.msgprint(_('Stock Entry {0} has been already created against this harvest.').format(frappe.utils.get_link_to_form("Stock Entry", stock_entry_name)))
 	stock_entry = frappe.new_doc('Stock Entry')
 	stock_entry.harvest = harvest.get('name')
-	stock_entry.purpose = harvest.get('purpose')
 	stock_entry.stock_entry_type = 'Harvest'
 
 	if harvest.get('strain'):
