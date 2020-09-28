@@ -63,11 +63,22 @@ frappe.ui.form.on("Quality Inspection", {
 frappe.ui.form.on("Quality Inspection Reading", {
 	status: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
+		let not_rejected = true;
 		if (row.status === "Rejected") {
 			frappe.confirm(__("This will mark the Quality Inspection as 'Rejected'. Are you sure you want to proceed?"),
 				() => { frm.set_value("status", row.status); },
-				() => { frappe.reload_doc() }
+				() => { frappe.model.set_value(cdt, cdn, "status", "Accepted") }
 			);
+		}
+		else{
+			frm.doc.readings.forEach(reading => {
+				if (reading.status === "Rejected"){
+					not_rejected = false;
+				}
+			});
+			if (not_rejected){
+				frm.set_value("status", "Accepted");
+			}
 		}
 	}
 })
