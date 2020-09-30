@@ -20,7 +20,7 @@ def create_stock_entry(harvest):
 	stock_entry.harvest = harvest.get('name')
 	stock_entry.stock_entry_type = 'Harvest'
 
-	if harvest.get('strain'):
+	if harvest.get('plants'):
 		stock_entry = update_stock_entry_based_on_strain(harvest, stock_entry)
 
 	if stock_entry.get("items"):
@@ -38,16 +38,15 @@ def stock_entry_exists(harvest_name):
 
 
 def update_stock_entry_based_on_strain(harvest, stock_entry):
-	strain = frappe.get_doc("Strain", harvest.get('strain'))
+	for plant_item in harvest.get('plants'):
+		strain = frappe.get_doc("Strain", plant_item.strain)
 
-	stock_entry.to_warehouse = strain.target_warehouse
-
-	for strain_item in strain.produced_items + strain.byproducts:
-		item = frappe._dict()
-		item.item_code = strain_item.item_code
-		item.uom = frappe.db.get_value("Item", item.item_code, "stock_uom")
-		item.stock_uom = item.uom
-		item.t_warehouse = strain.target_warehouse
-		stock_entry.append('items', item)
+		for strain_item in strain.produced_items + strain.byproducts:
+			item = frappe._dict()
+			item.item_code = strain_item.item_code
+			item.uom = frappe.db.get_value("Item", item.item_code, "stock_uom")
+			item.stock_uom = item.uom
+			item.t_warehouse = strain.target_warehouse
+			stock_entry.append('items', item)
 
 	return stock_entry
