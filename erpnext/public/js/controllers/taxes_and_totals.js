@@ -778,8 +778,9 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 				callback: (r) => {
 					if (r.message) {
 						let taxes = me.frm.doc.taxes;
+						// get tax account head from company master to avoid disorder behaviour and remove it from taxes table.
 						frappe.db.get_value('Company', { "name": me.frm.doc.company }, ["default_cultivation_tax_account_flower", "default_cultivation_tax_account_leaf", "default_cultivation_tax_account_plant"], (r) => {
-							let tax_account_list = [r.default_cultivation_tax_account_flower, r.default_cultivation_tax_account_leaf, r.default_cultivation_tax_account_plant]
+							let tax_account_list = [r.default_cultivation_tax_account_flower, r.default_cultivation_tax_account_leaf, r.default_cultivation_tax_account_plant];
 							if (taxes && taxes.length > 0) {
 								$.each(taxes, function (i, tax) {
 									if (tax_account_list.indexOf(tax.account_head) !== -1) {
