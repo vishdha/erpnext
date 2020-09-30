@@ -754,5 +754,62 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 				}
 			});
 		})
+	},
+	set_and_update_cultivation_tax: function () {
+		const me = this;
+		if (["Quotation", "Sales Invoice", "Delivery Note", "Sales Order"].includes(me.frm.doctype)) {
+			if (!me.frm.doc.license) {
+				return;
+			}
+		}
+
+		frappe.db.get_value("Compliance Info", { "name": me.frm.doc.license }, "license_for", (r) => {
+			if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(me.frm.doctype)) {
+				if (!r || r.license_for !== "Distributor") {
+					return;
+				}
+			}
+
+			frappe.call({
+				method: "erpnext.compliance.taxes.set_cultivation_tax",
+				args: {
+					doc: me.frm.doc
+				},
+				callback: (r) => {
+					if (r.message) {
+						let taxes = me.frm.doc.taxes;
+						let cultivation_tax_row_list = r.message;
+						for (let cultivation_tax_row of cultivation_tax_row_list ) {
+							if (cultivation_tax_row.tax_amount > 0) {
+								if (taxes && taxes.length > 0) {
+									$.each(taxes, function (i, tax) {
+										if (tax.account_head == cultivation_tax_row.account_head) {
+											console.log("r1", tax.account_head, cultivation_tax_row.account_head)
+											tax.tax_amount = cultivation_tax_row.tax_amount;
+											me.frm.refresh_field('taxes');
+										} else {
+											me.frm.add_child('taxes', cultivation_tax_row);
+										}
+										me.calculate_taxes_and_totals();
+									});
+								} else {
+									me.frm.add_child('taxes', cultivation_tax_row);
+									me.frm.refresh_field('taxes');
+									me.calculate_taxes_and_totals();
+								}
+							} else if (cultivation_tax_row.tax_amount === 0) {
+								if (taxes && taxes.length > 0) {
+									$.each(taxes, function (i, tax) {
+										if (tax.account_head == cultivation_tax_row.account_head) {
+											me.frm.get_field("taxes").grid.grid_rows[i].remove();
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			});
+		})
 	}
 });

@@ -105,6 +105,17 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 				if(!item.warehouse && frm.doc.set_warehouse) {
 					item.warehouse = frm.doc.set_warehouse;
 				}
+				frm.cscript.set_and_update_cultivation_tax();
+			},
+			items_remove: function(frm, cdt, cdn) {
+				frm.cscript.set_and_update_cultivation_tax();
+			},
+			rate: function(frm, cdt, cdn) {
+				frm.cscript.set_and_update_cultivation_tax();
+			},
+			qty: function(frm, cdt, cdn) {
+				console.log("test")
+				frm.cscript.set_and_update_cultivation_tax();
 			}
 		});
 
