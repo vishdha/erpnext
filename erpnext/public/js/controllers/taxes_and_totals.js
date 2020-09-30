@@ -782,7 +782,6 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 							let tax_account_list = [r.default_cultivation_tax_account_flower, r.default_cultivation_tax_account_leaf, r.default_cultivation_tax_account_plant]
 							if (taxes && taxes.length > 0) {
 								$.each(taxes, function (i, tax) {
-									console.log("rax", tax.account_head)
 									if (tax_account_list.indexOf(tax.account_head) !== -1) {
 										me.frm.get_field("taxes").grid.grid_rows[i].remove();
 									}
