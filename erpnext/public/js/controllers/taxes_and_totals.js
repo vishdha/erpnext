@@ -778,33 +778,30 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 				callback: (r) => {
 					if (r.message) {
 						let taxes = me.frm.doc.taxes;
+						frappe.db.get_value('Company', { "name": me.frm.doc.company }, ["default_cultivation_tax_account_flower", "default_cultivation_tax_account_leaf", "default_cultivation_tax_account_plant"], (r) => {
+							let tax_account_list = [r.default_cultivation_tax_account_flower, r.default_cultivation_tax_account_leaf, r.default_cultivation_tax_account_plant]
+							if (taxes && taxes.length > 0) {
+								$.each(taxes, function (i, tax) {
+									console.log("rax", tax.account_head)
+									if (tax_account_list.indexOf(tax.account_head) !== -1) {
+										me.frm.get_field("taxes").grid.grid_rows[i].remove();
+									}
+								});
+							}
+						});
 						let cultivation_tax_row_list = r.message;
 						for (let cultivation_tax_row of cultivation_tax_row_list ) {
 							if (cultivation_tax_row.tax_amount > 0) {
-								if (taxes && taxes.length > 0) {
-									$.each(taxes, function (i, tax) {
-										if (tax.account_head == cultivation_tax_row.account_head) {
-											console.log("r1", tax.account_head, cultivation_tax_row.account_head)
-											tax.tax_amount = cultivation_tax_row.tax_amount;
-											me.frm.refresh_field('taxes');
-										} else {
-											me.frm.add_child('taxes', cultivation_tax_row);
-										}
-										me.calculate_taxes_and_totals();
-									});
-								} else {
-									me.frm.add_child('taxes', cultivation_tax_row);
-									me.frm.refresh_field('taxes');
-									me.calculate_taxes_and_totals();
-								}
-							} else if (cultivation_tax_row.tax_amount === 0) {
-								if (taxes && taxes.length > 0) {
-									$.each(taxes, function (i, tax) {
-										if (tax.account_head == cultivation_tax_row.account_head) {
-											me.frm.get_field("taxes").grid.grid_rows[i].remove();
-										}
-									});
-								}
+								me.frm.add_child('taxes', cultivation_tax_row);
+								me.frm.refresh_field('taxes');
+								me.calculate_taxes_and_totals();
+							}
+						}
+						if (me.frm.doc.items.length === 0) {
+							if (taxes && taxes.length > 0) {
+								$.each(taxes, function (i, tax) {
+									me.frm.get_field("taxes").grid.grid_rows[i].remove();
+								});
 							}
 						}
 					}
