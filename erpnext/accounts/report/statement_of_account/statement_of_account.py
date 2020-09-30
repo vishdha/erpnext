@@ -279,9 +279,9 @@ def get_addresses(company=None, party_type=None, party=None):
 def notify_party(filters, report):
 	filters = frappe._dict(json.loads(filters))
 	report = frappe._dict(json.loads(report))
-	party = frappe.get_doc('User', filters.party).email
+	# party = frappe.get_doc('User', filters.party).email
 	frappe.sendmail(
-		recipients = party,
+		recipients = "vishal@gmail.com",
 		subject = report.report_name,
 		message = 'Statement of account',
 		# attachments = attachments,

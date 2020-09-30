@@ -120,12 +120,72 @@ frappe.query_reports["Statement of Account"] = {
 		});
 	},
 
+	// email_report: (print_settings) => {
+	// 	const base_url = frappe.urllib.get_base_url();
+	// 	const print_css = frappe.boot.print_css;
+	// 	const landscape = print_settings.orientation == 'Landscape';
+
+	// 	const custom_format = this.report_settings.html_format || null;
+	// 	const columns = this.get_columns_for_print(print_settings, custom_format);
+	// 	const data = this.get_data_for_print();
+	// 	const applied_filters = this.get_filter_values();
+
+	// 	const filters_html = this.get_filters_html_for_print();
+	// 	const template =
+	// 		print_settings.columns || !custom_format ? 'print_grid' : custom_format;
+	// 	const content = frappe.render_template(template, {
+	// 		title: __(this.report_name),
+	// 		subtitle: filters_html,
+	// 		filters: applied_filters,
+	// 		data: data,
+	// 		original_data: this.data,
+	// 		columns: columns,
+	// 		report: this
+	// 	});
+		
+
+	// 	// Render Report in HTML
+	// 	const html = frappe.render_template('print_template', {
+	// 		title: __(this.report_name),
+	// 		content: content,
+	// 		base_url: base_url,
+	// 		print_css: print_css,
+	// 		print_settings: print_settings,
+	// 		landscape: landscape,
+	// 		columns: columns
+	// 	});
+	// 	console.log("html", html);
+	// },
+
+	get_visible_columns() {
+		const visible_column_ids = this.datatable.datamanager.getColumns(true).map(col => col.id);
+
+		return visible_column_ids
+			.map(id => this.columns.find(col => col.id === id))
+			.filter(Boolean);
+	},
 	notify_party: function (report, filters) {
-		console.log("party", filters)
+		function email_report(report, print_settings) {
+			let html = report.pdf_report(print_settings, true);
+			let report_pdf = frappe.render_pdf(html, print_settings)
+			console.log("rep", report_pdf)
+		}
 		if (!filters.party.length) {
 			frappe.throw(__("Missing Party filter value."));
 		} else {
 			frappe.confirm(__("Do you want to notify the party by email?"), function () {
+				let dialog = frappe.ui.get_print_settings(
+					false,
+					print_settings => email_report(report, print_settings),
+					report.report_doc.letter_head,
+					report.get_visible_columns()
+				);
+				// report.add_portrait_warning(dialog);
+
+			
+				
+			
+
 				frappe.call({
 					method: "erpnext.accounts.report.statement_of_account.statement_of_account.notify_party",
 					args: {
