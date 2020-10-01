@@ -115,6 +115,12 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 			});
 		}
 
+		if(this.frm.fields_dict["items"].grid.get_field('package_tag')) {
+			this.frm.set_query("package_tag", "items", function(doc, cdt, cdn) {
+				return me.set_query_for_package_tag(doc, cdt, cdn);
+			});
+		}
+
 		if(
 			this.frm.docstatus < 2
 			&& this.frm.fields_dict["payment_terms_template"]
@@ -406,7 +412,8 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 				args: {
 					"master_doctype": taxes_and_charges_field.options,
 					"tax_template": me.frm.doc.taxes_and_charges,
-					"company": me.frm.doc.company
+					"company": me.frm.doc.company,
+					"doctype": me.frm.doc.doctype
 				},
 				callback: function(r) {
 					if(!r.exc && r.message) {

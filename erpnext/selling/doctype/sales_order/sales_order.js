@@ -67,15 +67,6 @@ frappe.ui.form.on("Sales Order", {
 			});
 		}
 
-		frm.set_query("package_tag", "items", (doc, cdt, cdn) => {
-			let row = frm.selected_doc || locals[cdt][cdn];
-
-			if (!row.batch_no) {
-				return { filters: { "item_code": row.item_code } };
-			} else {
-				return { filters: { "item_code": row.item_code, "batch_no": row.batch_no } };
-			}
-		})
 	},
 	onload: function(frm) {
 		if (!frm.doc.transaction_date){
@@ -273,15 +264,7 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 				if(!r.message) {
 					frappe.msgprint({
 						title: __('Work Order not created'),
-						message: __('No Items with Bill of Materials to Manufacture'),
-						indicator: 'orange'
-					});
-					return;
-				}
-				else if(!r.message) {
-					frappe.msgprint({
-						title: __('Work Order not created'),
-						message: __('Work Order already created for all items with BOM'),
+						message: __('No items left to manufacture'),
 						indicator: 'orange'
 					});
 					return;
