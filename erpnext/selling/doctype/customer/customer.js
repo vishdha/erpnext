@@ -16,6 +16,10 @@ frappe.ui.form.on("Customer", {
 			'Contract': () => frappe.model.open_mapped_doc({
 				method: 'erpnext.selling.doctype.customer.customer.make_contract',
 				frm: cur_frm
+			}),
+			'Subscription': () => frappe.model.open_mapped_doc({
+				method: 'erpnext.selling.doctype.customer.customer.make_subscription',
+				frm: cur_frm
 			})
 		}
 
