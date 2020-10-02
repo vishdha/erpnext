@@ -1480,6 +1480,10 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 						() => me.frm.set_value("plc_conversion_rate", r.message.parent.plc_conversion_rate),
 						() => {
 							if(args.items.length) {
+								console.log("-------------------");
+								for(let c in args.items.length) {
+									console.log(c);
+								}
 								me._set_values_for_item_list(r.message.children);
 							}
 						},
