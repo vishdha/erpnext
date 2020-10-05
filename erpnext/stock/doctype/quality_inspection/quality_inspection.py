@@ -68,14 +68,11 @@ class QualityInspection(Document):
 			frappe.throw(_("Please attach a Certificate of Analysis"))
 
 	def validate_reading_status(self):
-		rejected = False
+		self.status = "Accepted"
 		for reading in self.readings:
 			if reading.status == 'Rejected':
 				self.status = "Rejected"
-				rejected = True
 				break
-		if not rejected:
-			self.status = "Accepted"
 
 	def update_qc_reference(self):
 		quality_inspection = self.name if self.docstatus == 1 else ""
