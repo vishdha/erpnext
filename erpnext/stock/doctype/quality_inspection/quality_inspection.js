@@ -70,16 +70,13 @@ frappe.ui.form.on("Quality Inspection Reading", {
 				() => { frappe.model.set_value(cdt, cdn, "status", "Accepted"); }
 			);
 		}
-		else {
-			frm.doc.readings.forEach(reading => {
-				if (reading.status === "Rejected") {
-					rejected = true;
-				}
-			});
-			if (!rejected) {
-				frm.set_value("status", "Accepted");
+		let status = "Accepted";
+		frm.doc.readings.forEach(reading => {
+			if (reading.status === "Rejected") {
+				status = "Rejected";
 			}
-		}
+		});
+		frm.set_value("status", status);
 	}
 })
 
