@@ -29,11 +29,18 @@ class DeliveryTrip(Document):
 		self.update_package_total()
 
 	def on_submit(self):
-		self.update_status()
 		self.update_delivery_notes()
 
-	def on_cancel(self):
+	def before_submit(self):
 		self.update_status()
+
+	def before_update_after_submit(self):
+		self.update_status()
+
+	def before_cancel(self):
+		self.update_status()
+
+	def on_cancel(self):
 		self.update_delivery_notes(delete=True)
 
 	def update_package_total(self):
@@ -58,8 +65,7 @@ class DeliveryTrip(Document):
 			elif any(visited_stops):
 				status = "In Transit"
 
-		self.db_set("status", status)
-
+		self.status = status
 	def update_delivery_notes(self, delete=False):
 		"""
 		Update all connected Delivery Notes with Delivery Trip details
@@ -533,7 +539,6 @@ def create_or_update_timesheet(trip, action, odometer_value=None):
 
 		delivery_trip.actual_distance_travelled = flt(odometer_value) - delivery_trip.odometer_start_value
 	delivery_trip.save()
-
 
 @frappe.whitelist()
 def make_payment_entry(payment_amount, sales_invoice):
