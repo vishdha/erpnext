@@ -63,7 +63,6 @@ frappe.ui.form.on("Quality Inspection", {
 frappe.ui.form.on("Quality Inspection Reading", {
 	status: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
-		let rejected = false;
 		if (row.status === "Rejected") {
 			frappe.confirm(__("This will mark the Quality Inspection as 'Rejected'. Are you sure you want to proceed?"),
 				() => { frm.set_value("status", row.status); },
