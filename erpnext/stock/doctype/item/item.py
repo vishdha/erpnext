@@ -45,6 +45,7 @@ class Item(WebsiteGenerator):
 	)
 
 	def onload(self):
+		# print(self.as_dict())
 		super(Item, self).onload()
 
 		self.set_onload('stock_exists', self.stock_ledger_created())
@@ -1132,3 +1133,10 @@ def toggle_variants_website_display(item_name, value):
 def on_doctype_update():
 	# since route is a Text column, it needs a length for indexing
 	frappe.db.add_index("Item", ["route(500)"])
+
+@frappe.whitelist()
+def make_purchase_order_item(source_name, target_doc=None):
+	item= frappe.get_doc("Item", {'item_code': source_name})
+	doc = frappe.new_doc("Purchase Order")
+	doc.supplier = item.item_defaults[0].default_supplier
+	return doc
