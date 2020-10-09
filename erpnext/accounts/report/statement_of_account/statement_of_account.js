@@ -150,7 +150,7 @@ frappe.query_reports["Statement of Account"] = {
 					},
 					callback: function (r) {
 						if (!r.exc) {
-							console.log("r", r.message)
+							frappe.msgprint(__("Email Sent."));
 						}
 					}
 				});
