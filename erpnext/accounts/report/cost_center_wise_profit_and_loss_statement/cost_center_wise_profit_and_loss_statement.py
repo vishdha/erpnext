@@ -169,7 +169,7 @@ def get_account_type_based_data(account_type, companies, fiscal_year, filters):
 	data["total"] = total
 	return data
 
-def get_columns(companies):
+def get_columns(cost_centers):
 	columns = [{
 		"fieldname": "account",
 		"label": _("Account"),
@@ -186,10 +186,10 @@ def get_columns(companies):
 		"hidden": 1
 	})
 
-	for company in companies:
+	for cost_center in cost_centers:
 		columns.append({
-			"fieldname": company,
-			"label": company,
+			"fieldname": cost_center,
+			"label": cost_center,
 			"fieldtype": "Currency",
 			"options": "currency",
 			"width": 150
