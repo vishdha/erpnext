@@ -790,7 +790,7 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 							}
 						});
 						let cultivation_tax_row_list = r.message;
-						for (let cultivation_tax_row of cultivation_tax_row_list ) {
+						for (let cultivation_tax_row of cultivation_tax_row_list) {
 							if (cultivation_tax_row.tax_amount > 0) {
 								me.frm.add_child('taxes', cultivation_tax_row);
 								me.frm.refresh_field('taxes');
@@ -799,9 +799,7 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 						}
 						if (me.frm.doc.items.length === 0) {
 							if (taxes && taxes.length > 0) {
-								$.each(taxes, function (i, tax) {
-									me.frm.get_field("taxes").grid.grid_rows[i].remove();
-								});
+								me.frm.doc.taxes.remove_all();
 							}
 						}
 					}

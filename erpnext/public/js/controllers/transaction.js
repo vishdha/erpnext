@@ -107,13 +107,13 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 				}
 				frm.cscript.set_and_update_cultivation_tax();
 			},
-			items_remove: function(frm, cdt, cdn) {
+			items_remove: function(frm) {
 				frm.cscript.set_and_update_cultivation_tax();
 			},
-			rate: function(frm, cdt, cdn) {
+			rate: function(frm) {
 				frm.cscript.set_and_update_cultivation_tax();
 			},
-			qty: function(frm, cdt, cdn) {
+			qty: function(frm) {
 				frm.cscript.set_and_update_cultivation_tax();
 			}
 		});
