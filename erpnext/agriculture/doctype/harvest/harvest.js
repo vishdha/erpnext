@@ -6,7 +6,7 @@ frappe.ui.form.on('Harvest', {
 		frm.make_methods = {
 			'Stock Entry': () => {
 				if (frm.doc.docstatus === 1) {
-					frm.trigger("create_stock_entry"); 
+					frm.trigger("create_stock_entry");
 				}
 			}
 		};
