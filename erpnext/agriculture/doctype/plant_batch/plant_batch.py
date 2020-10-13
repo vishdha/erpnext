@@ -99,15 +99,15 @@ def get_coordinates(doc):
 def get_geometry_type(doc):
 	return ast.literal_eval(doc.location).get('features')[0].get('geometry').get('type')
 
-def validate_quantities(self, destroy_count):
-		if self.untracked_count == 0:
+def validate_quantities(doc, destroy_count):
+		if doc.untracked_count == 0:
 			frappe.throw(_("The plant batch must have an untracked count."))
 
 		if int(destroy_count) <= 0 :
 			frappe.throw(_("Destroy count cannot be less than or equal to 0."))
 
-		if self.untracked_count < int(destroy_count):
-			frappe.throw(_("The Destroy Count ({0}) should be less than or equal to the untracked count ({1})").format(destroy_count,self.untracked_count))
+		if doc.untracked_count < int(destroy_count):
+			frappe.throw(_("The Destroy Count ({0}) should be less than or equal to the untracked count ({1})").format(destroy_count,doc.untracked_count))
 
 
 def is_in_location(point, vs):
