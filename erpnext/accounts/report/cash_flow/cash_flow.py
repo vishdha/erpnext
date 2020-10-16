@@ -125,8 +125,9 @@ def get_account_type_based_data(company, account_type, period_list, accumulated_
 	data["total"] = total
 	return data
 
-def get_account_type_based_gl_data(company, start_date, end_date, account_type, filters={}):
+def get_account_type_based_gl_data(company, start_date, end_date, account_type, filters={}, cost_center=None, cost_center_wise=False):
 	cond = ""
+	cost_center_condition = ""
 	filters = frappe._dict(filters)
 
 	if filters.include_default_book_entries:
@@ -136,14 +137,22 @@ def get_account_type_based_gl_data(company, start_date, end_date, account_type, 
 	else:
 		cond = " AND (finance_book in (%s, '') OR finance_book IS NULL)" %(frappe.db.escape(cstr(filters.finance_book)))
 
-
-	gl_sum = frappe.db.sql_list("""
-		select sum(credit) - sum(debit)
-		from `tabGL Entry`
-		where company=%s and posting_date >= %s and posting_date <= %s
-			and voucher_type != 'Period Closing Voucher'
-			and account in ( SELECT name FROM tabAccount WHERE account_type = %s) {cond}
-	""".format(cond=cond), (company, start_date, end_date, account_type))
+	if cost_center_wise:
+		gl_sum = frappe.db.sql_list("""
+			select sum(credit) - sum(debit)
+			from `tabGL Entry`
+			where company=%s and posting_date >= %s and posting_date <= %s
+				and voucher_type != 'Period Closing Voucher' and cost_center = %s
+				and account in ( SELECT name FROM tabAccount WHERE account_type = %s) {cond}
+		""".format(cond=cond), (company, start_date, end_date, cost_center, account_type), debug=True)
+	else:
+		gl_sum = frappe.db.sql_list("""
+			select sum(credit) - sum(debit)
+			from `tabGL Entry`
+			where company=%s and posting_date >= %s and posting_date <= %s
+				and voucher_type != 'Period Closing Voucher'
+				and account in ( SELECT name FROM tabAccount WHERE account_type = %s) {cond}
+		""".format(cond=cond), (company, start_date, end_date, account_type), debug=True)
 
 	return gl_sum[0] if gl_sum and gl_sum[0] else 0
 
@@ -157,7 +166,7 @@ def get_start_date(period, accumulated_values, company):
 
 	return start_date
 
-def add_total_row_account(out, data, label, period_list, currency, consolidated = False):
+def add_total_row_account(out, data, label, period_list, currency, consolidated = False, cost_center_wise=False):
 	total_row = {
 		"account_name": "'" + _("{0}").format(label) + "'",
 		"account": "'" + _("{0}").format(label) + "'",

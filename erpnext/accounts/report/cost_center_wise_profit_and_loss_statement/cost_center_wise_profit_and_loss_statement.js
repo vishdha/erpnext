@@ -13,20 +13,39 @@ frappe.query_reports["Cost Center Wise Profit and Loss Statement"] = {
 			"reqd": 1
 		},
 		{
-			"fieldname":"from_fiscal_year",
-			"label": __("Start Year"),
-			"fieldtype": "Link",
-			"options": "Fiscal Year",
-			"default": frappe.defaults.get_user_default("fiscal_year"),
-			"reqd": 1
+			"fieldname":"from_date",
+			"label": __("From Date"),
+			"fieldtype": "Date",
+			"reqd": 1,
+			"default": frappe.defaults.get_user_default("year_start_date"),
 		},
 		{
-			"fieldname":"to_fiscal_year",
-			"label": __("End Year"),
+			"fieldname":"to_date",
+			"label": __("To Date"),
+			"fieldtype": "Date",
+			"reqd": 1,
+			"default": frappe.defaults.get_user_default("year_end_date"),
+		},
+		{
+			"fieldname":"fiscal_year",
+			"label": __("Fiscal Year"),
 			"fieldtype": "Link",
 			"options": "Fiscal Year",
 			"default": frappe.defaults.get_user_default("fiscal_year"),
-			"reqd": 1
+			"reqd": 1,
+			"on_change": function(query_report) {
+				var fiscal_year = query_report.get_values().fiscal_year;
+				if (!fiscal_year) {
+					return;
+				}
+				frappe.model.with_doc("Fiscal Year", fiscal_year, function(r) {
+					var fy = frappe.model.get_doc("Fiscal Year", fiscal_year);
+					frappe.query_report.set_filter_value({
+						from_date: fy.year_start_date,
+						to_date: fy.year_end_date
+					});
+				});
+			}
 		},
 		{
 			"fieldname":"finance_book",
@@ -39,7 +58,7 @@ frappe.query_reports["Cost Center Wise Profit and Loss Statement"] = {
 			"label": __("Report"),
 			"fieldtype": "Select",
 			"options": ["Profit and Loss Statement", "Balance Sheet", "Cash Flow"],
-			"default": "Balance Sheet",
+			"default": "Profit and Loss Statement",
 			"reqd": 1
 		},
 		{
@@ -60,16 +79,25 @@ frappe.query_reports["Cost Center Wise Profit and Loss Statement"] = {
 			},
 		},
 		{
-			"fieldname":"accumulated_in_group_company",
-			"label": __("Accumulated Values in Group Company"),
-			"fieldtype": "Check",
-			"default": 0
-		},
-		{
 			"fieldname": "include_default_book_entries",
 			"label": __("Include Default Book Entries"),
 			"fieldtype": "Check",
 			"default": 1
 		}
-	]
+	],
+	"formatter": function(value, row, column, data, default_formatter) {
+		value = default_formatter(value, row, column, data);
+
+		if (!data.parent_account) {
+			value = $(`<span>${value}</span>`);
+			var $value = $(value).css("font-weight", "bold");
+			if (data.warn_if_negative && data[column.fieldname] < 0) {
+				$value.addClass("text-danger");
+			}
+
+			value = $value.wrap("<p></p>").parent().html();
+		}
+
+		return value;
+	},
 }
