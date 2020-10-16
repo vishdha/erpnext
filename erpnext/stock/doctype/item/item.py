@@ -45,7 +45,6 @@ class Item(WebsiteGenerator):
 	)
 
 	def onload(self):
-		# print(self.as_dict())
 		super(Item, self).onload()
 
 		self.set_onload('stock_exists', self.stock_ledger_created())
