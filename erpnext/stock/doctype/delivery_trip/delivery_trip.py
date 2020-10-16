@@ -531,9 +531,9 @@ def create_or_update_timesheet(trip, action, odometer_value=None):
 		frappe.db.set_value("Delivery Trip", trip, "status", "Completed", update_modified=False)
 		frappe.db.set_value("Delivery Trip", trip, "odometer_end_value", odometer_value, update_modified=False)
 		frappe.db.set_value("Delivery Trip", trip, "odometer_end_time", time, update_modified=False)
-
-		start_value = frappe.db.get_value("Delivery Trip", trip, "odometer_start_value")
-		frappe.db.set_value("Delivery Trip", trip, "actual_distance_travelled", flt(odometer_value) - start_value, update_modified=False)
+		
+		actual_distance_travelled = flt(odometer_value) - flt(delivery_trip.odometer_start_value)
+		frappe.db.set_value("Delivery Trip", trip, "actual_distance_travelled", actual_distance_travelled, update_modified=False)
 
 
 @frappe.whitelist()
