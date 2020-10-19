@@ -216,7 +216,7 @@ def set_cultivation_tax(doc):
 	if isinstance(doc, str):
 		doc = frappe._dict(json.loads(doc))
 
-	compliance_items = frappe.get_all('Compliance Item', fields=['item_code'])
+	compliance_items = frappe.get_all('Item', filters={'is_compliance_item': True}, fields=['item_code'])
 	if not compliance_items:
 		return
 	cultivation_tax_row = []

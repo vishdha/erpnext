@@ -757,17 +757,13 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 	},
 	set_and_update_cultivation_tax: function () {
 		const me = this;
-		if (["Quotation", "Sales Invoice", "Delivery Note", "Sales Order"].includes(me.frm.doctype)) {
-			if (!me.frm.doc.license) {
-				return;
-			}
+		if (["Quotation", "Sales Invoice", "Delivery Note", "Sales Order"].includes(me.frm.doctype) && !me.frm.doc.license) {
+			return;
 		}
 
 		frappe.db.get_value("Compliance Info", { "name": me.frm.doc.license }, "license_for", (r) => {
-			if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(me.frm.doctype)) {
-				if (!r || r.license_for !== "Distributor") {
-					return;
-				}
+			if (["Sales Order", "Sales Invoice", "Delivery Note", "Stock Entry"].includes(me.frm.doctype) && (!r || r.license_for !== "Distributor")) {
+				return;
 			}
 
 			frappe.call({
@@ -797,10 +793,8 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 								me.calculate_taxes_and_totals();
 							}
 						}
-						if (me.frm.doc.items.length === 0) {
-							if (taxes && taxes.length > 0) {
-								me.frm.doc.taxes.remove_all();
-							}
+						if (me.frm.doc.items.length === 0 && (taxes && taxes.length > 0)) {
+							me.frm.get_field("taxes").grid.remove_all();
 						}
 					}
 				}
