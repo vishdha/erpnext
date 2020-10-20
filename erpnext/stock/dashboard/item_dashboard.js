@@ -26,7 +26,7 @@ erpnext.stock.ItemDashboard = Class.extend({
 
 		function handle_move_add(element, action) {
 			let item = unescape(element.attr('data-item'));
-			let uom = cur_frm.doc.stock_uom;
+			let uom = unescape(element.attr('data-stock_uom'));
 			let warehouse = unescape(element.attr('data-warehouse'));
 			let actual_qty = unescape(element.attr('data-actual_qty'));
 			let disable_quick_entry = Number(unescape(element.attr('data-disable_quick_entry')));
