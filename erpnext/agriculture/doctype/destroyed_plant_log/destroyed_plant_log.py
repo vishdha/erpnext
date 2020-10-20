@@ -10,7 +10,7 @@ from frappe.model.document import Document
 class DestroyedPlantLog(Document):
 	def on_submit(self):
 		if self.category == "Plant Batch":
-			doc = frappe.get_doc('Plant Batch', self.plant_batch)
+			doc = frappe.get_doc('Plant Batch', self.plant)
 			doc.validate_plant_batch_quantities(self.destroy_count)
 		elif self.category == "Plant":
 			doc = frappe.get_doc('Plant', self.plant)

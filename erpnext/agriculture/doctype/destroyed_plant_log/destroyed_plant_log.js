@@ -2,10 +2,20 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Destroyed Plant Log', {
+	setup: function(frm){
+		frm.set_query("category", function () {
+			return { "filters": { "name": ["in", ["Plant Batch", "Plant"]] } }
+		});
+	},
+	refresh: function(frm){
+		frm.trigger('set_dynamic_field_lable');
+	},
 	category: function(frm){
-		frm.toggle_display('plant', frm.doc.category === "Plant");
-		frm.set_df_property('plant', 'reqd', frm.doc.category === "Plant");
-		frm.toggle_display('plant_batch', frm.doc.category === "Plant Batch");
-		frm.set_df_property('plant_batch', 'reqd', frm.doc.category === "Plant Batch");
+		frm.trigger('set_dynamic_field_lable');
+	},
+	set_dynamic_field_lable: function(frm){
+		if (frm.doc.category) {
+			frm.set_df_property("plant", "label", frm.doc.category);
+		}
 	}
 });

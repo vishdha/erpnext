@@ -60,7 +60,7 @@ class PlantBatch(Document):
 			dict(
 				doctype = 'Destroyed Plant Log',
 				category = "Plant Batch",
-				plant_batch = self.name,
+				plant = self.name,
 				destroy_count = destroy_count,
 				reason = reason,
 				actual_date = getdate(nowdate())

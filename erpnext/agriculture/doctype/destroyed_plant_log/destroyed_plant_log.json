@@ -6,7 +6,6 @@
  "engine": "InnoDB",
  "field_order": [
   "category",
-  "plant_batch",
   "plant",
   "destroy_count",
   "reason",
@@ -14,13 +13,6 @@
   "amended_from"
  ],
  "fields": [
-  {
-   "depends_on": "category",
-   "fieldname": "plant_batch",
-   "fieldtype": "Link",
-   "label": "Plant Batch",
-   "options": "Plant Batch"
-  },
   {
    "fieldname": "destroy_count",
    "fieldtype": "Int",
@@ -50,23 +42,23 @@
    "reqd": 1
   },
   {
-   "depends_on": "category",
    "fieldname": "plant",
-   "fieldtype": "Link",
+   "fieldtype": "Dynamic Link",
    "label": "Plant",
-   "options": "Plant"
+   "options": "category",
+   "reqd": 1
   },
   {
    "fieldname": "category",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Category",
-   "options": "\nPlant Batch\nPlant",
+   "options": "DocType",
    "reqd": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2020-10-09 02:34:00.921815",
+ "modified": "2020-10-19 01:42:25.297821",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Destroyed Plant Log",
@@ -101,6 +93,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "title_field": "plant_batch",
+ "title_field": "plant",
  "track_changes": 1
 }
