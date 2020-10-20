@@ -4,7 +4,7 @@
 frappe.ui.form.on('Destroyed Plant Log', {
 	setup: function(frm){
 		frm.set_query("category_type", function () {
-			return { "filters": { "name": ["in", ["Plant Batch", "Plant"]] } }
+			return { "filters": { "name": ["in", ["Plant Batch", "Plant"]] } };
 		});
 	},
 	refresh: function(frm){
