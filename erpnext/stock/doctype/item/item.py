@@ -1135,7 +1135,7 @@ def on_doctype_update():
 
 @frappe.whitelist()
 def make_purchase_order_item(source_name, target_doc=None):
-	item= frappe.get_doc("Item", {'item_code': source_name})
+	item= frappe.get_doc("Item", source_name)
 	doc = frappe.new_doc("Purchase Order")
 	if item.item_defaults and item.item_defaults[0].default_supplier:
 		doc.supplier = item.item_defaults[0].default_supplier
