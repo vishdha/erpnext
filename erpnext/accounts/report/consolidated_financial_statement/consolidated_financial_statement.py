@@ -102,10 +102,10 @@ def get_income_expense_data(companies, fiscal_year, filters, cost_center_wise=Fa
 
 	return income, expense, net_profit_loss
 
-def get_cash_flow_data(fiscal_year, companies, filters, cost_center_wise=False):
+def get_cash_flow_data(fiscal_year, companies, filters):
 	cash_flow_accounts = get_cash_flow_accounts()
 
-	income, expense, net_profit_loss = get_income_expense_data(companies, fiscal_year, filters, cost_center_wise=cost_center_wise)
+	income, expense, net_profit_loss = get_income_expense_data(companies, fiscal_year, filters)
 
 	data = []
 	company_currency = get_company_currency(filters)
@@ -130,7 +130,7 @@ def get_cash_flow_data(fiscal_year, companies, filters, cost_center_wise=False):
 				section_data.append(net_profit_loss)
 
 		for account in cash_flow_account['account_types']:
-			account_data = get_account_type_based_data(account['account_type'], companies, fiscal_year, filters, cost_center_wise=cost_center_wise)
+			account_data = get_account_type_based_data(account['account_type'], companies, fiscal_year, filters)
 			account_data.update({
 				"account_name": account['label'],
 				"account": account['label'],
@@ -142,13 +142,13 @@ def get_cash_flow_data(fiscal_year, companies, filters, cost_center_wise=False):
 			section_data.append(account_data)
 
 		add_total_row_account(data, section_data, cash_flow_account['section_footer'],
-			companies, company_currency, True, cost_center_wise=cost_center_wise)
+			companies, company_currency, True)
 
-	add_total_row_account(data, data, _("Net Change in Cash"), companies, company_currency, True, cost_center_wise=cost_center_wise)
+	add_total_row_account(data, data, _("Net Change in Cash"), companies, company_currency, True)
 
 	return data
 
-def get_account_type_based_data(account_type, companies, fiscal_year, filters, cost_center_wise=False):
+def get_account_type_based_data(account_type, companies, fiscal_year, filters):
 	data = {}
 	total = 0
 	for company in companies:

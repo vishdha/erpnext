@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Cost Center Wise Profit and Loss Statement"] = {
+frappe.query_reports["Cost Center Wise Financial Statements"] = {
 	"filters": [
 		{
 			"fieldname":"company",
@@ -57,7 +57,7 @@ frappe.query_reports["Cost Center Wise Profit and Loss Statement"] = {
 			"fieldname":"report",
 			"label": __("Report"),
 			"fieldtype": "Select",
-			"options": ["Profit and Loss Statement", "Balance Sheet", "Cash Flow"],
+			"options": ["Profit and Loss Statement", "Balance Sheet"],
 			"default": "Profit and Loss Statement",
 			"reqd": 1
 		},
