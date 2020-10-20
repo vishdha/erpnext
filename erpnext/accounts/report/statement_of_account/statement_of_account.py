@@ -276,15 +276,18 @@ def get_addresses(company=None, party_type=None, party=None):
 		"party": party_addr
 	}
 
-def notify_party(filters, report):
+@frappe.whitelist()
+def notify_party(filters, report, html=None):
 	filters = frappe._dict(json.loads(filters))
 	report = frappe._dict(json.loads(report))
-	# party = frappe.get_doc('User', filters.party).email
+	attachments = [frappe.attach_print(report.doctype, report.report_name, html=html)]
+	parties = frappe.get_all(filters.party_type, filters={"name": ["IN", filters.party]}, fields=["email_id"])
+
 	frappe.sendmail(
-		recipients = "vishal@gmail.com",
+		recipients = [parties],
 		subject = report.report_name,
 		message = 'Statement of account',
-		# attachments = attachments,
+		attachments = attachments,
 		reference_doctype = report.doctype,
 		reference_name = report.report_name
 	)

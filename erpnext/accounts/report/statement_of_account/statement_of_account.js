@@ -130,7 +130,19 @@ frappe.query_reports["Statement of Account"] = {
 	notify_party: function (report, filters) {
 		function email_report(report, print_settings) {
 			let html = report.pdf_report(print_settings, true);
-			let report_pdf = frappe.render_pdf(html, print_settings)
+			frappe.call({
+				method: "erpnext.accounts.report.statement_of_account.statement_of_account.notify_party",
+				args: {
+					"filters": filters,
+					"report": report.report_doc,
+					"html": html
+				},
+				callback: function (r) {
+					if (!r.exc) {
+						frappe.msgprint(__("Email Sent."));
+					}
+				}
+			});
 		}
 		if (!filters.party.length) {
 			frappe.throw(__("Missing Party filter value."));
@@ -142,18 +154,7 @@ frappe.query_reports["Statement of Account"] = {
 					report.report_doc.letter_head,
 					report.get_visible_columns()
 				);
-				frappe.call({
-					method: "erpnext.accounts.report.statement_of_account.statement_of_account.notify_party",
-					args: {
-						"filters": filters,
-						"report": report.report_doc
-					},
-					callback: function (r) {
-						if (!r.exc) {
-							frappe.msgprint(__("Email Sent."));
-						}
-					}
-				});
+				report.add_portrait_warning(dialog);
 			});
 		}
 	}
