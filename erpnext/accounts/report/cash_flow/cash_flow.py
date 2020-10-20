@@ -136,13 +136,14 @@ def get_account_type_based_gl_data(company, start_date, end_date, account_type, 
 	else:
 		cond = " AND (finance_book in (%s, '') OR finance_book IS NULL)" %(frappe.db.escape(cstr(filters.finance_book)))
 
+
 	gl_sum = frappe.db.sql_list("""
 		select sum(credit) - sum(debit)
 		from `tabGL Entry`
 		where company=%s and posting_date >= %s and posting_date <= %s
 			and voucher_type != 'Period Closing Voucher'
 			and account in ( SELECT name FROM tabAccount WHERE account_type = %s) {cond}
-	""".format(cond=cond), (company, start_date, end_date, account_type), debug=True)
+	""".format(cond=cond), (company, start_date, end_date, account_type))
 
 	return gl_sum[0] if gl_sum and gl_sum[0] else 0
 
