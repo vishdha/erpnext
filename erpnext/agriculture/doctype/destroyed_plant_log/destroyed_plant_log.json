@@ -5,8 +5,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "category_type",
   "category",
-  "plant",
   "destroy_count",
   "reason",
   "actual_date",
@@ -42,23 +42,23 @@
    "reqd": 1
   },
   {
-   "fieldname": "plant",
+   "fieldname": "category",
    "fieldtype": "Dynamic Link",
-   "label": "Plant",
-   "options": "category",
+   "label": "Category",
+   "options": "category_type",
    "reqd": 1
   },
   {
-   "fieldname": "category",
+   "fieldname": "category_type",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Category",
+   "label": "Category Type",
    "options": "DocType",
    "reqd": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2020-10-19 01:42:25.297821",
+ "modified": "2020-10-20 09:04:49.697682",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Destroyed Plant Log",
@@ -93,6 +93,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "title_field": "plant",
+ "title_field": "category",
  "track_changes": 1
 }

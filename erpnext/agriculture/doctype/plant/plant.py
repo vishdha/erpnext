@@ -22,8 +22,8 @@ class Plant(Document):
 		destroyed_plant_log = frappe.get_doc(
 			dict(
 				doctype = 'Destroyed Plant Log',
-				category = "Plant",
-				plant = self.name,
+				category_type = "Plant",
+				category = self.name,
 				destroy_count = destroy_count,
 				reason = reason,
 				actual_date = getdate(nowdate())
