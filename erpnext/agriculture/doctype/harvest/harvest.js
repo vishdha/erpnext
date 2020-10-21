@@ -24,7 +24,7 @@ frappe.ui.form.on('Harvest', {
 		if (frm.doc.plants) {
 			frm.doc.plants.forEach(plant => {
 				total_weight += plant.harvest_weight;
-			})
+			});
 		}
 		frm.set_value("total_harvest_weight", total_weight);
 	},
