@@ -25,6 +25,7 @@
   "uom",
   "conversion_factor",
   "stock_qty",
+  "returned_qty",
   "section_break_17",
   "price_list_rate",
   "base_price_list_rate",
@@ -53,6 +54,7 @@
   "base_net_rate",
   "base_net_amount",
   "billed_amt",
+  "incoming_rate",
   "item_weight_details",
   "weight_per_unit",
   "total_weight",
@@ -744,10 +746,26 @@
    "label": "COA Batch",
    "options": "Batch",
    "read_only": 1
+   },
+   {
+   "depends_on": "returned_qty",
+   "fieldname": "returned_qty",
+   "fieldtype": "Float",
+   "label": "Returned Qty in Stock UOM",
+   },
+   {
+   "fieldname": "incoming_rate",
+   "fieldtype": "Currency",
+   "label": "Incoming Rate",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "idx": 1,
+ "index_web_pages_for_search": 1,
  "istable": 1,
+"links": [],
  "modified": "2020-12-04 07:22:19.022429",
  "modified_by": "Administrator",
  "module": "Stock",
