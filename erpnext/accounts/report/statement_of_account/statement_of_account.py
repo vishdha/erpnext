@@ -9,7 +9,7 @@ from frappe.utils import getdate, cstr, flt
 from frappe import _, _dict
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
 from collections import OrderedDict
-from erpnext.accounts.report.general_ledger.general_ledger import validate_party, set_account_currency, get_totals_dict, get_balance
+from erpnext.accounts.report.general_ledger.general_ledger import set_account_currency, get_totals_dict, get_balance
 from frappe.contacts.doctype.address.address import get_default_address
 
 def execute(filters=None):
@@ -26,7 +26,7 @@ def execute(filters=None):
 		account_details.setdefault(acc.name, acc)
 
 	if filters.get('party'):
-		filters.party = frappe.parse_json(filters.get("party"))
+		filters.party = filters.get("party")
 
 	validate_filters(filters, account_details)
 
@@ -40,6 +40,16 @@ def execute(filters=None):
 	res = get_result(filters, account_details)
 
 	return columns, res
+
+def validate_party(filters):
+	party_type, party = filters.get("party_type"), filters.get("party")
+
+	if party:
+		if not party_type:
+			frappe.throw(_("To filter based on Party, select Party Type first"))
+		else:
+			if not frappe.db.exists(party_type, party):
+				frappe.throw(_("Invalid {0}: {1}").format(party_type, d))
 
 
 def validate_filters(filters, account_details):
@@ -99,7 +109,7 @@ def get_conditions(filters):
 		conditions.append("party_type=%(party_type)s")
 
 	if filters.get("party"):
-		conditions.append("party in %(party)s")
+		conditions.append("party=%(party)s")
 
 	if not (filters.get("account") or filters.get("party")):
 		conditions.append("posting_date >=%(from_date)s")
@@ -281,13 +291,18 @@ def notify_party(filters, report, html=None):
 	filters = frappe._dict(json.loads(filters))
 	report = frappe._dict(json.loads(report))
 	attachments = [frappe.attach_print(report.doctype, report.report_name, html=html)]
-	parties = frappe.get_all(filters.party_type, filters={"name": ["IN", filters.party]}, fields=["email_id"])
+	party = frappe.db.get_value(filters.party_type, filters.party, "email_id")
+
+	if not party:
+		frappe.throw(_("Email id not mentioned in customer master for customer {0}").format(frappe.bold(filters.party)))
 
 	frappe.sendmail(
-		recipients = [parties],
+		recipients = [party],
 		subject = report.report_name,
-		message = 'Statement of account',
+		message = (_("Statement of Account of customer {0} for period {1} to {2}").format(frappe.bold(filters.party), frappe.bold(filters.from_date), frappe.bold(filters.to_date))),
 		attachments = attachments,
 		reference_doctype = report.doctype,
 		reference_name = report.report_name
 	)
+
+	return party

@@ -60,37 +60,34 @@ frappe.query_reports["Statement of Account"] = {
 			label: __("Party Type"),
 			fieldtype: "Link",
 			options: "Party Type",
-			default: "",
+			default: "Customer",
+			"get_query": function() {
+				return {
+					filters: {"name": ["in", ["Customer"]]}
+				}
+			},
 			on_change: function (report) {
 				frappe.query_report.set_filter_value("party", "");
 				get_addresses(report);
 			},
 		},
 		{
-			fieldname: "party",
-			label: __("Party"),
-			fieldtype: "MultiSelectList",
-			get_data: function (txt) {
-				if (!frappe.query_report.filters) {
-					return true;
-				}
-				let party_type = frappe.query_report.get_filter_value("party_type");
-				if (!party_type) {
-					return true;
-				}
-
-				return frappe.db.get_link_options(party_type, txt);
+			"fieldname":"party",
+			"label": __("Party"),
+			"fieldtype": "Link",
+			get_options: function () {
+				let party_type = frappe.query_report.get_filter_value('party_type');
+				return party_type;
 			},
 			on_change: function (report) {
-				var party_type = frappe.query_report.get_filter_value("party_type");
-				var parties = frappe.query_report.get_filter_value("party");
+				let party_type = frappe.query_report.get_filter_value("party_type");
+				let party = frappe.query_report.get_filter_value("party");
 
-				if (!party_type || parties.length === 0 || parties.length > 1) {
+				if (!party_type) {
 					frappe.query_report.set_filter_value("party_name", "");
 					return;
 				} else {
-					var party = parties[0];
-					var fieldname = erpnext.utils.get_party_name(party_type) || "name";
+					let fieldname = erpnext.utils.get_party_name(party_type) || "name";
 					frappe.db.get_value(party_type, party, fieldname, function (value) {
 						frappe.query_report.set_filter_value(
 							"party_name",
@@ -110,7 +107,6 @@ frappe.query_reports["Statement of Account"] = {
 		},
 	],
 	onload: function(report) {
-		console.log("reprt", report)
 		report.page.add_inner_button(__("Notify Party via Email"), function() {
 			var filters = report.get_values();
 			let reporter = frappe.query_reports["Statement of Account"];
@@ -138,8 +134,8 @@ frappe.query_reports["Statement of Account"] = {
 					"html": html
 				},
 				callback: function (r) {
-					if (!r.exc) {
-						frappe.msgprint(__("Email Sent."));
+					if (r.message) {
+						frappe.msgprint(__(`${report.report_name} has been successfully sent to ${r.message.bold()}`))
 					}
 				}
 			});
@@ -165,7 +161,7 @@ erpnext.utils.add_dimensions("Statement of Account", 15);
 function get_addresses(report) {
 	let filters = report.get_filter_values();
 
-	if (!filters.company || !filters.party_type || !filters.party[0]) {
+	if (!filters.company || !filters.party_type || !filters.party) {
 		return;
 	}
 
@@ -175,10 +171,10 @@ function get_addresses(report) {
 		args: {
 			company: filters.company,
 			party_type: filters.party_type,
-			party: filters.party[0],
+			party: filters.party,
 		},
 		callback: function (r) {
 			report.addresses = r.message;
-		},
+		}
 	});
 }
