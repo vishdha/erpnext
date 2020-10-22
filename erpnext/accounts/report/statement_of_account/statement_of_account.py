@@ -49,7 +49,7 @@ def validate_party(filters):
 			frappe.throw(_("To filter based on Party, select Party Type first"))
 		else:
 			if not frappe.db.exists(party_type, party):
-				frappe.throw(_("Invalid {0}: {1}").format(party_type, d))
+				frappe.throw(_("Invalid {0}: {1}").format(party_type, party))
 
 
 def validate_filters(filters, account_details):
