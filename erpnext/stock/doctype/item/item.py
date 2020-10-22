@@ -1140,3 +1140,11 @@ def make_purchase_order_item(source_name, target_doc=None):
 	if item.item_defaults and item.item_defaults[0].default_supplier:
 		doc.supplier = item.item_defaults[0].default_supplier
 	return doc
+
+@frappe.whitelist()
+def get_item_price(supplier, item_code):
+	return frappe.db.get_value("Item Price", {
+		"supplier": supplier,
+		"item_code": item_code,
+		"buying": True
+	}, ["price_list", "price_list_rate"], as_dict=True)
