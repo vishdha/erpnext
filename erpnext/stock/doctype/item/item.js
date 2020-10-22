@@ -797,7 +797,6 @@ frappe.ui.form.on("Item Supplier", {
 					item_code: frm.doc.item_code
 				},
 				callback: function(r) {
-					console.log(r)
 					if (!r.exc && r.message) {
 						frappe.model.set_value(cdt, cdn, "price_list", r.message.price_list);
 						frappe.model.set_value(cdt, cdn, "price_list_rate", r.message.price_list_rate);
@@ -811,6 +810,6 @@ frappe.ui.form.on("Item Supplier", {
 		frappe.new_doc("Purchase Order", {
 			supplier: row.supplier,
 			buying_price_list: row.price_list
-		}, true)
+		}, true);
 	}
 })
