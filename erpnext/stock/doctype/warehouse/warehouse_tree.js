@@ -23,5 +23,20 @@ frappe.treeview_settings['Warehouse'] = {
 			+ format_currency(Math.abs(node.data.balance), node.data.company_currency)
 			+ '</span>').insertBefore(node.$ul);
 		}
-	}
+	},
+	toolbar: [
+		{
+		  label:__("Add Child"),
+		  condition: function(node) {
+			return node.expandable;
+		  },
+		  click: function(node) {
+			  console.log(node.page.fields_dict.company.get_value());
+			frappe.new_doc("Warehouse",{
+				company: tree.args.company,
+			})
+		  }
+		}
+	  ],
+	  extend_toolbar: true
 }
