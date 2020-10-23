@@ -31,9 +31,8 @@ frappe.treeview_settings['Warehouse'] = {
 			return node.expandable;
 		  },
 		  click: function(node) {
-			  console.log(node.page.fields_dict.company.get_value());
 			frappe.new_doc("Warehouse",{
-				company: tree.args.company,
+				company: cur_tree.args.company,
 			})
 		  }
 		}
