@@ -377,6 +377,9 @@ class PurchaseInvoice(BuyingController):
 		self.make_gl_entries()
 		self.make_use_tax_journal_entry()
 
+		if self.update_stock == 1:
+			self.repost_future_sle_and_gle()
+
 		self.update_project()
 		update_linked_doc(self.doctype, self.name, self.inter_company_invoice_reference)
 
@@ -946,6 +949,7 @@ class PurchaseInvoice(BuyingController):
 		frappe.db.set(self, 'status', 'Cancelled')
 
 		unlink_inter_company_doc(self.doctype, self.name, self.inter_company_invoice_reference)
+		self.ignore_linked_doctypes = ('GL Entry', 'Stock Ledger Entry', 'Repost Item Valuation')
 
 	def update_project(self):
 		project_list = []

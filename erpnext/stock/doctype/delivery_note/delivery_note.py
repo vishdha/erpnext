@@ -222,6 +222,7 @@ class DeliveryNote(SellingController):
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
 		self.update_stock_ledger()
 		self.make_gl_entries()
+		self.repost_future_sle_and_gle()
 
 		# TODO: Close sales orders that are marked for it; find a better way to do this
 		if self.issue_credit_note:
@@ -249,6 +250,7 @@ class DeliveryNote(SellingController):
 
 		self.cancel_packing_slips()
 		self.make_gl_entries_on_cancel()
+		self.ignore_linked_doctypes = ('GL Entry', 'Stock Ledger Entry', 'Repost Item Valuation')
 
 	def check_credit_limit(self):
 		from erpnext.selling.doctype.customer.customer import check_credit_limit
