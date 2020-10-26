@@ -55,19 +55,19 @@
    "fetch_from": "plant.strain",
    "fieldname": "strain",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Strain",
    "options": "Strain"
   },
   {
    "fieldname": "harvest_weight",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "Harvest Weight",
    "reqd": 1
   }
  ],
  "istable": 1,
- "modified": "2020-10-21 01:40:30.885611",
+ "modified": "2020-10-26 00:27:13.996491",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Harvest Plant",

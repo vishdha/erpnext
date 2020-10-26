@@ -72,6 +72,8 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Total Harvest Weight",
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fieldname": "status",
@@ -82,7 +84,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2020-10-22 02:13:36.534467",
+ "modified": "2020-10-26 00:28:20.863968",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Harvest",
