@@ -134,8 +134,8 @@ frappe.query_reports["Statement of Account"] = {
 					"html": html
 				},
 				callback: function (r) {
-					if (r.message) {
-						frappe.msgprint(__(`${report.report_name} has been successfully sent to ${r.message.bold()}`))
+					if (r && r.message) {
+						frappe.msgprint(__("{0} has been successfully sent to {1}", [report.report_name, r.message.bold()]));
 					}
 				}
 			});

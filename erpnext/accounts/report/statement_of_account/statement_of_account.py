@@ -25,9 +25,6 @@ def execute(filters=None):
 	for acc in frappe.db.sql("""select name, is_group from tabAccount""", as_dict=1):
 		account_details.setdefault(acc.name, acc)
 
-	if filters.get('party'):
-		filters.party = filters.get("party")
-
 	validate_filters(filters, account_details)
 
 	if filters.get('party_type'):
@@ -294,7 +291,7 @@ def notify_party(filters, report, html=None):
 	party = frappe.db.get_value(filters.party_type, filters.party, "email_id")
 
 	if not party:
-		frappe.throw(_("Email id not mentioned in customer master for customer {0}").format(frappe.bold(filters.party)))
+		frappe.throw(_("Email id is not mentioned in the Customer master for {0}.").format(frappe.bold(filters.party)))
 
 	#soa_template = soa template stand for statement of account template
 	soa_template = frappe.db.get_single_value("Accounts Settings", "statement_of_account_email_template")
