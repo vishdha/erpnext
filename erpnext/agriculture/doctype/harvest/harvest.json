@@ -12,6 +12,7 @@
   "column_break_11",
   "harvest_weight",
   "harvest_uom",
+  "is_finished",
   "amended_from",
   "sb_plants",
   "plants"
@@ -75,6 +76,16 @@
    "label": "Plants"
   },
   {
+   "allow_on_submit": 1,
+   "default": "0",
+   "depends_on": "eval:doc.docstatus == 1",
+   "fieldname": "is_finished",
+   "fieldtype": "Check",
+   "label": "Is Finished"
+  },
+  {
+ "is_submittable": 1,
+ "modified": "2020-10-19 23:18:58.387487",
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
