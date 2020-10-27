@@ -22,6 +22,10 @@ from frappe.website.render import clear_cache
 from frappe.website.website_generator import WebsiteGenerator
 
 from six import iteritems
+from erpnext.utilities.utils import get_abbr
+from erpnext import get_default_company
+from erpnext.accounts.utils import get_company_default
+from frappe.utils import cstr
 
 
 class DuplicateReorderRows(frappe.ValidationError):
@@ -67,6 +71,9 @@ class Item(WebsiteGenerator):
 				from frappe.model.naming import set_name_by_naming_series
 				set_name_by_naming_series(self)
 				self.item_code = self.name
+
+		if frappe.db.get_single_value("Stock Settings", "autoname_item"):
+			self.item_code = custom_autoname(self)
 
 		self.item_code = strip(self.item_code)
 		self.name = self.item_code
@@ -1140,6 +1147,33 @@ def make_purchase_order_item(source_name, target_doc=None):
 	if item.item_defaults and item.item_defaults[0].default_supplier:
 		doc.supplier = item.item_defaults[0].default_supplier
 	return doc
+
+def custom_autoname(doc):
+	"""
+		Item Code = a + b + c + d + e, where
+			a = abbreviated Company; all caps.
+			b = abbreviated Brand; all caps.
+			c = abbreviated Item Group; all caps.
+			d = abbreviated Item Name; all caps.
+			e = variant ID number; has to be incremented.
+	"""
+	# Get abbreviations
+	company_abbr = get_company_default(get_default_company(), "abbr")
+	brand_abbr = get_abbr(doc.brand, max_length=len(company_abbr))
+	brand_abbr = brand_abbr if company_abbr != brand_abbr else None
+	item_group_abbr = get_abbr(doc.item_group)
+	item_name_abbr = get_abbr(doc.item_name, 3)
+
+	params = list(filter(None, [company_abbr, brand_abbr, item_group_abbr, item_name_abbr]))
+	item_code = "-".join(params)
+
+		# Get count
+	count = len(frappe.get_all("Item", filters={"name": ["like", "%{}%".format(item_code)]}))
+
+	if count > 0:
+		item_code = "-".join([item_code, cstr(count + 1)])
+
+	return item_code
 
 @frappe.whitelist()
 def get_item_price(supplier, item_code):

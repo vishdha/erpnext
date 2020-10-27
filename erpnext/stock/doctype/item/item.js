@@ -130,6 +130,7 @@ frappe.ui.form.on("Item", {
 		});
 
 		frm.toggle_reqd('customer', frm.doc.is_customer_provided_item ? 1 : 0);
+		frm.toggle_reqd('item_code', true);
 	},
 
 	validate: function(frm){
