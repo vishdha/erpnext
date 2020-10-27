@@ -143,7 +143,7 @@ frappe.query_reports["Statement of Account"] = {
 		if (!filters.party.length) {
 			frappe.throw(__("Missing Party filter value."));
 		} else {
-			frappe.confirm(__("Do you want to notify the party by email?"), function () {
+			frappe.confirm(__("Do you want to notify the {0} by email?", [filters.party_type]), function () {
 				let dialog = frappe.ui.get_print_settings(
 					false,
 					print_settings => email_report(report, print_settings),

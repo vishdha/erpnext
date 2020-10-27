@@ -291,7 +291,7 @@ def notify_party(filters, report, html=None):
 	party = frappe.db.get_value(filters.party_type, filters.party, "email_id")
 
 	if not party:
-		frappe.throw(_("Email id is not mentioned in the Customer master for {0}.").format(frappe.bold(filters.party)))
+		frappe.throw(_("Email id is not mentioned in the {0} master for {1}.").format(filters.party_type, frappe.bold(filters.party)))
 
 	#soa_template = soa template stand for statement of account template
 	soa_template = frappe.db.get_single_value("Accounts Settings", "statement_of_account_email_template")
@@ -306,7 +306,7 @@ def notify_party(filters, report, html=None):
 		subject = email_template.subject
 	else:
 		subject = report.report_name,
-		message = (_("Statement of Account of customer {0} for period {1} to {2}").format(frappe.bold(filters.party), frappe.bold(filters.from_date), frappe.bold(filters.to_date)))
+		message = (_("Statement of Account of {0} {1} for period {2} to {3}").format(filters.party_type, frappe.bold(filters.party), frappe.bold(filters.from_date), frappe.bold(filters.to_date)))
 
 	frappe.sendmail(
 		recipients = [party],
