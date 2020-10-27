@@ -33,7 +33,7 @@ frappe.treeview_settings['Warehouse'] = {
 			click: function() {
 				frappe.new_doc("Warehouse", {
 					company: cur_tree.args.company,
-				})
+				});
 			}
 		}
 	],
