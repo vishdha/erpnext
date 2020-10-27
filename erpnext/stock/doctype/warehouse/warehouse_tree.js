@@ -26,15 +26,15 @@ frappe.treeview_settings['Warehouse'] = {
 	},
 	toolbar: [
 		{
-		  label:__("Add Child"),
-		  condition: function(node) {
-			return node.expandable;
-		  },
-		  click: function(node) {
-			frappe.new_doc("Warehouse",{
-				company: cur_tree.args.company,
-			})
-		  }
+			label:__("Add Child"),
+			condition: function(node) {
+				return node.expandable;
+		  	},
+		  	click: function(node) {
+				frappe.new_doc("Warehouse",{
+					company: cur_tree.args.company,
+				});
+			}
 		}
 	  ],
 	  extend_toolbar: true
