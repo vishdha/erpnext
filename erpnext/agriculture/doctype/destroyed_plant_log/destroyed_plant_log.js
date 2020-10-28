@@ -2,11 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Destroyed Plant Log', {
-	setup: function(frm){
-		frm.set_query("category_type", function () {
-			return { "filters": { "name": ["in", ["Plant Batch", "Plant"]] } };
-		});
-	},
 	refresh: function(frm){
 		frm.trigger('set_dynamic_field_lable');
 	},
