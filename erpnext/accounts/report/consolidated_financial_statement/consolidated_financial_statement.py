@@ -153,7 +153,7 @@ def get_account_type_based_data(account_type, companies, fiscal_year, filters):
 	total = 0
 	for company in companies:
 		amount = get_account_type_based_gl_data(company,
-			fiscal_year.year_start_date, fiscal_year.year_end_date, account_type, filters)
+			fiscal_year.get("year_start_date"), fiscal_year.get("year_end_date"), account_type, filters)
 
 		if amount and account_type == "Depreciation":
 			amount *= -1
