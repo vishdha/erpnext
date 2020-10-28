@@ -1144,8 +1144,8 @@ def on_doctype_update():
 def make_purchase_order_item(source_name, target_doc=None):
 	item= frappe.get_doc("Item", source_name)
 	doc = frappe.new_doc("Purchase Order")
-	if item.item_defaults and item.item_defaults[0].default_supplier:
-		doc.supplier = item.item_defaults[0].default_supplier
+	doc.supplier = frappe.flags.args.get("supplier")
+	doc.buying_price_list = frappe.flags.args.get("price_list")
 	return doc
 
 def custom_autoname(doc):

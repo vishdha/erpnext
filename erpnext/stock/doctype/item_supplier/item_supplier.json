@@ -6,10 +6,9 @@
  "field_order": [
   "supplier",
   "supplier_part_no",
-  "price_list",
-  "price_list_rate",
   "column_break_5",
-  "create_purchase_order"
+  "price_list",
+  "price_list_rate"
  ],
  "fields": [
   {
@@ -36,11 +35,6 @@
    "options": "Price List"
   },
   {
-   "fieldname": "create_purchase_order",
-   "fieldtype": "Button",
-   "label": "Create Purchase Order"
-  },
-  {
    "fieldname": "price_list_rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -54,7 +48,7 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-10-22 01:49:12.805133",
+ "modified": "2020-10-27 22:47:37.458431",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Item Supplier",
