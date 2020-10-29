@@ -813,98 +813,90 @@ frappe.ui.form.on("Item Supplier", {
 })
 
 function create_purchase_order(frm) {
-	let suppliers = [];
-
-	frm.doc.supplier_items.forEach(d => {
-		suppliers.push({
-			supplier: d.supplier,
-			price_list: d.price_list,
-			price_list_rate: d.price_list_rate,
-		});
-	});
-
-	let suppliers_html = ``;
-
-	suppliers.forEach(s => {
-		suppliers_html += `
-			<div class="grid-row">
-				<div class="data-row row">
-					<div class="col grid-static-col col-xs-4 " data-fieldname="supplier" data-fieldtype="Data">
-						<div class="field-area" style="display: none;"></div>
-						<div class="static-area ellipsis">${s.supplier}</div>
-					</div>
-					<div class="col grid-static-col col-xs-4 " data-fieldname="price_list" data-fieldtype="Select">
-						<div class="field-area" style="display: none;"></div>
-						<div class="static-area ellipsis">${s.price_list ? s.price_list : ``}</div>
-					</div>
-					<div class="col grid-static-col col-xs-3 " data-fieldname="price_list_rate" data-fieldtype="Select">
-						<div class="field-area" style="display: none;"></div>
-						<div class="static-area ellipsis">${s.price_list_rate ? s.price_list_rate : ``}</div>
-					</div>
-					<div class="col grid-static-col col-xs-1 ">
-						<button class="btn btn-new btn-default btn-xs" data-supplier="${s.supplier}" data-price_list="${s.price_list ? s.price_list : ``}">
-							<i class="octicon octicon-plus" style="font-size: 12px;"></i>
-						</button>
-					</div>
-				</div>
-			</div>`;
-	});
-
-	let supplier_table = $(`<div class="frappe-control" data-fieldtype="Table" data-fieldname="suppliers" title="suppliers">
-			<div class="form-group" data-fieldname="suppliers">
-				<div class="clearfix">
-					<label class="control-label" style="padding-right: 0px;">Suppliers</label>
-				</div>
-				<div class="form-grid">
-				<div class="grid-heading-row">
-					<div class="grid-row">
-						<div class="data-row row">
-							<div class="col grid-static-col col-xs-4 " data-fieldname="supplier" data-fieldtype="Data">
-								<div class="field-area" style="display: none;"></div>
-								<div class="static-area ellipsis">Supplier</div>
-							</div>
-							<div class="col grid-static-col col-xs-4 " data-fieldname="price_list" data-fieldtype="Select">
-								<div class="field-area" style="display: none;"></div>
-								<div class="static-area ellipsis">Price List</div>
-							</div>
-							<div class="col grid-static-col col-xs-3 " data-fieldname="price_list_rate" data-fieldtype="Select">
-								<div class="field-area" style="display: none;"></div>
-								<div class="static-area ellipsis">Rate</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="grid-body">
-					<div class="rows">
-						${suppliers_html}
-					</div>
-				</div>
-			</div>
-		</div>`);
-
-	let create_new_button = supplier_table[0].getElementsByClassName('btn-new');
-
-	for (let i=0; i<create_new_button.length; i++) {
-		create_new_button[i].onclick = function() {
-			frappe.model.open_mapped_doc({
-				method: 'erpnext.stock.doctype.item.item.make_purchase_order_item',
-				frm: frm,
-				args: {
-					supplier: create_new_button[i].getAttribute("data-supplier"),
-					price_list: create_new_button[i].getAttribute("data-price_list")
-				}
-			});
-		}
-	}
-
-	let dialog = new frappe.ui.Dialog({
-		title: __("Create Purchase Order"),
-		fields: [
-			{
-				fieldtype: "HTML",
-				options: supplier_table
+	frappe.call({
+		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",
+		args: {
+			'doc': frm.doc,
+			'items': frm.doc.supplier_items,
+		},
+		callback: function(r) {
+			if (r.message.length === 0) {
+				frappe.msgprint(__("None of the supplier available for purchase order"));
+				return;
 			}
-		],
+
+			const dialog = new frappe.ui.Dialog({
+				title: __("Make Purchase Order"),
+				fields: [
+					{
+						label: __("Items"),
+						fieldname: "items",
+						fieldtype: "Table",
+						cannot_add_rows: true,
+						data: r.message,
+						in_place_edit: true,
+						get_data: () => {
+							return r.message;
+						},
+						fields: [
+							{
+								label: __("Supplier"),
+								fieldtype: 'Link',
+								fieldname: "supplier",
+								options: "Supplier",
+								read_only: 1,
+								in_list_view: 1
+							},
+							{
+								label: __("Price List"),
+								fieldtype: 'Data',
+								fieldname: "price_list",
+								read_only: 1,
+								in_list_view: 1
+							},
+							{
+								label: __("Warehouse"),
+								fieldtype: 'Link',
+								fieldname: "warehouse",
+								options: "Warehouse",
+								in_list_view: 1
+							},
+							{
+								label: __("qty"),
+								fieldtype: 'Int',
+								fieldname: 'qty',
+								in_list_view: 1
+							}
+						],
+					}
+				],
+				primary_action: function () {
+					const items = dialog.get_values().items;
+					items.forEach(item => {
+						if (item.sample_size > item.qty) {
+							frappe.throw(__("Row #{0}: The sample size ({1}) for {2} should be less or equal than the item quantity ({3})",
+								[item.idx, item.sample_size, item.item_code.bold(), item.qty]));
+						}
+					})
+
+					frappe.call({
+						method: "erpnext.stock.doctype.item.item.make_purchase_order_item",
+						freeze: true,
+						args: {
+							"items": items
+						},
+						callback: function (r) {
+							let quality_inspections = r.message;
+							frappe.msgprint(__("The following purchase orders have been created:<br><ul><li>{0}</li></ul>",
+								[quality_inspections.join("<br><li>")]));
+						}
+					})
+
+					dialog.hide();
+				},
+				primary_action_label: __('Create')
+			})
+			dialog.show();
+		}
 	});
-	dialog.show();
 }

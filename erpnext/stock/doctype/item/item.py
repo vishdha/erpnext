@@ -26,6 +26,7 @@ from erpnext.utilities.utils import get_abbr
 from erpnext import get_default_company
 from erpnext.accounts.utils import get_company_default
 from frappe.utils import cstr
+from frappe.utils import getdate, now_datetime, nowdate
 
 
 class DuplicateReorderRows(frappe.ValidationError):
@@ -1141,25 +1142,47 @@ def on_doctype_update():
 	frappe.db.add_index("Item", ["route(500)"])
 
 @frappe.whitelist()
-def make_purchase_order_item_default_supplier(source_name, target_doc=None):
-	item= frappe.get_doc("Item", source_name)
-	doc = frappe.new_doc("Purchase Order")
+def make_purchase_order_item(items):
+	items = json.loads(items)
+	purchase_orders = []
 
-	if item.item_defaults and item.item_defaults[0].default_supplier:
-		doc.supplier = item.item_defaults[0].default_supplier
+	for item in items:
+		qi = frappe.new_doc("Purchase Order")
+		qi.update({
+			"supplier": item.get("supplier"),
+			"buying_price_list": item.get("price_list"),
+			"items": [
+					{"item_code": item.get("item_code"),
+					"qty":item.get("qty"),
+					"rate":item.get("price_list_rate"),
+					"cultivation_weight_uom": item.get("uom"),
+					"warehouse": item.get("warehouse"),
+					"schedule_date": getdate(nowdate())}
+			]
+		}).save()
 
-	if item.item_defaults and item.item_defaults[0].default_price_list:
-		doc.buying_price_list = item.item_defaults[0].default_price_list
+		purchase_orders.append(frappe.utils.get_link_to_form("Purchase Order", qi.name))
 
-	return doc
+	return purchase_orders
+
 
 @frappe.whitelist()
-def make_purchase_order_item(source_name, target_doc=None):
-	item= frappe.get_doc("Item", source_name)
-	doc = frappe.new_doc("Purchase Order")
-	doc.supplier = frappe.flags.args.get("supplier")
-	doc.buying_price_list = frappe.flags.args.get("price_list")
-	return doc
+def get_supplier_for_purchase_order(doc, items):
+	items = json.loads(items)
+	doc = json.loads(doc)
+	data = []
+	for item in items:
+		data.append({
+			"docname": item.get("name"),
+			"item_code": doc.get("name"),
+			"supplier": item.get("supplier"),
+			"item_name": doc.get("item_name"),
+			"price_list": item.get("price_list"),
+			"uom": doc.get("stock_uom"),
+			"price_list_rate": item.get("price_list_rate")
+		})
+
+	return data
 
 def custom_autoname(doc):
 	"""
