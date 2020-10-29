@@ -648,11 +648,11 @@ erpnext.work_order = {
 		let max = this.get_max_transferable_qty(frm, purpose);
 		let label = __('Qty for {0}', [purpose]);
 		if(frm.doc.manufacturing_type === "Process" && purpose === "Manufacture"){
-			label = "Raw Material Consumed";
+			label = __('Raw Material Consumed for {0}', [purpose]);
 			max = frm.doc.raw_material_qty;
 		}
 		else if(frm.doc.manufacturing_type === "Process"){
-			label = "Raw Material Qty";
+			label = __('Raw Material Qty for {0}', [purpose]);
 			max = frm.doc.raw_material_qty;
 		}
 		return new Promise((resolve, reject) => {
