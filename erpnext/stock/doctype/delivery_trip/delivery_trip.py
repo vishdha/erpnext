@@ -56,14 +56,12 @@ class DeliveryTrip(Document):
 
 	def validate_payment_due_date(self):
 		for stop in self.delivery_stops:
-			if stop.visited and stop.sales_invoice:
-				if stop.paid_amount != stop.grand_total:
-					update_payment_due_date(stop.sales_invoice)
+			if stop.visited and stop.sales_invoice and stop.paid_amount != stop.grand_total:
+				update_payment_due_date(stop.sales_invoice)
 
 	def update_delivery_note_status(self):
 		for stop in self.delivery_stops:
-			if stop.delivery_note:
-				if stop.visited:
+			if stop.delivery_note and stop.visited:
 					status = frappe.db.get_value("Sales Invoice", stop.sales_invoice, "status")
 					if status == "Unpaid":
 						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Delivered")
