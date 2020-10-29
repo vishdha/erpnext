@@ -62,16 +62,16 @@ class DeliveryTrip(Document):
 	def update_delivery_note_status(self):
 		for stop in self.delivery_stops:
 			if stop.delivery_note and stop.visited:
-					status = frappe.db.get_value("Sales Invoice", stop.sales_invoice, "status")
-					if status == "Unpaid":
-						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Delivered")
-					if status == "Paid":
-						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Completed")
+				status = frappe.db.get_value("Sales Invoice", stop.sales_invoice, "status")
+				if status == "Unpaid":
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Delivered")
+				if status == "Paid":
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Completed")
+			else:
+				if self.status == "In Transit":
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "In Transit")
 				else:
-					if self.status == "In Transit":
-						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "In Transit")
-					else:
-						frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "To Deliver")
+					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "To Deliver")
 
 	def update_status(self):
 		status = {
