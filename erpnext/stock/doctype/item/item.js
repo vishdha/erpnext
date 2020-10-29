@@ -5,6 +5,14 @@ frappe.provide("erpnext.item");
 
 frappe.ui.form.on("Item", {
 	setup: function(frm) {
+		frm.make_methods = {
+			'Purchase Order': () => {
+				frappe.model.open_mapped_doc({
+					method: 'erpnext.stock.doctype.item.item.make_purchase_order_item',
+					frm: frm
+				})
+			}
+		}
 		frm.add_fetch('attribute', 'numeric_values', 'numeric_values');
 		frm.add_fetch('attribute', 'from_range', 'from_range');
 		frm.add_fetch('attribute', 'to_range', 'to_range');
@@ -122,6 +130,7 @@ frappe.ui.form.on("Item", {
 		});
 
 		frm.toggle_reqd('customer', frm.doc.is_customer_provided_item ? 1 : 0);
+		frm.toggle_reqd('item_code', true);
 	},
 
 	validate: function(frm){
