@@ -767,7 +767,7 @@ erpnext.taxes_and_totals = erpnext.payments.extend({
 			}
 		});
 
-		let tax_account_list = []
+		let tax_account_list = [];
 		// get tax account head from company master to avoid disorder behaviour and remove it from taxes table.
 		frappe.db.get_value('Company', { "name": me.frm.doc.company }, ["default_cultivation_tax_account_flower", "default_cultivation_tax_account_leaf", "default_cultivation_tax_account_plant"], (r) => {
 			let taxes = me.frm.doc.taxes;
