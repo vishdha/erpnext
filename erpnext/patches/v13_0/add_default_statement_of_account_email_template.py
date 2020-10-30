@@ -2,8 +2,6 @@ from __future__ import unicode_literals
 import os
 
 import frappe
-from frappe import _
-
 
 def execute():
 	frappe.reload_doc("email", "doctype", "email_template")
