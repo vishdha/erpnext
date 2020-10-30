@@ -275,8 +275,13 @@ def get_addresses(company=None, party_type=None, party=None):
 	if not (company and party_type and party):
 		return {}
 
-	company_addr = frappe.get_doc("Address", get_default_address("Company", company))
-	party_addr = frappe.get_doc("Address", get_default_address(party_type, party))
+	company_address = frappe.get_doc("Address", get_default_address("Company", company))
+	party_address = frappe.get_doc("Address", get_default_address(party_type, party))
+
+	if not company_address:
+		frappe.throw(_("Please add default primary company address"))
+	if party_address:
+		frappe.throw(_("Please add default primary customer address"))
 
 	return {
 		"company": company_addr,

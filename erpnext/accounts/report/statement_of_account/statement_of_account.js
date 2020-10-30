@@ -174,7 +174,9 @@ function get_addresses(report) {
 			party: filters.party,
 		},
 		callback: function (r) {
-			report.addresses = r.message;
+			if (r.message) {
+				report.addresses = r.message;
+			}
 		}
 	});
 }
