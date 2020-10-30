@@ -280,12 +280,13 @@ def get_addresses(company=None, party_type=None, party=None):
 
 	if not company_address:
 		frappe.throw(_("Please add default primary company address"))
-	if party_address:
+
+	if not party_address:
 		frappe.throw(_("Please add default primary customer address"))
 
 	return {
-		"company": company_addr,
-		"party": party_addr
+		"company": company_address,
+		"party": party_address
 	}
 
 @frappe.whitelist()
