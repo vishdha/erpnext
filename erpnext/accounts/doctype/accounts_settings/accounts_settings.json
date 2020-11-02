@@ -193,7 +193,7 @@
   {
    "fieldname": "statement_of_account_email_template",
    "fieldtype": "Link",
-   "label": "Statement of Account email template",
+   "label": "Statement of Account Email Template",
    "options": "Email Template"
   }
  ],
