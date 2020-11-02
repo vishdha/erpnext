@@ -149,7 +149,7 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 		target.stock_qty = flt(obj.qty) * flt(obj.conversion_factor)
 
 	def update_payment_schedule(obj, target, source_parent):
-		if target.due_date < getdate(nowdate()):
+		if getdate(target.due_date) < getdate(nowdate()):
 			target.due_date = getdate(nowdate())
 
 	doclist = get_mapped_doc("Quotation", source_name, {
