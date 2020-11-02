@@ -14,11 +14,8 @@ class Plant(Document):
 		if not self.title:
 			self.title = self.strain + " - " + self.plant_tag
 
-	def validate_plant_quantities(self, destroy_count):
-		validate_quantities(self, destroy_count)
-
 	def destroy_plant(self, destroy_count, reason):
-		self.validate_plant_quantities(destroy_count)
+		validate_quantities(self, destroy_count)
 		destroyed_plant_log = frappe.get_doc(
 			dict(
 				doctype = 'Destroyed Plant Log',

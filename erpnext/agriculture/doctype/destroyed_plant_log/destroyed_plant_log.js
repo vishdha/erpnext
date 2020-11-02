@@ -9,8 +9,6 @@ frappe.ui.form.on('Destroyed Plant Log', {
 		frm.trigger('set_dynamic_field_lable');
 	},
 	set_dynamic_field_lable: function(frm){
-		if (frm.doc.category_type) {
-			frm.set_df_property("category", "label", frm.doc.category_type);
-		}
+		frm.set_df_property("category", "label", frm.doc.category_type);
 	}
 });
