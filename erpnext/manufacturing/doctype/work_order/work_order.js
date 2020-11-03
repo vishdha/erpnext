@@ -647,14 +647,17 @@ erpnext.work_order = {
 	show_prompt_for_qty_input: function(frm, purpose) {
 		let max = this.get_max_transferable_qty(frm, purpose);
 		let label = __('Qty for {0}', [purpose]);
+
 		if(frm.doc.manufacturing_type === "Process" && purpose === "Manufacture"){
 			label = __('Raw Material Consumed for {0}', [purpose]);
-			max = frm.doc.raw_material_qty;
+			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
+
 		else if(frm.doc.manufacturing_type === "Process"){
 			label = __('Raw Material Qty for {0}', [purpose]);
-			max = frm.doc.raw_material_qty;
+			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
+
 		return new Promise((resolve, reject) => {
 			frappe.prompt({
 				fieldtype: 'Float',
