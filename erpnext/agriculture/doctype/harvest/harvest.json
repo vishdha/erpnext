@@ -10,7 +10,7 @@
   "drying_location",
   "drying_warehouse",
   "column_break_11",
-  "harvest_weight",
+  "total_harvest_weight",
   "harvest_uom",
   "is_finished",
   "amended_from",
@@ -51,13 +51,6 @@
    "options": "Warehouse"
   },
   {
-   "fieldname": "harvest_weight",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Harvest Weight",
-   "reqd": 1
-  },
-  {
    "fieldname": "harvest_uom",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -74,6 +67,14 @@
    "fieldname": "sb_plants",
    "fieldtype": "Section Break",
    "label": "Plants"
+  },
+  {
+   "fieldname": "total_harvest_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Harvest Weight",
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "allow_on_submit": 1,
@@ -94,7 +95,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2020-10-22 02:13:36.534467",
+ "modified": "2020-10-26 00:28:20.863968",
  "modified_by": "Administrator",
  "module": "Agriculture",
  "name": "Harvest",
