@@ -10,7 +10,7 @@ frappe.query_reports["Average Days to Pay"] = {
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
-			reqd: 1
+			reqd: 1,
 		},
 		{
 			fieldname: "finance_book",
@@ -60,26 +60,33 @@ frappe.query_reports["Average Days to Pay"] = {
 			default: "",
 			on_change: function (report) {
 				frappe.query_report.set_filter_value("party", "");
-				get_addresses(report);
 			},
 		},
 		{
-			"fieldname":"party",
-			"label": __("Party"),
-			"fieldtype": "Link",
-			get_options: function () {
-				let party_type = frappe.query_report.get_filter_value('party_type');
-				return party_type;
+			fieldname: "party",
+			label: __("Party"),
+			fieldtype: "MultiSelectList",
+			get_data: function (txt) {
+				if (!frappe.query_report.filters) {
+					return true;
+				}
+				let party_type = frappe.query_report.get_filter_value("party_type");
+				if (!party_type) {
+					return true;
+				}
+
+				return frappe.db.get_link_options(party_type, txt);
 			},
 			on_change: function (report) {
-				let party_type = frappe.query_report.get_filter_value("party_type");
-				let party = frappe.query_report.get_filter_value("party");
+				var party_type = frappe.query_report.get_filter_value("party_type");
+				var parties = frappe.query_report.get_filter_value("party");
 
-				if (!party_type) {
+				if (!party_type || parties.length === 0 || parties.length > 1) {
 					frappe.query_report.set_filter_value("party_name", "");
 					return;
 				} else {
-					let fieldname = erpnext.utils.get_party_name(party_type) || "name";
+					var party = parties[0];
+					var fieldname = erpnext.utils.get_party_name(party_type) || "name";
 					frappe.db.get_value(party_type, party, fieldname, function (value) {
 						frappe.query_report.set_filter_value(
 							"party_name",
@@ -87,8 +94,6 @@ frappe.query_reports["Average Days to Pay"] = {
 						);
 					});
 				}
-
-				get_addresses(report);
 			},
 		},
 		{
@@ -100,25 +105,4 @@ frappe.query_reports["Average Days to Pay"] = {
 	],
 };
 
-erpnext.utils.add_dimensions("Statement of Account", 15);
-
-function get_addresses(report) {
-	let filters = report.get_filter_values();
-
-	if (!filters.company || !filters.party_type || !filters.party[0]) {
-		return;
-	}
-
-	frappe.call({
-		method:
-			"erpnext.accounts.report.statement_of_account.statement_of_account.get_addresses",
-		args: {
-			company: filters.company,
-			party_type: filters.party_type,
-			party: filters.party[0],
-		},
-		callback: function (r) {
-			report.addresses = r.message;
-		},
-	});
-}
+erpnext.utils.add_dimensions("Average Days to Pay", 15);
