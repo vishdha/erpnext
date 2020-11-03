@@ -47,6 +47,13 @@ class StockLedgerEntry(Document):
 			from erpnext.stock.doctype.serial_no.serial_no import process_serial_no
 			process_serial_no(self)
 
+	def calculate_batch_qty(self):
+		if self.batch_no:
+			batch_qty = frappe.db.get_value("Stock Ledger Entry",
+				{"docstatus": 1, "batch_no": self.batch_no, "is_cancelled": 0},
+				"sum(actual_qty)") or 0
+			frappe.db.set_value("Batch", self.batch_no, "batch_qty", batch_qty)
+
 	#check for item quantity available in stock
 	def actual_amt_check(self):
 		if self.batch_no and not self.get("allow_negative_stock"):
@@ -83,14 +90,14 @@ class StockLedgerEntry(Document):
 
 		# check if batch number is required
 		if self.voucher_type != 'Stock Reconciliation':
-			if item_det.has_batch_no ==1:
+			if item_det.has_batch_no == 1:
 				batch_item = self.item_code if self.item_code == item_det.item_name else self.item_code + ":" +  item_det.item_name
 				if not self.batch_no:
 					frappe.throw(_("Batch number is mandatory for Item {0}").format(batch_item))
 				elif not frappe.db.get_value("Batch",{"item": self.item_code, "name": self.batch_no}):
 					frappe.throw(_("{0} is not a valid Batch Number for Item {1}").format(self.batch_no, batch_item))
 
-			elif item_det.has_batch_no ==0 and self.batch_no and self.is_cancelled == "No":
+			elif item_det.has_batch_no == 0 and self.batch_no and self.is_cancelled == 0:
 				frappe.throw(_("The Item {0} cannot have Batch").format(self.item_code))
 
 		if item_det.has_variants:
