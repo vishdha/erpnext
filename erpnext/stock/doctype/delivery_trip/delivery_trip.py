@@ -619,8 +619,7 @@ def update_delivery_trip_status(payment_amount, sales_invoice):
 		trip_doc = frappe.get_doc("Delivery Trip", trip)
 		for stop in trip_doc.delivery_stops:
 			if stop.name in delivery_stops:
-				stop.visited = True
-				stop.paid_amount = payment_amount
+				frappe.db.set_value("Delivery Stop", stop.name, "paid_amount", payment_amount)
+				frappe.db.set_value("Delivery Stop", stop.name, "visited", 1)
 				if stop.delivery_note:
 					frappe.db.set_value("Delivery Note", stop.delivery_note, "status", "Completed")
-		trip_doc.save()

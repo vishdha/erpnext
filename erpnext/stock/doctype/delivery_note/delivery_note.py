@@ -313,6 +313,9 @@ class DeliveryNote(SellingController):
 
 				new_invoices.append(get_link_to_form("Sales Invoice", invoice.name))
 
+				for item in self.items:
+  					item.against_sales_invoice = invoice.name
+
 		if new_invoices:
 			new_invoices = ", ".join(str(invoice) for invoice in new_invoices)
 			frappe.msgprint(_("The following Sales Invoice(s) were automatically created: {0}".format(new_invoices)))
