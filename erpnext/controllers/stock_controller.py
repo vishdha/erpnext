@@ -30,7 +30,7 @@ class StockController(AccountsController):
 		validate_license_expiry(self)
 		calculate_cannabis_tax(self)
 
-	def make_gl_entries(self, gl_entries=None, repost_future_gle=True, from_repost=False):
+	def make_gl_entries(self, gl_entries=None, from_repost=False):
 		if self.docstatus == 2:
 			delete_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
@@ -374,50 +374,59 @@ class StockController(AccountsController):
 				d.allow_zero_valuation_rate = 1
 
 	def repost_future_sle_and_gle(self):
-		if self.check_if_future_sle_exists():
-			self.create_repost_item_valuation_entry()
+		args = frappe._dict({
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name
+		})
+		if check_if_future_sle_exists(args):
+			create_repost_item_valuation_entry(args)
 
-	def check_if_future_sle_exists(self):
-		sl_entries = frappe.db.get_all("Stock Ledger Entry",
-			filters={"voucher_type": self.doctype, "voucher_no": self.name},
-			fields=["item_code", "warehouse"],
-			order_by="creation asc")
-	
-		distinct_item_warehouses = list(set([(d.item_code, d.warehouse) for d in sl_entries]))
+def check_if_future_sle_exists(args):
+	sl_entries = frappe.db.get_all("Stock Ledger Entry",
+		filters={"voucher_type": args.voucher_type, "voucher_no": args.voucher_no},
+		fields=["item_code", "warehouse"],
+		order_by="creation asc")
 
-		sle_exists = False
-		for item_code, warehouse in distinct_item_warehouses:
-			args = {
-				"item_code": item_code,
-				"warehouse": warehouse,
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_no": self.name
-			}
-			if self.get_sle(args):
-				sle_exists = True
-				break
-		return sle_exists
+	distinct_item_warehouses = list(set([(d.item_code, d.warehouse) for d in sl_entries]))
 
-	def get_sle(self, args):
-		return frappe.db.sql("""
-			select name
-			from `tabStock Ledger Entry`
-			where
-				item_code=%(item_code)s
-				and warehouse=%(warehouse)s
-				and timestamp(posting_date, posting_time) >= timestamp(%(posting_date)s, %(posting_time)s)
-				and voucher_no != %(voucher_no)s
-				and is_cancelled = 0
-			limit 1
-		""", args)
+	sle_exists = False
+	for item_code, warehouse in distinct_item_warehouses:
+		args.update({
+			"item_code": item_code,
+			"warehouse": warehouse
+		})
+		if get_sle(args):
+			sle_exists = True
+			break
+	return sle_exists
 
-	def create_repost_item_valuation_entry(self):
-		repost_entry = frappe.new_doc("Repost Item Valuation")
-		repost_entry.based_on = 'Transaction'
-		repost_entry.voucher_type = self.doctype
-		repost_entry.voucher_no = self.name
-		repost_entry.posting_date = self.posting_date
-		repost_entry.posting_time = self.posting_time
-		repost_entry.save()
-		repost_entry.submit()
+def get_sle(args):
+	return frappe.db.sql("""
+		select name
+		from `tabStock Ledger Entry`
+		where
+			item_code=%(item_code)s
+			and warehouse=%(warehouse)s
+			and timestamp(posting_date, posting_time) >= timestamp(%(posting_date)s, %(posting_time)s)
+			and voucher_no != %(voucher_no)s
+			and is_cancelled = 0
+		limit 1
+	""", args)
+
+def create_repost_item_valuation_entry(args):
+	args = frappe._dict(args)
+	repost_entry = frappe.new_doc("Repost Item Valuation")
+	repost_entry.based_on = args.based_on
+	if not args.based_on:
+		repost_entry.based_on = 'Transaction' if args.voucher_no else "Item and Warehouse"
+	repost_entry.voucher_type = args.voucher_type
+	repost_entry.voucher_no = args.voucher_no
+	repost_entry.item_code = args.item_code
+	repost_entry.warehouse = args.warehouse
+	repost_entry.posting_date = args.posting_date
+	repost_entry.posting_time = args.posting_time
+	repost_entry.allow_zero_rate = args.allow_zero_rate
+	repost_entry.save()
+	repost_entry.submit()
