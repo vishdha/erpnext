@@ -637,8 +637,14 @@ erpnext.work_order = {
 		} else {
 			if (purpose === 'Manufacture') {
 				max = flt(frm.doc.material_transferred_for_manufacturing) - flt(frm.doc.produced_qty);
+				if (frm.doc.manufacturing_type === "Process") {
+					max = max * (frm.doc.raw_material_qty / frm.doc.qty);
+				}
 			} else {
 				max = flt(frm.doc.qty) - flt(frm.doc.material_transferred_for_manufacturing);
+				if (frm.doc.manufacturing_type === "Process") {
+					max = max * (frm.doc.raw_material_qty / frm.doc.qty);
+				}
 			}
 		}
 		return flt(max, precision('qty'));
@@ -648,14 +654,11 @@ erpnext.work_order = {
 		let max = this.get_max_transferable_qty(frm, purpose);
 		let label = __('Qty for {0}', [purpose]);
 
-		if(frm.doc.manufacturing_type === "Process" && purpose === "Manufacture"){
+		if (frm.doc.manufacturing_type === "Process" && purpose === "Manufacture") {
 			label = __('Raw Material Consumed for {0}', [purpose]);
-			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
-
 		else if (frm.doc.manufacturing_type === "Process") {
 			label = __('Raw Material Qty for {0}', [purpose]);
-			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
 
 		return new Promise((resolve, reject) => {
