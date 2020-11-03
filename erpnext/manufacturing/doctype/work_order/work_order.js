@@ -653,7 +653,7 @@ erpnext.work_order = {
 			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
 
-		else if(frm.doc.manufacturing_type === "Process"){
+		else if (frm.doc.manufacturing_type === "Process") {
 			label = __('Raw Material Qty for {0}', [purpose]);
 			max = max * (frm.doc.raw_material_qty / frm.doc.qty);
 		}
@@ -666,7 +666,7 @@ erpnext.work_order = {
 				description: __('Max: {0}', [max]),
 				default: max
 			}, data => {
-				if(frm.doc.manufacturing_type != "Process"){
+				if (frm.doc.manufacturing_type != "Process") {
 					max += (max * (frm.doc.__onload.overproduction_percentage || 0.0)) / 100;
 				}
 
@@ -684,7 +684,7 @@ erpnext.work_order = {
 		this.show_prompt_for_qty_input(frm, purpose)
 			.then(data => {
 				let qty = data.qty;
-				if(frm.doc.manufacturing_type === "Process"){
+				if (frm.doc.manufacturing_type === "Process") {
 					qty = (frm.doc.qty / frm.doc.raw_material_qty) * data.qty;
 				}
 				return frappe.xcall('erpnext.manufacturing.doctype.work_order.work_order.make_stock_entry', {
