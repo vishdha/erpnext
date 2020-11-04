@@ -15,6 +15,9 @@ MARKUP_PERCENTAGE = 80
 
 
 def calculate_cannabis_tax(doc):
+	if frappe.get_cached_value("Stock Settings", None, "ignore_licenses_for_tax_calculation"):
+		return
+
 	compliance_items = frappe.get_all('Item',
 		filters={'is_compliance_item': True},
 		fields=['item_code', 'enable_cultivation_tax', 'item_category'])
@@ -198,6 +201,9 @@ def convert_to_ounces(uom, qty):
 
 @frappe.whitelist()
 def set_excise_tax(doc):
+	if frappe.get_cached_value("Stock Settings", None, "ignore_licenses_for_tax_calculation"):
+		return
+
 	if isinstance(doc, str):
 		doc = frappe._dict(json.loads(doc))
 
