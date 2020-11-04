@@ -61,9 +61,6 @@ def calculate_cannabis_tax(doc):
 
 
 def calculate_cultivation_tax(doc):
-	if frappe.get_cached_value("Stock Settings", None, "disable_cannabis_taxes_calculation"):
-		return
-
 	cultivation_taxes = {}
 	for item in doc.get("items"):
 		cultivation_taxes = calculate_item_cultivation_tax(doc, item, cultivation_taxes)
@@ -220,6 +217,9 @@ def set_excise_tax(doc):
 
 @frappe.whitelist()
 def get_cultivation_tax(doc, items):
+	if frappe.get_cached_value("Stock Settings", None, "disable_cannabis_taxes_calculation"):
+		return
+
 	if isinstance(doc, str):
 		doc = frappe._dict(json.loads(doc))
 
