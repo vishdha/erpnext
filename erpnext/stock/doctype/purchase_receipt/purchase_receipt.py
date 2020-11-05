@@ -749,7 +749,7 @@ def get_item_account_wise_additional_cost(purchase_document):
 def make_production_plan(source_name, target_doc=None):
 	doc = get_mapped_doc("Purchase Receipt", source_name, {
 		"Purchase Receipt": {
-		"doctype": "Production Plan",
+			"doctype": "Production Plan",
 		},
 		"Purchase Receipt Item": {
 			"doctype": "Production Plan Item",
