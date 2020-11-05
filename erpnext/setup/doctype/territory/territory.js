@@ -21,13 +21,7 @@ frappe.ui.form.on("Territory", {
 		}
 	},
 	refresh: function(frm) {
-		frm.trigger("set_root_readonly");
-	},
-	set_root_readonly: function(frm) {
-		// read-only for root Sales group
-		if(!frm.doc.parent_territory && !frm.is_new()) {
-			frm.set_read_only();
-			frm.set_intro(__("This is a root Territory and cannot be edited."), true);
-		}
+		// read-only for root territory group
+		frm.set_root_read_only("parent_territory");
 	}
 });

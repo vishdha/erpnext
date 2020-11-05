@@ -51,7 +51,8 @@ frappe.ui.form.on("Item Group", {
 	},
 
 	refresh: function(frm) {
-		frm.trigger("set_root_readonly");
+		// read-only for root item group
+		frm.set_root_read_only("parent_item_group");
 		frm.add_custom_button(__("Item Group Tree"), function() {
 			frappe.set_route("Tree", "Item Group");
 		});
@@ -60,15 +61,6 @@ frappe.ui.form.on("Item Group", {
 			frm.add_custom_button(__("Items"), function() {
 				frappe.set_route("List", "Item", {"item_group": frm.doc.name});
 			});
-		}
-	},
-
-	set_root_readonly: function(frm) {
-		// read-only for root item group
-		frm.set_intro("");
-		if(!frm.doc.parent_item_group && !frm.is_new()) {
-			frm.set_read_only();
-			frm.set_intro(__("This is a root item group and cannot be edited."), true);
 		}
 	},
 

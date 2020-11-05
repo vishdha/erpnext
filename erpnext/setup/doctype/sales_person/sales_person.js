@@ -3,7 +3,8 @@
 
 frappe.ui.form.on('Sales Person', {
 	refresh: function(frm) {
-		frm.trigger("set_root_readonly");
+		// read-only for root sales group
+		frm.set_root_read_only("parent_sales_person");
 		if(frm.doc.__onload && frm.doc.__onload.dashboard_info) {
 			var info = frm.doc.__onload.dashboard_info;
 			frm.dashboard.add_indicator(__('Total Contribution Amount: {0}',
@@ -44,13 +45,6 @@ frappe.ui.form.on('Sales Person', {
 		frm.make_methods = {
 			'Sales Order': () => frappe.new_doc("Sales Order")
 				.then(() => frm.add_child("sales_team", {"sales_person": frm.doc.name}))
-		}
-	},
-	set_root_readonly: function(frm) {
-		// read-only for root Sales group
-		if(!frm.doc.parent_sales_person && !frm.is_new()) {
-			frm.set_read_only();
-			frm.set_intro(__("This is a root sales group and cannot be edited."), true);
 		}
 	}
 });

@@ -7,7 +7,7 @@ frappe.ui.form.on('Supplier Group', {
 			return {
 				filters:[
 					['Supplier Group', 'is_group', '=', 1],
-					['Supplier group', 'name', "!=", doc.supplier_group_name]
+					['Supplier Group', 'name', "!=", doc.supplier_group_name]
 				]
 			};
 		};
@@ -23,13 +23,7 @@ frappe.ui.form.on('Supplier Group', {
 		};
 	},
 	refresh: function(frm) {
-		frm.trigger("set_root_readonly");
-	},
-	set_root_readonly: function(frm) {
 		// read-only for root supplier group
-		if(!frm.doc.parent_supplier_group && !frm.is_new()) {
-			frm.set_read_only();
-			frm.set_intro(__("This is a root supplier group and cannot be edited."), true);
-		}
+		frm.set_root_read_only("parent_supplier_group");
 	}
 });
