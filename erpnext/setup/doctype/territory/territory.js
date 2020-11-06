@@ -3,22 +3,23 @@
 
 frappe.ui.form.on("Territory", {
 	setup: function(frm) {
-		frm.fields_dict["targets"].grid.get_field("distribution_id").get_query = function(doc, cdt, cdn){
-			var row = locals[cdt][cdn];
+		frm.set_query('parent_territory', function() {
 			return {
 				filters: {
-					'fiscal_year': row.fiscal_year
+					is_group: 1,
+					name: ["!=", frm.doc.territory_name]
 				}
-			}
-		};
-		frm.fields_dict['parent_territory'].get_query = function(doc) {
-			return{
-				filters:[
-					['Territory', 'is_group', '=', 1],
-					['Territory', 'name', "!=", doc.territory_name]
-				]
-			}
-		}
+			};
+		});
+
+		frm.set_query('distribution_id', 'targets', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
+			return {
+				filters: {
+					fiscal_year: row.fiscal_year
+				}
+			};
+		});
 	},
 	refresh: function(frm) {
 		// read-only for root territory group

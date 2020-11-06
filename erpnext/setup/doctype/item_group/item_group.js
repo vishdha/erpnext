@@ -6,48 +6,50 @@ frappe.ui.form.on("Item Group", {
 		frm.list_route = "Tree/Item Group";
 
 		//get query select item group
-		frm.fields_dict['parent_item_group'].get_query = function(doc,cdt,cdn) {
-			return{
-				filters:[
-					['Item Group', 'is_group', '=', 1],
-					['Item Group', 'name', '!=', doc.item_group_name]
-				]
-			}
-		}
-		frm.fields_dict["item_group_defaults"].grid.get_field("expense_account").get_query = function(doc, cdt, cdn) {
-			const row = locals[cdt][cdn];
+		frm.set_query('parent_item_group', function() {
+			return {
+				filters: {
+					is_group: 1,
+					name: ["!=", frm.doc.item_group_name]
+				}
+			};
+		});
+
+		frm.set_query('expense_account', 'item_group_defaults', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
 			return {
 				query: "erpnext.controllers.queries.get_expense_account",
 				filters: { company: row.company }
-			}
-		}
-		frm.fields_dict["item_group_defaults"].grid.get_field("income_account").get_query = function(doc, cdt, cdn) {
-			const row = locals[cdt][cdn];
+			};
+		});
+
+		frm.set_query('income_account', 'item_group_defaults', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
 			return {
 				query: "erpnext.controllers.queries.get_income_account",
 				filters: { company: row.company }
-			}
-		}
+			};
+		});
 
-		frm.fields_dict["item_group_defaults"].grid.get_field("buying_cost_center").get_query = function(doc, cdt, cdn) {
-			const row = locals[cdt][cdn];
+		frm.set_query('buying_cost_center', 'item_group_defaults', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
 			return {
 				filters: {
-					"is_group": 0,
-					"company": row.company
+					is_group: 0,
+					company: row.company
 				}
-			}
-		}
+			};
+		});
 
-		frm.fields_dict["item_group_defaults"].grid.get_field("selling_cost_center").get_query = function(doc, cdt, cdn) {
-			const row = locals[cdt][cdn];
+		frm.set_query('selling_cost_center', 'item_group_defaults', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
 			return {
 				filters: {
-					"is_group": 0,
-					"company": row.company
+					is_group: 0,
+					company: row.company
 				}
-			}
-		}
+			};
+		});
 	},
 
 	refresh: function(frm) {

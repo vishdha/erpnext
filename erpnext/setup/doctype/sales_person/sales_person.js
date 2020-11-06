@@ -20,28 +20,30 @@ frappe.ui.form.on('Sales Person', {
 	},
 
 	setup: function(frm) {
-		frm.fields_dict["targets"].grid.get_field("distribution_id").get_query = function(doc, cdt, cdn){
-			var row = locals[cdt][cdn];
+		frm.set_query('parent_sales_person', function() {
 			return {
 				filters: {
-					'fiscal_year': row.fiscal_year
+					is_group: 1,
+					name: ["!=", frm.doc.sales_person_name]
 				}
-			}
-		};
+			};
+		});
 
-		frm.fields_dict['parent_sales_person'].get_query = function(doc) {
-			return{
-				filters: [
-					['Sales Person', 'is_group', '=', 1],
-					['Sales Person', 'name', '!=', doc.sales_person_name]
-				]
-			}
-		};
+		frm.set_query('employee', function() {
+			return {
+				query:  "erpnext.controllers.queries.employee_query",
+			};
+		});
 
-		frm.fields_dict.employee.get_query = function() {
-			return { query: "erpnext.controllers.queries.employee_query" }
-		}
-	
+		frm.set_query('distribution_id', 'targets', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
+			return {
+				filters: {
+					fiscal_year: row.fiscal_year
+				}
+			};
+		});
+
 		frm.make_methods = {
 			'Sales Order': () => frappe.new_doc("Sales Order")
 				.then(() => frm.add_child("sales_team", {"sales_person": frm.doc.name}))

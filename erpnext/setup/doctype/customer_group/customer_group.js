@@ -3,24 +3,25 @@
 
 frappe.ui.form.on('Customer Group', {
 	setup: function(frm) {
-		frm.fields_dict['parent_customer_group'].get_query = function(doc) {
-			return {
-				filters:[
-					['Customer Group', 'is_group', '=', 1],
-					['Customer group', 'name', "!=", doc.customer_group_name]
-				]
-			}
-		}
-		frm.fields_dict['accounts'].grid.get_field('account').get_query = function(cdt, cdn) {
-			var d  = locals[cdt][cdn];
+		frm.set_query('parent_customer_group', function() {
 			return {
 				filters: {
-					'account_type': 'Receivable',
-					'company': d.company,
-					"is_group": 0
+					is_group: 1,
+					name: ["!=", frm.doc.customer_group_name]
 				}
-			}
-		}
+			};
+		});
+
+		frm.set_query('account', 'accounts', function(doc, cdt, cdn) {
+			let row  = locals[cdt][cdn];
+			return {
+				filters: {
+					company: row.company,
+					account_type: 'Receivable',
+					is_group: 0
+				}
+			};
+		});
 	},
 	refresh: function(frm) {
 		// read-only for root customer group
