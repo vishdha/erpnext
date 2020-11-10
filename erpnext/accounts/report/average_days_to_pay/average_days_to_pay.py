@@ -17,11 +17,6 @@ def execute(filters=None):
 		return [], []
 
 	account_details = {}
-
-	if filters and filters.get('print_in_account_currency') and \
-		not filters.get('account'):
-		frappe.throw(_("Select an account to print in account currency"))
-
 	for acc in frappe.db.sql("""select name, is_group from tabAccount""", as_dict=1):
 		account_details.setdefault(acc.name, acc)
 
@@ -108,7 +103,7 @@ def get_conditions(filters):
 	if not (filters.get("account") or filters.get("party")):
 		conditions.append("GLE.posting_date >=%(from_date)s")
 
-	conditions.append("(GLE.posting_date <=%(to_date)s and GLE.voucher_type != GLE.against_voucher_type)")
+	conditions.append("(GLE.posting_date <=%(to_date)s and GLE.voucher_type != GLE.against_voucher_type) and GLE.posting_date != SI.posting_date")
 
 	from frappe.desk.reportview import build_match_conditions
 	match_conditions = build_match_conditions("GL Entry")
@@ -139,7 +134,6 @@ def get_data_with_opening_closing(filters, account_details, gl_entries):
 	totals, entries = get_customerwise_gle(filters, gl_entries, gle_map)
 
 	for acc, acc_dict in iteritems(gle_map):
-		print("------------------------------------------------", acc_dict)
 		# acc
 		if acc_dict.entries:
 			# opening
@@ -150,15 +144,17 @@ def get_data_with_opening_closing(filters, account_details, gl_entries):
 
 			# totals
 			data.append(acc_dict.totals.total)
-
 			# # closing
 			# data.append(acc_dict.totals.closing)
-	data.append({})
+			
 
+
+			
+	data.append({})
 	data += entries
 
-	# totals
-	data.append(totals.total)
+	# # totals
+	# data.append(totals.total)
 
 	return data
 
@@ -168,18 +164,20 @@ def initialize_gle_map(gl_entries, filters):
 
 	for gle in gl_entries:
 		gle_map.setdefault(gle.get(group_by), _dict(totals=get_totals_dict(gle.party), entries=[]))
+	
+	# print("----------------------------------gle_map--------------------", gle_map)
 	return gle_map
 
 def get_totals_dict(party=None):
 	def _get_debit_credit_dict(label):
 		return _dict(
 			account="'{0}'".format(label),
-			avarage_days_to_pay=0.0,
+			average_days_to_pay=0.0,
 		)
 	return _dict(
 		opening = _get_debit_credit_dict(party),
-		total = _get_debit_credit_dict(_('Total')),
-		closing = _get_debit_credit_dict(_('Closing (Opening + Total)'))
+		total = _get_debit_credit_dict(_('Total Average Days to Pay')),
+		closing = _get_debit_credit_dict(_('Closing'))
 	)
 
 
@@ -188,22 +186,15 @@ def get_customerwise_gle(filters, gl_entries, gle_map):
 	entries = []
 	consolidated_gle = OrderedDict()
 	group_by = 'party'
+	count = 0
+	def update_value_in_dict(data, key, gle, count=0):
+		print("----------------------------------------count--------------------", gle.party)
+		if count:
+			data[key].average_days_to_pay += date_diff(gle.get('posting_date'), gle.get("against_voucher_date"))/count
 
-	def update_value_in_dict(data, key, gle):
-		# print("==============================================", data)
-		data[key].avarage_days_to_pay += cint(gle.debit)
-		# data[key].debit += flt(gle.debit)
-		# data[key].credit += flt(gle.credit)
-
-		# data[key].debit_in_account_currency += flt(gle.debit_in_account_currency)
-		# data[key].credit_in_account_currency += flt(gle.credit_in_account_currency)
-
-		# if data[key].against_voucher and gle.against_voucher:
-		# 	data[key].against_voucher += ', ' + gle.against_voucher
 
 	from_date, to_date = getdate(filters.from_date), getdate(filters.to_date)
 	for gle in gl_entries:
-		print("----------------------------------gle-----------------", gle.party)
 		if (gle.posting_date < from_date):
 			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'opening', gle)
 			update_value_in_dict(totals, 'opening', gle)
@@ -212,33 +203,32 @@ def get_customerwise_gle(filters, gl_entries, gle_map):
 			update_value_in_dict(totals, 'closing', gle)
 
 		elif gle.posting_date <= to_date:
-			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'total', gle)
-			update_value_in_dict(totals, 'total', gle)
+			count = count + 1
+			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'total', gle, count)
+			update_value_in_dict(totals, 'total', gle, count)
+
+			average_days_to_pay = date_diff(gle.get('posting_date'), gle.get("against_voucher_date"))
+			gle['average_days_to_pay'] = average_days_to_pay
 			gle_map[gle.get(group_by)].entries.append(gle)
-			# key = (gle.get("voucher_type"), gle.get("voucher_no"),
-			# 	gle.get("account"), gle.get("cost_center"))
-			# if key not in consolidated_gle:
-			# 	consolidated_gle.setdefault(key, gle)
-			# else:
-			# 	update_value_in_dict(consolidated_gle, key, gle)
+	
 
 			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'closing', gle)
 			update_value_in_dict(totals, 'closing', gle)
 
 	for key, value in consolidated_gle.items():
+		print("=====================")
 		entries.append(value)
-
+	print("------------------------------------totals--------------------------", entries)
 	return totals, entries
 
 def get_result_as_list(data, filters):
-	avarage_days_to_pay = 0
+	average_days_to_pay = 0
 
 	for d in data:
 		if not d.get('posting_date'):
-			avarage_days_to_pay = 0
-
-		avarage_days_to_pay = date_diff(d.get('posting_date'), d.get("against_voucher_date"))
-		d['avarage_days_to_pay'] = avarage_days_to_pay
+			average_days_to_pay = 0
+		average_days_to_pay = date_diff(d.get('posting_date'), d.get("against_voucher_date"))
+		# d['average_days_to_pay'] = average_days_to_pay
 
 	return data
 
@@ -287,7 +277,7 @@ def get_columns(filters):
 			"label": _("Invoice Number"),
 			"fieldname": "against_voucher",
 			"fieldtype": "Dynamic Link",
-			"options": "voucher_type",
+			"options": "against_voucher_type",
 			"width": 180
 		},
 		{
@@ -298,7 +288,7 @@ def get_columns(filters):
 		},
 		{
 			"label": _("Avarge Days to Pay"),
-			"fieldname": "avarage_days_to_pay",
+			"fieldname": "average_days_to_pay",
 			"fieldtype": "Int",
 			"width": 90
 		}
