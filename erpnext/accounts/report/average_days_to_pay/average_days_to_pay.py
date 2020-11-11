@@ -9,8 +9,7 @@ from frappe import _, _dict
 from six import iteritems
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
 from collections import OrderedDict
-from erpnext.accounts.report.general_ledger.general_ledger import validate_party, set_account_currency, get_balance
-from frappe.contacts.doctype.address.address import get_default_address
+from erpnext.accounts.report.general_ledger.general_ledger import validate_party, set_account_currency
 
 def execute(filters=None):
 	if not filters:
@@ -50,9 +49,9 @@ def validate_filters(filters, account_details):
 def get_result(filters, account_details):
 	gl_entries = get_gl_entries(filters)
 
-	data = get_data_with_opening_closing(filters, account_details, gl_entries)
+	data = get_data_with_customer(filters, gl_entries)
 
-	result = get_result_as_list(data, filters)
+	result = data
 
 	return result
 
@@ -60,14 +59,15 @@ def get_gl_entries(filters):
 	select_fields = """, GLE.debit, GLE.credit, GLE.debit_in_account_currency,
 		GLE.credit_in_account_currency """
 
-	order_by_statement = "order by GLE.posting_date, GLE.party, GLE.creation"
+	order_by_statement = "order by GLE.party, GLE.posting_date, GLE.creation"
 
 	gl_entries = frappe.db.sql(
 		"""
 		SELECT
-			GLE.name as gl_entry, GLE.posting_date, GLE.account, GLE.party_type, GLE.party, GLE.voucher_type, GLE.voucher_no, GLE.cost_center, GLE.project,
-			GLE.against_voucher_type, GLE.against_voucher, GLE.account_currency,
-			GLE.remarks, GLE.against, GLE.is_opening, SI.posting_date as against_voucher_date {select_fields}
+			GLE.name as gl_entry, GLE.posting_date, GLE.account, GLE.party_type, GLE.party, GLE.voucher_type,
+			GLE.voucher_no, GLE.cost_center, GLE.project, GLE.against_voucher_type, GLE.against_voucher,
+			GLE.account_currency, GLE.remarks, GLE.against, GLE.is_opening,
+			SI.posting_date as against_voucher_date {select_fields}
 		FROM
 			`tabGL Entry` GLE
 		INNER JOIN
@@ -81,7 +81,6 @@ def get_gl_entries(filters):
 		""".format(select_fields=select_fields,
 				conditions=get_conditions(filters),
 				order_by_statement=order_by_statement), filters, as_dict=1, debug=True)
-
 
 	return gl_entries
 
@@ -126,7 +125,7 @@ def get_conditions(filters):
 	return "and {}".format(" and ".join(conditions)) if conditions else ""
 
 
-def get_data_with_opening_closing(filters, account_details, gl_entries):
+def get_data_with_customer(filters, gl_entries):
 	data = []
 
 	gle_map = initialize_gle_map(gl_entries, filters)
@@ -136,26 +135,18 @@ def get_data_with_opening_closing(filters, account_details, gl_entries):
 	for acc, acc_dict in iteritems(gle_map):
 		# acc
 		if acc_dict.entries:
-			# opening
+			# opening shows the customer name
 			data.append({})
 			data.append(acc_dict.totals.opening)
 
-			data += acc_dict.entries
+			# entries section shows the gl entry information
+			if not filters.get("accumulated_average_days_to_pay"):
+				data += acc_dict.entries
 
-			# totals
+			# Total Average Days to Pay section
 			data.append(acc_dict.totals.total)
-			# # closing
-			# data.append(acc_dict.totals.closing)
-			
-
-
 			
 	data.append({})
-	data += entries
-
-	# # totals
-	# data.append(totals.total)
-
 	return data
 
 def initialize_gle_map(gl_entries, filters):
@@ -165,7 +156,6 @@ def initialize_gle_map(gl_entries, filters):
 	for gle in gl_entries:
 		gle_map.setdefault(gle.get(group_by), _dict(totals=get_totals_dict(gle.party), entries=[]))
 	
-	# print("----------------------------------gle_map--------------------", gle_map)
 	return gle_map
 
 def get_totals_dict(party=None):
@@ -186,111 +176,86 @@ def get_customerwise_gle(filters, gl_entries, gle_map):
 	entries = []
 	consolidated_gle = OrderedDict()
 	group_by = 'party'
-	count = 0
 	def update_value_in_dict(data, key, gle, count=0):
-		print("----------------------------------------count--------------------", gle.party)
-		if count:
-			data[key].average_days_to_pay += date_diff(gle.get('posting_date'), gle.get("against_voucher_date"))/count
+		data[key].average_days_to_pay += flt(date_diff(gle.get('posting_date'), gle.get("against_voucher_date")))
 
 
 	from_date, to_date = getdate(filters.from_date), getdate(filters.to_date)
 	for gle in gl_entries:
 		if (gle.posting_date < from_date):
 			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'opening', gle)
-			update_value_in_dict(totals, 'opening', gle)
 
 			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'closing', gle)
-			update_value_in_dict(totals, 'closing', gle)
 
 		elif gle.posting_date <= to_date:
-			count = count + 1
-			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'total', gle, count)
-			update_value_in_dict(totals, 'total', gle, count)
+			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'total', gle)
 
 			average_days_to_pay = date_diff(gle.get('posting_date'), gle.get("against_voucher_date"))
 			gle['average_days_to_pay'] = average_days_to_pay
 			gle_map[gle.get(group_by)].entries.append(gle)
-	
 
-			update_value_in_dict(gle_map[gle.get(group_by)].totals, 'closing', gle)
-			update_value_in_dict(totals, 'closing', gle)
-
-	for key, value in consolidated_gle.items():
-		print("=====================")
-		entries.append(value)
-	print("------------------------------------totals--------------------------", entries)
 	return totals, entries
 
-def get_result_as_list(data, filters):
-	average_days_to_pay = 0
-
-	for d in data:
-		if not d.get('posting_date'):
-			average_days_to_pay = 0
-		average_days_to_pay = date_diff(d.get('posting_date'), d.get("against_voucher_date"))
-		# d['average_days_to_pay'] = average_days_to_pay
-
-	return data
-
-
 def get_columns(filters):
-	if filters.get("presentation_currency"):
-		currency = filters["presentation_currency"]
+	if filters.get("company"):
+		currency = get_company_currency(filters["company"])
 	else:
-		if filters.get("company"):
-			currency = get_company_currency(filters["company"])
-		else:
-			company = get_default_company()
-			currency = get_company_currency(company)
+		company = get_default_company()
+		currency = get_company_currency(company)
 
 	columns = [
-		{
-			"label": _("Date"),
-			"fieldname": "posting_date",
-			"fieldtype": "Date",
-			"width": 90
-		},
 		{
 			"label": _("Description"),
 			"fieldname": "account",
 			"fieldtype": "Link",
 			"options": "Account",
 			"width": 180
-		},
-		{
-			"label": _("Document"),
-			"fieldname": "voucher_type",
-			"width": 120
-		},
-		{
-			"label": _("Document No"),
-			"fieldname": "voucher_no",
-			"fieldtype": "Dynamic Link",
-			"options": "voucher_type",
-			"width": 180
-		},{
-			"label": _("Invoice"),
-			"fieldname": "against_voucher_type",
-			"width": 120
-		},
-		{
-			"label": _("Invoice Number"),
-			"fieldname": "against_voucher",
-			"fieldtype": "Dynamic Link",
-			"options": "against_voucher_type",
-			"width": 180
-		},
-		{
-			"label": _("Invoice Date"),
-			"fieldname": "against_voucher_date",
+		}]
+	if not filters.get("accumulated_average_days_to_pay"):
+		columns += [
+			{
+			"label": _("Date"),
+			"fieldname": "posting_date",
 			"fieldtype": "Date",
 			"width": 90
 		},
+			{
+				"label": _("Document"),
+				"fieldname": "voucher_type",
+				"width": 100
+			},
+			{
+				"label": _("Document No"),
+				"fieldname": "voucher_no",
+				"fieldtype": "Dynamic Link",
+				"options": "voucher_type",
+				"width": 150
+			},{
+				"label": _("Invoice"),
+				"fieldname": "against_voucher_type",
+				"width": 100
+			},
+			{
+				"label": _("Invoice Number"),
+				"fieldname": "against_voucher",
+				"fieldtype": "Dynamic Link",
+				"options": "against_voucher_type",
+				"width": 150
+			},
+			{
+				"label": _("Invoice Date"),
+				"fieldname": "against_voucher_date",
+				"fieldtype": "Date",
+				"width": 90
+			}
+		]
+	columns += [
 		{
 			"label": _("Avarge Days to Pay"),
 			"fieldname": "average_days_to_pay",
-			"fieldtype": "Int",
-			"width": 90
+			"fieldtype": "Float",
+			"precision": 2,
+			"width": 150
 		}
 	]
 	return columns

@@ -102,6 +102,11 @@ frappe.query_reports["Average Days to Pay"] = {
 			fieldtype: "Data",
 			hidden: 1,
 		},
+		{
+			fieldname: "accumulated_average_days_to_pay",
+			label: __("Accumulated Average Days to Pay"),
+			fieldtype: "Check"
+		}
 	],
 };
 
