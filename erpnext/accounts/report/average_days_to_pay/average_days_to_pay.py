@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from erpnext import get_company_currency, get_default_company
-from frappe.utils import getdate, cstr, flt, cint, date_diff
+from frappe.utils import getdate, flt, date_diff
 from frappe import _, _dict
 from six import iteritems
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
@@ -179,7 +179,6 @@ def get_totals_dict(party=None):
 def get_customerwise_gle(filters, gl_entries, gle_map):
 	totals = get_totals_dict()
 	entries = []
-	consolidated_gle = OrderedDict()
 	group_by = 'party'
 	def update_value_in_dict(data, key, gle):
 		data[key].total += flt(date_diff(gle.get('reference_date') or gle.get('posting_date'), gle.get("against_voucher_date")))
@@ -205,12 +204,6 @@ def get_customerwise_gle(filters, gl_entries, gle_map):
 	return totals, entries
 
 def get_columns(filters):
-	if filters.get("company"):
-		currency = get_company_currency(filters["company"])
-	else:
-		company = get_default_company()
-		currency = get_company_currency(company)
-
 	columns = [
 		{
 			"label": _("Description"),

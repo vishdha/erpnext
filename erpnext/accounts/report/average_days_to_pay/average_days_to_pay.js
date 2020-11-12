@@ -58,6 +58,11 @@ frappe.query_reports["Average Days to Pay"] = {
 			fieldtype: "Link",
 			options: "Party Type",
 			default: "",
+			"get_query": function() {
+				return {
+					filters: {"name": ["in", ["Customer"]]}
+				}
+			},
 			on_change: function (report) {
 				frappe.query_report.set_filter_value("party", "");
 			},
