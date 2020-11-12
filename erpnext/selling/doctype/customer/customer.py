@@ -365,7 +365,7 @@ def get_customer_list(doctype, txt, searchfield, start, page_len, filters=None):
 		("%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, "%%%s%%" % txt, start, page_len))
 
 
-def check_credit_limit(customer, company, ignore_outstanding_sales_order=False, extra_amount=0):
+def check_credit_limit(customer, company, reference_doctype, reference_document, ignore_outstanding_sales_order=False, extra_amount=0):
 	customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
 	if extra_amount > 0:
 		customer_outstanding += flt(extra_amount)
