@@ -7,11 +7,10 @@ cur_frm.add_fetch("contract_template", "requires_fulfilment", "requires_fulfilme
 // Add fulfilment terms from contract template into contract
 frappe.ui.form.on("Contract", {
 	refresh: (frm) => {
-		let doc = frm.doc
-		frm.set_query("contract_template", (frm) => {
+		frm.set_query("contract_template", () => {
 			return {
 				filters: {
-					"company": doc.company
+					"company": frm.doc.company
 				}
 			};
 		});
