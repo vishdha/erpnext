@@ -362,45 +362,19 @@ def get_expense_claim(
 
 	return expense_claim
 
-# @frappe.whitelist()
-# def new_expense_claim(subject, email, expense_date, e_type, amount, status):
-# 	# fetch employee code from email
-# 	if frappe.get_value("Employee",{ "prefered_email": email }):
-# 		employee_name = frappe.get_value("Employee",{ "prefered_email": email })
-
-# 	elif frappe.get_value("Employee",{ "company_email": email }):
-# 		employee_name = frappe.get_value("Employee",{ "company_email": email })
-
-# 	else:
-# 		employee_name = frappe.get_value("Employee",{ "personal_email": email })
-
-# 	if not employee_name:
-# 		frappe.throw("No Employee Found")
-
-# 	doc = frappe.new_doc("Expense Claim")
-# 	doc.employee = employee_name
-# 	doc.payable_account = frappe.get_value('Company', frappe.get_value("Employee", employee_name, "company"), 'default_payable_account')
-# 	doc.approval_status = status
-# 	child_doc = doc.append('expenses', {})
-# 	child_doc.expense_date = expense_date
-# 	child_doc.expense_type = e_type
-# 	child_doc.amount = amount
-# 	child_doc.description = subject
-# 	doc.save()
-
 @frappe.whitelist()
-def new_expense_claim(subject, email, expense_date, e_type, amount, status):
+def create_expense_claim(subject, email, expense_date, expense_type, amount, status):
 	# fetch employee code from email
-	if frappe.get_value("Employee",{ "prefered_email": email }):
-		employee = frappe.get_doc("Employee",{ "prefered_email": email })
+	if frappe.get_value("Employee", {"prefered_email": email}):
+		employee = frappe.get_doc("Employee", {"prefered_email": email})
 
-	elif frappe.get_value("Employee",{ "company_email": email }):
-		employee = frappe.get_doc("Employee",{ "company_email": email })
+	elif frappe.get_value("Employee", {"company_email": email}):
+		employee = frappe.get_doc("Employee", {"company_email": email})
 
-	elif frappe.get_value("Employee",{ "personal_email": email }):
-		employee = frappe.get_doc("Employee",{ "personal_email": email })
+	elif frappe.get_value("Employee", {"personal_email": email}):
+		employee = frappe.get_doc("Employee", {"personal_email": email})
 	else:
-		frappe.throw("No Employee Found")
+		frappe.throw(_("Employee not found."))
 
 	if employee.department:
 		department = frappe.get_doc("Department", employee.department)
@@ -418,7 +392,7 @@ def new_expense_claim(subject, email, expense_date, e_type, amount, status):
 	doc.expense_approver = expense_approver
 	child_doc = doc.append('expenses', {})
 	child_doc.expense_date = expense_date
-	child_doc.expense_type = e_type
+	child_doc.expense_type = expense_type
 	child_doc.amount = amount
 	child_doc.description = subject
 	doc.save()
