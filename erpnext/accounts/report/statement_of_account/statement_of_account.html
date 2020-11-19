@@ -5,7 +5,6 @@
 
 	.print-format tr th {
 		vertical-align: bottom !important;
-		padding: 1rem 5rem !important;
 	}
 
 	.customer-info {
@@ -42,24 +41,28 @@
 		background-color: #cfe2f3;
 	}
 
-	.address,
-	.statement-date {
-		display: inline-block;
-	}
+	.flex-row {
+    	display: flex;
+    	flex-direction: row;
+    	justify-content: space-between;
+ 	 }
 
-	.address {
-		width: 50%;
-	}
+  	.statement-date,
+  	.address {
+  	  	padding-left: 0;
+  	  	padding-right: 0;
+  	}
 
-	.statement-date {
-		float: right;
-		width: 50%;
-	}
+	.px-0 {
+		padding-left: 0;
+		padding-right: 0;
+    	}
 
 	.address .company {
 		font-size: 15px;
 		color: #595959;
 		font-weight: bold;
+		padding: 0 15px;
 	}
 
 	.address p,
@@ -71,20 +74,22 @@
 	}
 </style>
 
-<div class="row">
+<div class="row flex-row">
 	<div class="col-xs-6 address">
 		<p class="company">
-			{{ report.addresses.company.name }}<br>
-			{{ report.addresses.company.address_line1 }}, {{ report.addresses.company.pincode }}<br>
-			{{ report.addresses.company.city }}, {{ report.addresses.company.state }}
+			{% if (report.addresses.company) { %}
+				{{ report.addresses.company.name }}<br>
+				{{ report.addresses.company.address_line1 }}, {{ report.addresses.company.pincode }}<br>
+				{{ report.addresses.company.city }}, {{ report.addresses.company.state }}
+			{% } %}
 		</p>
 	</div>
 	<div class="col-xs-6 statement-date ">
-		<div class="row">
-			<div class="col-xs-6 text-right">
+		<div class="row flex-row">
+			<div class="col-xs-6 px-0">
 				<label>Statement Date: </label>
 			</div>
-			<div class="col-xs-6 value text-right">
+			<div class="col-xs-6 value px-0">
 				{{ frappe.datetime.str_to_user(filters.from_date) }} {{ __("to") }}
 				{{ frappe.datetime.str_to_user(filters.to_date) }}
 			</div>
@@ -111,8 +116,10 @@
 	</p>
 
 	<p>
-		{{ report.addresses.party.address_line1 }},<br>
-		{{ report.addresses.party.city }}, {{ report.addresses.party.state }}
+		{% if (report.addresses.party)  { %}
+			{{ report.addresses.party.address_line1 }},<br>
+			{{ report.addresses.party.city }}, {{ report.addresses.party.state }}
+		{% } %}
 	</p>
 </div>
 
