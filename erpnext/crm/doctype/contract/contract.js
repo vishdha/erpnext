@@ -10,7 +10,7 @@ frappe.ui.form.on("Contract", {
 		frm.set_query("contract_template", (frm) => {
 			return {
 				filters: {
-					"company": frm.company
+					"company": frm.doc.company
 				}
 			};
 		});
