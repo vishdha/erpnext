@@ -46,7 +46,7 @@ $('#submit').on("click", function(e) {
 
 $('input[data-validation="digit"]')
 	.on("paste", function(e) {
-		if (e.originalEvent.clipboardData.getData('text').match(/[^\d]/)) {}
+		if (e.originalEvent.clipboardData.getData('text').match(/[^\d]/))
 			e.preventDefault(); //prevent the default behaviour
 	})
 	.keypress(function(event) {
