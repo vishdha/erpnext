@@ -681,7 +681,12 @@ def make_journal_entry(asset_name):
 
 	depreciation_cost_center, depreciation_series = frappe.db.get_value("Company", asset.company,
 		["depreciation_cost_center", "series_for_depreciation_entry"])
-	depreciation_cost_center = asset.cost_center or depreciation_cost_center
+
+	if asset.cost_center:
+		depreciation_cost_center = asset.cost_center
+
+	if asset.depreciation_expense_account:
+		depreciation_expense_account = asset.depreciation_expense_account
 
 	je = frappe.new_doc("Journal Entry")
 	je.voucher_type = "Depreciation Entry"
