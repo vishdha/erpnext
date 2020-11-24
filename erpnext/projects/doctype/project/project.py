@@ -219,7 +219,7 @@ class Project(Document):
 
 
 	def notify(self):
-		if not frappe.get_cached_value("Projects Settings", None, "send_notifications_for_project"):
+		if not frappe.db.get_single_value("Projects Settings", "send_notifications_for_project"):
 			return
 
 		notification_doc = {
@@ -231,6 +231,12 @@ class Project(Document):
 		}
 
 		enqueue_create_notification(self.get_assigned_users(), notification_doc)
+
+		for user in self.get_assigned_users():
+			if user == frappe.session.user:
+				continue
+
+			frappe.publish_realtime('show_notification_alert', message=notification_doc.get("subject"), after_commit=True, user=user)
 
 def get_timeline_data(doctype, name):
 	'''Return timeline for attendance'''

@@ -206,7 +206,7 @@ class Task(NestedSet):
 				self.update_project()
 
 	def notify(self):
-		if not frappe.db.get_value("Projects Settings", None, "send_notifications_for_task"):
+		if not frappe.db.get_single_value("Projects Settings", "send_notifications_for_task"):
 			return
 
 		notification_doc = {
@@ -218,6 +218,12 @@ class Task(NestedSet):
 		}
 
 		enqueue_create_notification(self.get_assigned_users(), notification_doc)
+
+		for user in self.get_assigned_users():
+			if user == frappe.session.user:
+				continue
+
+			frappe.publish_realtime('show_notification_alert', message=notification_doc.get("subject"), after_commit=True, user=user)
 
 @frappe.whitelist()
 def check_if_child_exists(name):
