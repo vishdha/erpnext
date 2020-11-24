@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.defaults
+from frappe.utils import cint
 from erpnext.shopping_cart.doctype.shopping_cart_settings.shopping_cart_settings import is_cart_enabled
 
 def show_cart_count():
@@ -30,7 +31,7 @@ def update_website_context(context):
 	context.update({
 		"shopping_cart_enabled": cart_enabled,
 		"shopping_cart_show_count": show_cart_count(),
-		"shopping_cart_count": frappe.local.cookie_manager.cookies.get("cart_count", 0) or 0
+		"shopping_cart_count": cint(frappe.local.cookie_manager.cookies.get("cart_count", 0)) or 0
 	})
 
 def check_customer_or_supplier():
