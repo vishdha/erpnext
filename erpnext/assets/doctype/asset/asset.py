@@ -677,7 +677,7 @@ def get_asset_account(account_name, asset=None, asset_category=None, company=Non
 def make_journal_entry(asset_name):
 	'''
 		asset_name: it will take asset document.
-		return jouneral entrry: it will return jouneral entry for asset.
+		return journal entry: it will return journal entry for asset.
 	'''
 	asset = frappe.get_doc("Asset", asset_name)
 	fixed_asset_account, accumulated_depreciation_account, depreciation_expense_account = \
