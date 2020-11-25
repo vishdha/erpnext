@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import random
+import os
 from frappe import _
 from frappe.utils import get_fullname, flt, cstr
 from frappe.model.document import Document
@@ -362,29 +362,31 @@ def get_expense_claim(
 
 	return expense_claim
 
+# api to create expense claim
 @frappe.whitelist()
 def create_expense_claim(subject, email, expense_date, expense_type, amount, status):
 	# fetch employee code from email
-	if frappe.get_value("Employee", {"prefered_email": email}):
-		employee = frappe.get_doc("Employee", {"prefered_email": email})
+	employee = frappe.get_all("Employee", or_filters={
+		"prefered_email": email,
+		"company_email": email,
+		"personal_email": email
+	})
 
-	elif frappe.get_value("Employee", {"company_email": email}):
-		employee = frappe.get_doc("Employee", {"company_email": email})
-
-	elif frappe.get_value("Employee", {"personal_email": email}):
-		employee = frappe.get_doc("Employee", {"personal_email": email})
+	if employee and employee[0]:
+		employee = frappe.get_doc("Employee", employee[0].name)
 	else:
 		frappe.throw(_("Employee not found."))
 
 	if employee.department:
 		department = frappe.get_doc("Department", employee.department)
 		if department.expense_approvers:
-			expense_approver = random.choice(department.expense_approvers).approver
+			expense_approver = department.expense_approvers[ os.urandom(1)[0] % len(department.expense_approvers)].approver
 		else:
 			frappe.throw(_("Expense Approver not found for {0}").format(email))
 	else:
 		frappe.throw(_("Department is not set"))
 
+	# creating expense claim doc.
 	doc = frappe.new_doc("Expense Claim")
 	doc.employee = employee.name
 	doc.payable_account = frappe.get_value('Company', employee.company, 'default_payable_account')
@@ -395,4 +397,5 @@ def create_expense_claim(subject, email, expense_date, expense_type, amount, sta
 	child_doc.expense_type = expense_type
 	child_doc.amount = amount
 	child_doc.description = subject
-	doc.save()
+	return expense_approver
+	# doc.save()
