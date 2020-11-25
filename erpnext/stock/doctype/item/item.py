@@ -1141,11 +1141,24 @@ def on_doctype_update():
 	frappe.db.add_index("Item", ["route(500)"])
 
 @frappe.whitelist()
+def make_purchase_order_item_default_supplier(source_name, target_doc=None):
+	item= frappe.get_doc("Item", source_name)
+	doc = frappe.new_doc("Purchase Order")
+
+	if item.item_defaults and item.item_defaults[0].default_supplier:
+		doc.supplier = item.item_defaults[0].default_supplier
+
+	if item.item_defaults and item.item_defaults[0].default_price_list:
+		doc.buying_price_list = item.item_defaults[0].default_price_list
+
+	return doc
+
+@frappe.whitelist()
 def make_purchase_order_item(source_name, target_doc=None):
 	item= frappe.get_doc("Item", source_name)
 	doc = frappe.new_doc("Purchase Order")
-	if item.item_defaults and item.item_defaults[0].default_supplier:
-		doc.supplier = item.item_defaults[0].default_supplier
+	doc.supplier = frappe.flags.args.get("supplier")
+	doc.buying_price_list = frappe.flags.args.get("price_list")
 	return doc
 
 def custom_autoname(doc):
@@ -1174,3 +1187,11 @@ def custom_autoname(doc):
 		item_code = "-".join([item_code, cstr(count + 1)])
 
 	return item_code
+
+@frappe.whitelist()
+def get_item_price(supplier, item_code):
+	return frappe.db.get_value("Item Price", {
+		"supplier": supplier,
+		"item_code": item_code,
+		"buying": True
+	}, ["price_list", "price_list_rate"], as_dict=True)

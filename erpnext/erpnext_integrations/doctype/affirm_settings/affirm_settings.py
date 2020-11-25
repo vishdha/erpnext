@@ -240,7 +240,7 @@ def authorize_payment(affirm_data, reference_doctype, reference_docname, integra
 		sales_order.payment_schedule = []
 		sales_order.flags.ignore_permissions = True
 		sales_order.insert()
-		sales_order.save()
+		#payment entry is made for affirm when it is captured in the sales order document in frappe desk
 
 	# check if callback already happened
 	if affirm_data.get("status_code") == 400 and affirm_data.get("code") == "checkout-token-used":
@@ -254,7 +254,7 @@ def authorize_payment(affirm_data, reference_doctype, reference_docname, integra
 		payment_successful(affirm_data, sales_order)
 		integration_request.update_status(affirm_data, "Completed")
 		redirect_url = '/integrations/payment-success'
-	
+
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = get_url(redirect_url)
 	return ""
@@ -296,7 +296,7 @@ def capture_payment(affirm_id, sales_order):
 		affirm_data = authorization_response.json()
 		integration_request.update_status(affirm_data, "Authorized")
 		frappe.db.set_value("Sales Order", sales_order, 
-								"affirm_status", authorization_response.json().get("status"))
+			"affirm_status", authorization_response.json().get("status"))
 		make_so_payment_entry(affirm_data, sales_order)
 		integration_request.update_status(affirm_data, "Completed")
 	
