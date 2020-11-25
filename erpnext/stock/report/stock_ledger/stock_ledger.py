@@ -4,11 +4,17 @@
 from __future__ import unicode_literals
 
 import frappe
+<<<<<<< HEAD
 from erpnext.stock.utils import update_included_uom_in_report
+=======
+from frappe.utils import cint, flt
+from erpnext.stock.utils import update_included_uom_in_report, is_reposting_item_valuation_in_progress
+>>>>>>> e50441a62e... feat: Show reposting status on stock valuation related reports
 from frappe import _
 
 
 def execute(filters=None):
+	is_reposting_item_valuation_in_progress()
 	include_uom = filters.get("include_uom")
 	columns = get_columns()
 	items = get_items(filters)

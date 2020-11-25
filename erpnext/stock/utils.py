@@ -399,3 +399,9 @@ def get_items_for_quality_inspection(doc, items):
 			})
 
 	return data
+
+def is_reposting_item_valuation_in_progress():
+	reposting_in_progress = frappe.db.exists("Repost Item Valuation",
+		{'docstatus': 1, 'status': ['in', ['Queued','In Progress']]})
+	if reposting_in_progress:
+		frappe.msgprint(_("Item valuation reposting in progress. Report might show incorrect item valuation."), alert=1)

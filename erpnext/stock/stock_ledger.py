@@ -152,23 +152,19 @@ class update_entries_after(object):
 	def build(self):
 		if self.args.get("sle_id"):
 			sl_entries = self.get_sle_against_voucher()
-			print("Posting SLE", self.args.voucher_no)
-
 			for sle in sl_entries:
 				self.process_sle(sle)
 		else:
-			print("-------------Reposting future entries--------------")
 			# includes current entry!
 			args = self.data[self.args.warehouse].previous_sle \
 				or frappe._dict({"item_code": self.item_code, "warehouse": self.args.warehouse})
 
 			entries_to_fix = list(self.get_sle_after_datetime(args))
 
-		self.prev_stock_value = self.previous_sle.stock_value or 0.0
-		self.stock_queue = json.loads(self.previous_sle.stock_queue or "[]")
-		self.valuation_method = get_valuation_method(self.item_code)
-		self.stock_value_difference = 0.0
-		self.build()
+			i = 0
+			while i < len(entries_to_fix):
+				sle = entries_to_fix[i]
+				i += 1
 
 	def build(self):
 		# includes current entry!
@@ -177,17 +173,18 @@ class update_entries_after(object):
 		for sle in entries_to_fix:
 			self.process_sle(sle)
 
-		if self.exceptions:
-			self.raise_exceptions()
+					if dependant_sle.item_code == self.item_code and dependant_sle.warehouse == self.args.warehouse:
+						continue
+					elif dependant_sle.item_code != self.item_code \
+							and (dependant_sle.item_code, dependant_sle.warehouse) not in self.new_items:
+						self.new_items[(dependant_sle.item_code, dependant_sle.warehouse)] = dependant_sle
+						continue
 
 		self.update_bin()
 
-	def update_bin(self):
-		# update bin
-		bin_name = frappe.db.get_value("Bin", {
-			"item_code": self.item_code,
-			"warehouse": self.warehouse
-		})
+					args = self.data[dependant_sle.warehouse].previous_sle \
+						or frappe._dict({"item_code": self.item_code, "warehouse": dependant_sle.warehouse})
+					future_sle_for_dependant = list(self.get_sle_after_datetime(args))
 
 		if not bin_name:
 			bin_doc = frappe.get_doc({
@@ -237,7 +234,7 @@ class update_entries_after(object):
 		
 		if sle.serial_no:
 			self.get_serialized_values(sle)
-			self.qty_after_transaction += flt(sle.actual_qty)
+			self.wh_data.qty_after_transaction += flt(sle.actual_qty)
 			if sle.voucher_type == "Stock Reconciliation":
 				self.qty_after_transaction = sle.qty_after_transaction
 
@@ -294,7 +291,6 @@ class update_entries_after(object):
 		# Get updated incoming/outgoing rate from transaction
 		if sle.recalculate_rate:
 			rate = self.get_incoming_outgoing_rate_from_transaction(sle)
-			print("set_dynamic_incoming_outgoing_rate", rate)
 			
 			if flt(sle.actual_qty) >= 0:
 				sle.incoming_rate = rate
@@ -331,7 +327,6 @@ class update_entries_after(object):
 		"""
 		if sle.actual_qty and sle.voucher_detail_no:
 			outgoing_rate = abs(flt(sle.stock_value_difference)) / abs(sle.actual_qty)
-			print("update_outgoing_rate_on_transaction", outgoing_rate)
 
 			if flt(sle.actual_qty) < 0 and sle.voucher_type == "Stock Entry":
 				self.update_rate_on_stock_entry(sle, outgoing_rate)
