@@ -172,6 +172,13 @@ class PickList(Document):
 			if not item.package_tag:
 				continue
 
+			if item.package_tag and item.coa_batch_no:
+				package_tag = frappe.get_doc("Package Tag", item.package_tag)
+				package_tag.update({
+					"coa_batch_no" : item.coa_batch_no
+				})
+				package_tag.save()
+
 			if item.sales_order_item:
 				package_tag = frappe.get_doc("Package Tag", item.package_tag)
 
@@ -412,7 +419,7 @@ def create_delivery_note(source_name, target_doc=None):
 		coa_batch = None
 		if location.source_package_tag:
 			coa_batch = frappe.db.get_value("Package Tag", location.source_package_tag, "coa_batch_no")
-			
+
 		if dn_item:
 			dn_item.warehouse = location.warehouse
 			dn_item.qty = location.picked_qty
