@@ -364,7 +364,7 @@ def get_expense_claim(
 
 # api to create expense claim
 @frappe.whitelist()
-def create_expense_claim(subject, email, expense_date, expense_type, amount, status):
+def create_expense_claim(subject, email, expense_date, expense_type, amount):
 	# fetch employee code from email
 	employee = frappe.get_all("Employee", or_filters={
 		"prefered_email": email,
@@ -387,15 +387,17 @@ def create_expense_claim(subject, email, expense_date, expense_type, amount, sta
 		frappe.throw(_("Department is not set"))
 
 	# creating expense claim doc.
-	doc = frappe.new_doc("Expense Claim")
-	doc.employee = employee.name
-	doc.payable_account = frappe.get_value('Company', employee.company, 'default_payable_account')
-	doc.approval_status = status
-	doc.expense_approver = expense_approver
-	child_doc = doc.append('expenses', {})
-	child_doc.expense_date = expense_date
-	child_doc.expense_type = expense_type
-	child_doc.amount = amount
-	child_doc.description = subject
-	return expense_approver
-	# doc.save()
+	frappe.get_doc({
+		"doctype": "Expense Claim",
+		"employee": employee.name,
+		"payable_account": frappe.get_value('Company', employee.company, 'default_payable_account'),
+		"expense_approver": expense_approver,
+		"expenses": [
+				{
+					"expense_date": expense_date,
+					"expense_type": expense_type,
+					"amount": amount,
+					"description": subject
+				}
+			]
+	}).insert()
