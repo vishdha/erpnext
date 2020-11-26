@@ -468,15 +468,15 @@ class Asset(AccountsController):
 		cwip_enabled = is_cwip_accounting_enabled(self.asset_category)
 		cwip_account = self.get_cwip_account(cwip_enabled=cwip_enabled)
 
-		query = """SELECT name FROM `tabGL Entry` WHERE voucher_no = %s and account = %s"""
 		if asset_bought_with_invoice:
 			# with invoice purchase either expense or cwip has been booked
 			expense_booked = frappe.db.sql(query, (purchase_document, fixed_asset_account), as_dict=1)
+			expense_booked = frappe.db.get_value("GL Entry", filters={"voucher_no": purchase_document, "account": fixed_asset_account}, fieldname=["name"], as_dict=True)
 			if expense_booked:
 				# if expense is already booked from invoice then do not make gl entries regardless of cwip enabled/disabled
 				return False
 
-			cwip_booked = frappe.db.sql(query, (purchase_document, cwip_account), as_dict=1)
+			cwip_booked = frappe.db.get_value("GL Entry", filters={"voucher_no": purchase_document, "account": cwip_account}, fieldname=["name"], as_dict=True)
 			if cwip_booked:
 				# if cwip is booked from invoice then make gl entries regardless of cwip enabled/disabled
 				return True
@@ -486,7 +486,7 @@ class Asset(AccountsController):
 				# if cwip account isn't available do not make gl entries
 				return False
 
-			cwip_booked = frappe.db.sql(query, (purchase_document, cwip_account), as_dict=1)
+			cwip_booked = frappe.db.get_value("GL Entry", filters={"voucher_no": purchase_document, "account": cwip_account}, fieldname=["name"], as_dict=True)
 			# if cwip is not booked from receipt then do not make gl entries
 			# if cwip is booked from receipt then make gl entries
 			return cwip_booked
