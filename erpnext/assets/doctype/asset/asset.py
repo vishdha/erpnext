@@ -470,7 +470,6 @@ class Asset(AccountsController):
 
 		if asset_bought_with_invoice:
 			# with invoice purchase either expense or cwip has been booked
-			expense_booked = frappe.db.sql(query, (purchase_document, fixed_asset_account), as_dict=1)
 			expense_booked = frappe.db.get_value("GL Entry", filters={"voucher_no": purchase_document, "account": fixed_asset_account}, fieldname=["name"], as_dict=True)
 			if expense_booked:
 				# if expense is already booked from invoice then do not make gl entries regardless of cwip enabled/disabled
