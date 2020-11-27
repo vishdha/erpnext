@@ -7,6 +7,11 @@ $('#submit').on("click", function(e) {
 	let expirationYear = document.getElementById('card-expiry-year').value;
 	let expirationDate = expirationYear.concat("-").concat(expirationMonth);
 	let cardCode = document.getElementById('card-code').value;
+	let isValidCard = frappe.cardValidator.number(cardNumber);
+
+	if (!isValidCard.isPotentiallyValid) {
+		frappe.throw(__("Card Number is Invalid."));
+	}
 
 	if(expirationMonth === "00" || expirationMonth.length !== 2 || expirationYear === "0000" || expirationYear.length !== 4){
 		frappe.throw(__("Card Expiration Date is invalid"));
@@ -41,7 +46,7 @@ $('#submit').on("click", function(e) {
 				$('#submit').html(__('Retry'));
 			}
 		}
-	})
+	});
 });
 
 $('input[data-validation="digit"]')
