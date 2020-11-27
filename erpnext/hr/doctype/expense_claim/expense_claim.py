@@ -14,6 +14,7 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_a
 from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.csvutils import getlink
 from erpnext.accounts.utils import get_account_currency
+from erpnext.hr.doctype.department_approver.department_approver import get_approvers
 
 class InvalidExpenseApproverError(frappe.ValidationError): pass
 class ExpenseApproverIdentityError(frappe.ValidationError): pass
@@ -364,27 +365,17 @@ def get_expense_claim(
 
 # api to create expense claim
 @frappe.whitelist()
-def create_expense_claim(subject, email, expense_date, expense_type, amount):
-	# fetch employee code from email
-	employee = frappe.get_all("Employee", or_filters={
-		"prefered_email": email,
-		"company_email": email,
-		"personal_email": email
-	})
-
-	if employee and employee[0]:
-		employee = frappe.get_doc("Employee", employee[0].name)
-	else:
-		frappe.throw(_("Employee not found."))
-
+def create_expense_claim(description, user_id, expense_date, expense_claim_type, amount):
+	employee = frappe.get_doc("Employee", {"user_id": user_id}) 
+	
+	expense_approver = ""
 	if employee.department:
-		department = frappe.get_doc("Department", employee.department)
-		if department.expense_approvers:
-			expense_approver = department.expense_approvers[ os.urandom(1)[0] % len(department.expense_approvers)].approver
+		expense_approver = get_approvers("User", "", "name", 0, 100,{"employee": employee.name, "department": employee.department, "doctype": employee.doctype})
+		if not expense_approver:
+			expense_approver = ""
 		else:
-			frappe.throw(_("Expense Approver not found for {0}").format(email))
-	else:
-		frappe.throw(_("Department is not set"))
+			expense_approver = [expense_approver[0] for expense_approver in expense_approver]
+			expense_approver = expense_approver[os.urandom(1)[0] % len(expense_approver)]
 
 	# creating expense claim doc.
 	frappe.get_doc({
@@ -393,11 +384,11 @@ def create_expense_claim(subject, email, expense_date, expense_type, amount):
 		"payable_account": frappe.get_value('Company', employee.company, 'default_payable_account'),
 		"expense_approver": expense_approver,
 		"expenses": [
-				{
-					"expense_date": expense_date,
-					"expense_type": expense_type,
-					"amount": amount,
-					"description": subject
-				}
-			]
-	}).insert()
+			{
+				"expense_date": expense_date,
+				"expense_type": expense_claim_type,
+				"amount": amount,
+				"description": description
+			}
+		]
+	}).insert(ignore_permissions=True, ignore_mandatory=True)
