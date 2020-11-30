@@ -2,6 +2,8 @@ $('#submit').on("click", function(e) {
 	let data = context.replace(/'/g, '"');
 	e.preventDefault();
 
+	let cardHolderName = document.getElementById('cardholder-name').value;
+	let cardHolderEmail = document.getElementById('cardholder-email').value;
 	let cardNumberWithSpaces = document.getElementById('card-number').value;
 	let cardNumber = cardNumberWithSpaces.replace(/ /g,"");
 	let expirationMonth = document.getElementById('card-expiry-month').value;
@@ -9,6 +11,14 @@ $('#submit').on("click", function(e) {
 	let expirationDate = expirationYear.concat("-").concat(expirationMonth);
 	let cardCode = document.getElementById('card-code').value;
 	let isValidCard = frappe.cardValidator.number(cardNumber);
+
+	if (!cardHolderName) {
+		frappe.throw(__("Card Holder Name is mandatory."));
+	}
+
+	if (!cardHolderEmail) {
+		frappe.throw(__("Card Holder Email is mandatory."));
+	}
 
 	if (!isValidCard.isPotentiallyValid) {
 		frappe.throw(__("Card Number is Invalid."));
