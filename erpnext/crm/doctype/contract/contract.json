@@ -34,6 +34,7 @@
   "authorised_by_section",
   "signed_by_company",
   "column_break_26",
+  "signee_company_attach",
   "signee_company",
   "sb_references",
   "document_type",
@@ -232,6 +233,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:!doc.signee_company_attach",
    "fieldname": "signee_company",
    "fieldtype": "Signature",
    "label": "Signee (Company)"
@@ -270,10 +272,15 @@
    "fieldtype": "Link",
    "label": "Letter Head",
    "options": "Letter Head"
+  },
+  {
+   "fieldname": "signee_company_attach",
+   "fieldtype": "Image",
+   "label": "Signee (Company)"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-11-05 23:42:26.144864",
+ "modified": "2020-11-27 01:55:17.757245",
  "modified_by": "Administrator",
  "module": "CRM",
  "name": "Contract",
