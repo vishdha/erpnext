@@ -2,7 +2,8 @@ $('#submit').on("click", function(e) {
 	let data = context.replace(/'/g, '"');
 	e.preventDefault();
 
-	let cardNumber = document.getElementById('card-number').value;
+	let cardNumberWithSpaces = document.getElementById('card-number').value;
+	let cardNumber = cardNumberWithSpaces.replace(/ /g,"");
 	let expirationMonth = document.getElementById('card-expiry-month').value;
 	let expirationYear = document.getElementById('card-expiry-year').value;
 	let expirationDate = expirationYear.concat("-").concat(expirationMonth);
@@ -57,3 +58,10 @@ $('input[data-validation="digit"]')
 	.keypress(function(event) {
 		return (event.charCode !== 8 && event.charCode === 0 || (event.charCode >= 48 && event.charCode <= 57));
 	});
+
+$('#card-number').on('keyup', function () {
+	var val = $(this).val();
+	val = val.replace(/\s/g, '');
+	var newval = val.match(/.{1,4}/g).join(" ");
+	$(this).val(newval);
+});
