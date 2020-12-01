@@ -402,7 +402,7 @@ class WorkOrder(Document):
 			elif flt(d.completed_qty) <= max_allowed_qty_for_wo:
 				d.status = "Completed"
 			else:
-				frappe.throw(_("Completed Qty can not be greater than 'Qty to Manufacture'"))
+				frappe.throw(_("Overproduction percentage limit has been surpassed, please adjust completed qty or change over production percentages in Manufacturing Settings."))
 
 	def set_actual_dates(self):
 		self.actual_start_date = None
