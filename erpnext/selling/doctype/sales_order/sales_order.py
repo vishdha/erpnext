@@ -1072,16 +1072,18 @@ def update_produced_qty_in_so_item(sales_order, sales_order_item):
 
 	frappe.db.set_value('Sales Order Item', sales_order_item, 'produced_qty', total_produced_qty)
 
-"""
-Creating Production Plan from Sales Order
-Args:
-source_name: string -> name of Sales Order through which Production Plan will form.
-Return:
-dictionary -> it contains the all the value assigned to the production plan.
-"""
 @frappe.whitelist()
 def make_production_plan(source_name, target_doc=None):
-	# Update each fields of items.
+	"""
+	Create a Production Plan from a Sales Order
+
+	Args:
+		source_name: string -> name of Sales Order through which Production Plan will form
+
+	Return:
+		dictionary -> it contains the all the value assigned to the production plan
+	"""
+	# Updates the fields of items.
 	def update_item_data(source, target, source_parent):
 		bom_no = frappe.get_value("BOM", {
 			"item": target.item_code,
@@ -1095,7 +1097,7 @@ def make_production_plan(source_name, target_doc=None):
 			target.total_operational_hours = flt(frappe.db.get_value("BOM Operation", {"parent": bom_no}, "sum(time_in_mins)")) / 60.0
 			target.total_workstations = frappe.db.count("BOM Operation", {"parent": bom_no, "workstation": ["!=", ""]})
 
-	# Creating Production Plan from Sales Order.
+	# Mapping Sales Order doc to new Production Plan doc.
 	doc = get_mapped_doc("Sales Order", source_name, {
 		"Sales Order": {
 			"doctype": "Production Plan",
@@ -1230,15 +1232,17 @@ def create_muliple_delivery_notes(orders):
 
 	return created_orders
 
-"""
-Creating Multiple Production Plan from Sales Order
-Args:
-order: list -> it contains list of name of sales_order.
-Return:
-list -> list of created production_plan along with their sales_order_name .
-"""
 @frappe.whitelist()
 def create_muliple_production_plans(orders):
+	"""
+	Creating different Production Plan from multiple Sales Order
+
+	Args:
+		order: list -> it contains list of name of sales_order
+
+	Return:
+		list -> list of created production_plan along with their sales_order_name
+	"""
 	orders = json.loads(orders)
 
 	created_orders = []
