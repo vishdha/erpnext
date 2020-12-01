@@ -363,21 +363,34 @@ def get_expense_claim(
 
 	return expense_claim
 
-# api to create expense claim
 @frappe.whitelist()
-def create_expense_claim(description, user_id, expense_date, expense_claim_type, amount):
-	employee = frappe.get_doc("Employee", {"user_id": user_id}) 
-	
+def create_expense_claim(user, expense_date, expense_claim_type, description, amount):
+	"""
+	API endpoint for creating expense claims for employees.
+
+	Args:
+		user (string): user_id of an Employee
+		expense_date (date): Date when the expense were made
+		expense_claim_type (string): Type of expense claim i.e. Calls, Food, Travel, Others, Vehicle, Medical
+		description (string): Complete detail of the expense claim like 'Why the user is applying, is that claim covers in company policy etc'
+		amount (number): Total amount that user wants to claim
+	Return:
+		nothing
+	"""
+	employee = frappe.get_doc("Employee", {"user_id": user})
+
 	expense_approver = ""
+	# Fetch list of expense approvers based on the department of the employee claiming the expense
 	if employee.department:
 		expense_approver = get_approvers("User", "", "name", 0, 100,{"employee": employee.name, "department": employee.department, "doctype": employee.doctype})
 		if not expense_approver:
 			expense_approver = ""
 		else:
 			expense_approver = [expense_approver[0] for expense_approver in expense_approver]
+			# Randomly selecting the expense_approver from the expense_approver list.
 			expense_approver = expense_approver[os.urandom(1)[0] % len(expense_approver)]
 
-	# creating expense claim doc.
+	# Creating expense claim doc.
 	frappe.get_doc({
 		"doctype": "Expense Claim",
 		"employee": employee.name,
