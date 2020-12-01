@@ -18,6 +18,9 @@ class ProductionPlan(Document):
 	def validate(self):
 		self.calculate_total_planned_qty()
 		self.set_status()
+		for d in self.get('po_items'):
+			if not d.bom_no:
+				frappe.throw(_("Row {0}: Please select default BOM for Item {1} ".format(d.idx, d.item_code)))
 
 	def validate_data(self):
 		for d in self.get('po_items'):

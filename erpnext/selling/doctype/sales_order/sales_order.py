@@ -1074,28 +1074,25 @@ def update_produced_qty_in_so_item(sales_order, sales_order_item):
 
 @frappe.whitelist()
 def make_production_plan(source_name, target_doc=None):
-	"""
-	Create a Production Plan from a Sales Order
+	def set_missing_values(source, target):
+		target.get_items_from = source.doctype
+		target.append("sales_orders", {
+			"sales_order": source.name,
+			"sales_order_date": source.transaction_date,
+			"customer": source.customer,
+			"grand_total": source.base_grand_total
+		})
 
-	Args:
-		source_name: string -> name of Sales Order through which Production Plan will form
-
-	Return:
-		dictionary -> it contains the all the value assigned to the production plan
-	"""
 	# Updates the fields of items.
 	def update_item_data(source, target, source_parent):
-		bom_no = frappe.get_value("BOM", {
-			"item": target.item_code,
-			"is_default": 1
-			})
+		bom_no = frappe.get_value("BOM", {"item": target.item_code, "is_default": 1})
 		if bom_no:
 			bom_data = frappe.db.get_value('BOM', bom_no, ['raw_material_cost','operating_cost'], as_dict=1)
 			target.bom_no = bom_no
 			target.raw_material_cost = bom_data.raw_material_cost
 			target.total_operational_cost = bom_data.total_operating_cost
 			target.total_operational_hours = flt(frappe.db.get_value("BOM Operation", {"parent": bom_no}, "sum(time_in_mins)")) / 60.0
-			target.total_workstations = frappe.db.count("BOM Operation", {"parent": bom_no, "workstation": ["!=", ""]})
+			target.total_workstations = frappe.db.count("BOM Operation", {"parent": bom_no, "workstation": ["is", "set"]})
 
 	# Mapping Sales Order doc to new Production Plan doc.
 	doc = get_mapped_doc("Sales Order", source_name, {
@@ -1112,11 +1109,12 @@ def make_production_plan(source_name, target_doc=None):
 			},
 			'postprocess': update_item_data
 		}
-	}, target_doc)
+	}, target_doc, set_missing_values)
 	return doc
 
 @frappe.whitelist()
 def create_multiple_pick_lists(orders):
+	"""Creating different Pick Lists from multiple Sales Order."""
 	orders = json.loads(orders)
 
 	created_orders = []
@@ -1125,13 +1123,11 @@ def create_multiple_pick_lists(orders):
 		customer = frappe.db.get_value("Sales Order", order, "customer")
 
 		# check if a Pick List already exists against the order.
-		pick_lists = frappe.get_all("Pick List",
-			filters=[
+		pick_lists = frappe.get_all("Pick List", filters=[
 				["Pick List", "docstatus", "<", 2],
 				["Pick List Item", "sales_order", "=", order]
 			],
 			distinct=True)
-		pick_lists = [item.name for item in pick_lists if item.name]
 
 		# if none are found, then create a new Pick List.
 		if not pick_lists:
@@ -1156,6 +1152,7 @@ def create_multiple_pick_lists(orders):
 
 @frappe.whitelist()
 def create_multiple_sales_invoices(orders):
+	"""Creating different Sales Invoices from multiple Sales Order."""
 	orders = json.loads(orders)
 
 	created_orders = []
@@ -1164,13 +1161,11 @@ def create_multiple_sales_invoices(orders):
 		customer = frappe.db.get_value("Sales Order", order, "customer")
 
 		# check if a Sales Invoice already exists against the order.
-		sales_invoices = frappe.get_all("Sales Invoice",
-			filters=[
+		sales_invoices = frappe.get_all("Sales Invoice", filters=[
 				["Sales Invoice", "docstatus", "<", 2],
 				["Sales Invoice Item", "sales_order", "=", order]
 			],
 			distinct=True)
-		sales_invoices = [item.name for item in sales_invoices if item.name]
 
 		# if none are found, then create a new Sales Invoice.
 		if not sales_invoices:
@@ -1195,6 +1190,7 @@ def create_multiple_sales_invoices(orders):
 
 @frappe.whitelist()
 def create_muliple_delivery_notes(orders):
+	"""Creating different Delivery Notes from multiple Sales Order."""
 	orders = json.loads(orders)
 
 	created_orders = []
@@ -1203,13 +1199,11 @@ def create_muliple_delivery_notes(orders):
 		customer = frappe.db.get_value("Sales Order", order, "customer")
 
 		# check if a Delivery Note already exists against the order.
-		delivery_notes = frappe.get_all("Delivery Note",
-			filters=[
+		delivery_notes = frappe.get_all("Delivery Note", filters=[
 				["Delivery Note", "docstatus", "<", 2],
 				["Delivery Note Item", "against_sales_order", "=", order]
 			],
 			distinct=True)
-		delivery_notes = [item.name for item in delivery_notes if item.name]
 
 		# if none are found, then create a new Pick List.
 		if not delivery_notes:
@@ -1234,15 +1228,7 @@ def create_muliple_delivery_notes(orders):
 
 @frappe.whitelist()
 def create_muliple_production_plans(orders):
-	"""
-	Creating different Production Plan from multiple Sales Order
-
-	Args:
-		order: list -> it contains list of name of sales_order
-
-	Return:
-		list -> list of created production_plan along with their sales_order_name
-	"""
+	"""Creating different Production Plans from multiple Sales Order."""
 	orders = json.loads(orders)
 
 	created_orders = []
