@@ -13,7 +13,7 @@ from erpnext.controllers.item_variant import (ItemVariantExistsError,
 from erpnext.setup.doctype.item_group.item_group import (get_parent_item_groups, invalidate_cache_for)
 from frappe import _, msgprint
 from frappe.utils import (cint, cstr, flt, formatdate, get_timestamp, getdate,
-						  now_datetime, random_string, strip)
+						  now_datetime, random_string, strip, nowdate)
 from frappe.utils.html_utils import clean_html
 from frappe.website.doctype.website_slideshow.website_slideshow import \
 	get_slideshow
@@ -25,8 +25,6 @@ from six import iteritems
 from erpnext.utilities.utils import get_abbr
 from erpnext import get_default_company
 from erpnext.accounts.utils import get_company_default
-from frappe.utils import cstr
-from frappe.utils import getdate, now_datetime, nowdate
 
 
 class DuplicateReorderRows(frappe.ValidationError):
