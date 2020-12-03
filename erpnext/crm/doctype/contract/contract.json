@@ -275,12 +275,12 @@
   },
   {
    "fieldname": "signee_company_attach",
-   "fieldtype": "Image",
+   "fieldtype": "Attach Image",
    "label": "Signee (Company)"
   }
  ],
  "is_submittable": 1,
- "modified": "2020-11-27 01:55:17.757245",
+ "modified": "2020-12-02 23:40:40.833891",
  "modified_by": "Administrator",
  "module": "CRM",
  "name": "Contract",
