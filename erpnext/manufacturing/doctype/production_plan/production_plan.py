@@ -17,7 +17,7 @@ from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
 class ProductionPlan(Document):
 	def validate(self):
 		self.calculate_total_planned_qty()
-		self.set_status()
+		self.set_status(update=True)
 
 	def validate_data(self):
 		for d in self.get('po_items'):
@@ -200,7 +200,7 @@ class ProductionPlan(Document):
 				data.db_update()
 
 		self.calculate_total_produced_qty()
-		self.set_status()
+		self.set_status(update=True)
 		self.db_set('status', self.status)
 
 	def on_cancel(self):
@@ -212,12 +212,15 @@ class ProductionPlan(Document):
 			filters = {'docstatus': 0, 'production_plan': ("=", self.name)}):
 			frappe.delete_doc('Work Order', d.name)
 
-	def set_status(self):
+	def set_status(self, update=None):
 		self.status = {
 			0: 'Draft',
 			1: 'Submitted',
 			2: 'Cancelled'
 		}.get(self.docstatus)
+
+		if self.per_received == 100:
+			self.db_set("status", "Material Received")
 
 		if self.total_produced_qty > 0:
 			self.status = "In Process"
@@ -248,6 +251,9 @@ class ProductionPlan(Document):
 
 		if update_status:
 			self.status = 'Material Requested'
+		
+		if self.per_received == 100:
+			self.db_set("status", "Material Received")
 
 	def get_production_items(self):
 		item_dict = {}
@@ -371,7 +377,6 @@ class ProductionPlan(Document):
 				material_request = material_request_map[key]
 				material_request.update({
 					"transaction_date": nowdate(),
-					"status": "Draft",
 					"company": self.company,
 					"requested_by": frappe.session.user,
 					'material_request_type': material_request_type,
@@ -390,6 +395,7 @@ class ProductionPlan(Document):
 				"sales_order": item.sales_order,
 				'production_plan': self.name,
 				'material_request_plan_item': item.name,
+				'production_plan_item': item.name,
 				"project": frappe.db.get_value("Sales Order", item.sales_order, "project") \
 					if item.sales_order else None
 			})
