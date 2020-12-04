@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.mapper import get_mapped_doc
 
 
 class PackageTag(Document):
@@ -49,3 +50,27 @@ def make_stock_reconciliation(item_code, batch_no, package_tag, qty, warehouse, 
 	stock_reco.submit()
 	frappe.db.commit()
 	return stock_reco
+
+@frappe.whitelist()
+def make_waste_disposal(source_name, target_doc=None):
+	"""
+	Create Waste Disposal from a Package tag
+	Args:
+		source_name: string -> name of Package tag through which Waste Disposal will be created
+	Return:
+		dictionary -> it contains the all the value assigned to the Waste Disposal.
+	"""
+	def set_missing_values(source, target):
+		target.append("items", {
+			"item_code": source.item_code,
+			"item_name": source.item_name,
+			"item_group": source.item_group,
+			"batch_no": source.batch_no
+		})
+	
+	doc = get_mapped_doc("Package Tag", source_name, {
+		"Package Tag": {
+			"doctype": "Waste Disposal",
+		}
+	}, target_doc, set_missing_values)
+	return doc

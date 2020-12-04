@@ -2,8 +2,19 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Package Tag', {
+	setup: (frm) => {
+		frm.custom_make_buttons = {
+			'Waste Disposal': 'Waste Disposal'
+		};
+	},
 	refresh: function(frm) {
 		frm.trigger("make_dashboard");
+		frm.add_custom_button(__('Waste Disposal'), function() {
+			frappe.model.open_mapped_doc({
+				method: "erpnext.compliance.doctype.package_tag.package_tag.make_waste_disposal",
+				frm: frm,
+			});
+		}, __('Create'));
 	},
 
 	make_dashboard: (frm) => {
