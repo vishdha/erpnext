@@ -885,7 +885,7 @@ function create_purchase_order(frm) {
 							frappe.msgprint(__("The following purchase orders have been created:<br><ul><li>{0}</li></ul>",
 								[quality_inspections.join("<br><li>")]));
 						}
-					})
+					});
 
 					dialog.hide();
 				},
