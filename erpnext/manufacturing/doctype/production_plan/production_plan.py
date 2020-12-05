@@ -251,9 +251,6 @@ class ProductionPlan(Document):
 
 		if update_status:
 			self.status = 'Material Requested'
-		
-		if self.per_received == 100:
-			self.db_set("status", "Material Received")
 
 	def get_production_items(self):
 		item_dict = {}
