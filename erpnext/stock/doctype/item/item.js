@@ -6,12 +6,7 @@ frappe.provide("erpnext.item");
 frappe.ui.form.on("Item", {
 	setup: function(frm) {
 		frm.make_methods = {
-			'Purchase Order': () => {
-				frappe.model.open_mapped_doc({
-					method: 'erpnext.stock.doctype.item.item.make_purchase_order_item',
-					frm: frm
-				})
-			}
+			'Purchase Order': create_purchase_order
 		}
 		frm.add_fetch('attribute', 'numeric_values', 'numeric_values');
 		frm.add_fetch('attribute', 'from_range', 'from_range');
@@ -223,8 +218,12 @@ frappe.ui.form.on("Item", {
 		}
 	},
 
-	set_meta_tags(frm) {
+	set_meta_tags: function(frm) {
 		frappe.utils.set_meta_tag(frm.doc.route);
+	},
+
+	create_purchase_order: function(frm) {
+		create_purchase_order(frm);
 	}
 });
 
@@ -786,3 +785,113 @@ frappe.ui.form.on("UOM Conversion Detail", {
 		}
 	}
 })
+
+frappe.ui.form.on("Item Supplier", {
+	supplier: function(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		if (row.supplier) {
+			frappe.call({
+				method: "erpnext.stock.doctype.item.item.get_item_price",
+				args: {
+					supplier: row.supplier,
+					item_code: frm.doc.item_code
+				},
+				callback: function(r) {
+					if (!r.exc && r.message) {
+						frappe.model.set_value(cdt, cdn, "price_list", r.message.price_list);
+						frappe.model.set_value(cdt, cdn, "price_list_rate", r.message.price_list_rate);
+					}
+				}
+			});
+		}
+	}
+})
+
+function create_purchase_order(frm) {
+	frappe.call({
+		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",
+		args: {
+			'doc': frm.doc,
+			'items': frm.doc.supplier_items,
+		},
+		callback: function(r) {
+			if (r.message.length === 0) {
+				frappe.msgprint(__("None of the supplier available for purchase order"));
+				return;
+			}
+
+			const dialog = new frappe.ui.Dialog({
+				title: __("Make Purchase Order"),
+				fields: [
+					{
+						label: __("Items"),
+						fieldname: "items",
+						fieldtype: "Table",
+						cannot_add_rows: true,
+						data: r.message,
+						in_place_edit: true,
+						get_data: () => {
+							return r.message;
+						},
+						fields: [
+							{
+								label: __("Supplier"),
+								fieldtype: 'Link',
+								fieldname: "supplier",
+								options: "Supplier",
+								read_only: 1,
+								in_list_view: 1
+							},
+							{
+								label: __("Price List"),
+								fieldtype: 'Data',
+								fieldname: "price_list",
+								read_only: 1,
+								in_list_view: 1
+							},
+							{
+								label: __("Warehouse"),
+								fieldtype: 'Link',
+								fieldname: "warehouse",
+								options: "Warehouse",
+								in_list_view: 1
+							},
+							{
+								label: __("qty"),
+								fieldtype: 'Int',
+								fieldname: 'qty',
+								in_list_view: 1
+							}
+						],
+					}
+				],
+				primary_action: function () {
+					const items = dialog.get_values().items;
+					items.forEach(item => {
+						if (item.sample_size > item.qty) {
+							frappe.throw(__("Row #{0}: The sample size ({1}) for {2} should be less or equal than the item quantity ({3})",
+								[item.idx, item.sample_size, item.item_code.bold(), item.qty]));
+						}
+					})
+
+					frappe.call({
+						method: "erpnext.stock.doctype.item.item.make_purchase_order_item",
+						freeze: true,
+						args: {
+							"items": items
+						},
+						callback: function (r) {
+							let quality_inspections = r.message;
+							frappe.msgprint(__("The following purchase orders have been created:<br><ul><li>{0}</li></ul>",
+								[quality_inspections.join("<br><li>")]));
+						}
+					});
+
+					dialog.hide();
+				},
+				primary_action_label: __('Create')
+			})
+			dialog.show();
+		}
+	});
+}

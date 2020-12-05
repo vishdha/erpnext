@@ -36,7 +36,7 @@ class ProductionPlan(Document):
 		if open_so:
 			self.add_so_in_table(open_so)
 		else:
-			frappe.msgprint(_("Sales orders are not available for production"))
+			frappe.msgprint(_("Items which are in the Sales Order do not have BOM"))
 
 	def add_so_in_table(self, open_so):
 		""" Add sales orders in the table"""
@@ -47,7 +47,7 @@ class ProductionPlan(Document):
 				'sales_order': data.name,
 				'sales_order_date': data.transaction_date,
 				'customer': data.customer,
-				'grand_total': data.grand_total
+				'grand_total': data.base_grand_total
 			})
 
 	def get_pending_material_requests(self):
