@@ -17,7 +17,7 @@ from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
 class ProductionPlan(Document):
 	def validate(self):
 		self.calculate_total_planned_qty()
-		self.set_status(update=True)
+		self.set_status()
 
 	def validate_data(self):
 		for d in self.get('po_items'):
@@ -200,7 +200,7 @@ class ProductionPlan(Document):
 				data.db_update()
 
 		self.calculate_total_produced_qty()
-		self.set_status(update=True)
+		self.set_status()
 		self.db_set('status', self.status)
 
 	def on_cancel(self):
@@ -212,7 +212,7 @@ class ProductionPlan(Document):
 			filters = {'docstatus': 0, 'production_plan': ("=", self.name)}):
 			frappe.delete_doc('Work Order', d.name)
 
-	def set_status(self, update=None):
+	def set_status(self):
 		self.status = {
 			0: 'Draft',
 			1: 'Submitted',
