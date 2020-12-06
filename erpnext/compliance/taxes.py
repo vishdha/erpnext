@@ -61,6 +61,9 @@ def calculate_cannabis_tax(doc):
 
 
 def calculate_cultivation_tax(doc):
+	if doc.doctype == "Purchase Receipt" and frappe.db.get_single_value("Buying Settings", "disable_cultivation_tax_for_purchase_receipt"):
+		return
+
 	cultivation_taxes = {}
 	for item in doc.get("items"):
 		cultivation_taxes = calculate_item_cultivation_tax(doc, item, cultivation_taxes)
@@ -221,6 +224,9 @@ def set_excise_tax(doc):
 def set_cultivation_tax(doc):
 	if isinstance(doc, str):
 		doc = frappe._dict(json.loads(doc))
+
+	if doc.doctype == "Purchase Receipt" and frappe.db.get_single_value("Buying Settings", "disable_cultivation_tax_for_purchase_receipt"):
+		return
 
 	compliance_items = frappe.get_all('Item', filters={'is_compliance_item': True}, fields=['item_code'])
 	if not compliance_items:
