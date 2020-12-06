@@ -365,24 +365,20 @@ class ProductionPlan(Document):
 			key = '{}:{}:{}'.format(item.sales_order, material_request_type, item_doc.customer or '')
 			schedule_date = add_days(nowdate(), cint(item_doc.lead_time_days))
 
-			if not key in material_request_map:
-				# make a new MR for the combination
-				material_request_map[key] = frappe.new_doc("Material Request")
-				material_request = material_request_map[key]
-				material_request.update({
-					"transaction_date": nowdate(),
-					"status": "Draft",
-					"company": self.company,
-					"requested_by": frappe.session.user,
-					'material_request_type': material_request_type,
-					'customer': item_doc.customer or ''
-				})
-				material_request_list.append(material_request)
-			else:
-				material_request = material_request_map[key]
+			# make a new MR
+			material_request_map[key] = frappe.new_doc("Material Request")
+			material_request_doc = material_request_map[key]
+			material_request_doc.update({
+				"transaction_date" : nowdate(),
+				"status": "Draft",
+				"company": self.company,
+				"requested_by": frappe.session.user,
+				"material_request_type": material_request_type,
+				"customer": item_doc.customer or ''
+			})
 
 			# add item
-			material_request.append("items", {
+			material_request_doc.append("items", {
 				"item_code": item.item_code,
 				"qty": item.quantity,
 				"schedule_date": schedule_date,
@@ -394,15 +390,13 @@ class ProductionPlan(Document):
 					if item.sales_order else None
 			})
 
-		for material_request in material_request_list:
-			# submit
-			material_request.flags.ignore_permissions = 1
-			material_request.run_method("set_missing_values")
-
+			material_request_doc.run_method("set_missing_values")
+			material_request_doc.flags.ignore_permissions = 1
+			material_request_list.append(material_request_doc)
 			if self.get('submit_material_request'):
-				material_request.submit()
+				material_request_doc.submit()
 			else:
-				material_request.save()
+				material_request_doc.save()
 
 		frappe.flags.mute_messages = False
 
