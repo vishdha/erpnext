@@ -508,15 +508,23 @@ def get_doctype_wise_filters(filters):
 def get_batch_numbers(doctype, txt, searchfield, start, page_len, filters):
 	fields = get_fields("Batch", ["batch_id"])
 
-	query = """select {fields} from `tabBatch`
+	query = """select %(fields)s from `tabBatch`
 			where disabled = 0
 			and (expiry_date >= CURDATE() or expiry_date IS NULL)
-			and name like {txt}""".format(fields=", ".join(fields), txt=frappe.db.escape('%{0}%'.format(txt)))
+			and name like %(txt)s"""
+
+	flt = {
+		"fields": ", ".join(fields),
+		"txt": frappe.db.escape('%{0}%'.format(txt))
+	}
 
 	if filters and filters.get('item'):
-		query += " and item = {item}".format(item = frappe.db.escape(filters.get('item')))
+		query += " and item = %(item)s"
+		flt.append({
+			"item": frappe.db.escape(filters.get('item'))
+		})
 
-	return frappe.db.sql(query, filters)
+	return frappe.db.sql(query, flt)
 
 
 @frappe.whitelist()
@@ -544,15 +552,23 @@ def get_purchase_receipts(doctype, txt, searchfield, start, page_len, filters):
 	fields = get_fields("Purchase Receipt", ["name"])
 
 	query = """
-		select {fields}
+		select %(fields)s
 		from `tabPurchase Receipt` pr, `tabPurchase Receipt Item` pritem
 		where pr.docstatus = 1 and pritem.parent = pr.name
-		and pr.name like {txt}""".format(fields=", ".join(['pr.{0}'.format(f) for f in fields]), txt=frappe.db.escape('%{0}%'.format(txt)))
+		and pr.name like %(txt)s"""
+
+	flt = {
+		"fields": ", ".join(['pr.{0}'.format(f) for f in fields]),
+		"txt": frappe.db.escape('%{0}%'.format(txt))
+	}
 
 	if filters and filters.get('item_code'):
-		query += " and pritem.item_code = {item_code}".format(item_code = frappe.db.escape(filters.get('item_code')))
+		query += " and pritem.item_code = %(item_code)s"
+		flt.append({
+			"item_code": frappe.db.escape(filters.get('item_code'))
+		})
 
-	return frappe.db.sql(query, filters)
+	return frappe.db.sql(query, flt)
 
 
 @frappe.whitelist()
@@ -560,15 +576,23 @@ def get_purchase_invoices(doctype, txt, searchfield, start, page_len, filters):
 	fields = get_fields("Purchase Receipt", ["name"])
 
 	query = """
-		select {fields}
+		select %(fields)s
 		from `tabPurchase Invoice` pi, `tabPurchase Invoice Item` piitem
 		where pi.docstatus = 1 and piitem.parent = pi.name
-		and pi.name like {txt}""".format(fields=", ".join(['pi.{0}'.format(f) for f in fields]),txt=frappe.db.escape('%{0}%'.format(txt)))
+		and pi.name like %(txt)s"""
+
+	flt = {
+		"fields": ", ".join(['pi.{0}'.format(f) for f in fields]),
+		"txt": frappe.db.escape('%{0}%'.format(txt))
+	}
 
 	if filters and filters.get('item_code'):
-		query += " and piitem.item_code = {item_code}".format(item_code = frappe.db.escape(filters.get('item_code')))
+		query += " and piitem.item_code = %(item_code)s"
+		flt.append({
+			"item_code": frappe.db.escape(filters.get('item_code'))
+		})
 
-	return frappe.db.sql(query, filters)
+	return frappe.db.sql(query, flt)
 
 
 @frappe.whitelist()
@@ -585,7 +609,7 @@ def get_tax_template(doctype, txt, searchfield, start, page_len, filters):
 
 	if not taxes:
 		fields = get_fields("Item Tax Template", ["name"])
-		return frappe.db.sql(""" SELECT {fields} FROM `tabItem Tax Template` """.format(fields=", ".join(fields)))
+		return frappe.db.sql(""" SELECT %(fields)s FROM `tabItem Tax Template` """ , {fields: ", ".join(fields)})
 	else:
 		args = {
 			'item_code': filters.get('item_code'),
