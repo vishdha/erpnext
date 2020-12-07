@@ -67,6 +67,7 @@ class PickList(Document):
 	def on_submit(self):
 		self.update_order_package_tag()
 		self.update_package_tag()
+		self.create_stock_entry()
 
 	def on_update(self):
 		self.set_per_picked()
@@ -213,6 +214,28 @@ class PickList(Document):
 			per_picked = (picked_qty / ordered_qty) * 100
 
 			frappe.db.set_value("Sales Order", self.locations[0].sales_order, "per_picked", per_picked, update_modified=False)
+
+	def create_stock_entry(self):
+		validate_item_locations(self)
+		for location in self.locations:
+			if stock_entry_exists(self.get('name')):
+				return frappe.msgprint(_('Stock Entry has been already created against this Pick List'))
+			stock_entry = frappe.new_doc('Stock Entry')
+			stock_entry.self = self.get('name')
+			purpose = self.get('purpose')
+			if purpose in "Delivery":
+				stock_entry.purpose = "Repack"
+			stock_entry.set_stock_entry_type()
+			if self.get('work_order'):
+				stock_entry = update_stock_entry_based_on_work_order(self, stock_entry)
+			elif self.get('material_request'):
+				stock_entry = update_stock_entry_based_on_material_request(self, stock_entry)
+			else:
+				stock_entry = update_stock_entry_items_with_no_reference(location, stock_entry)
+				stock_entry.set_incoming_rate()
+				stock_entry.set_actual_qty()
+				stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
+				stock_entry.save()
 
 def validate_item_locations(pick_list):
 	if not pick_list.locations:
@@ -437,32 +460,6 @@ def create_delivery_note(source_name, target_doc=None):
 	return delivery_note
 
 @frappe.whitelist()
-def create_stock_entry(pick_list):
-	pick_list = frappe.get_doc(json.loads(pick_list))
-	validate_item_locations(pick_list)
-
-	if stock_entry_exists(pick_list.get('name')):
-		return frappe.msgprint(_('Stock Entry has been already created against this Pick List'))
-
-	stock_entry = frappe.new_doc('Stock Entry')
-	stock_entry.pick_list = pick_list.get('name')
-	stock_entry.purpose = pick_list.get('purpose')
-	stock_entry.set_stock_entry_type()
-
-	if pick_list.get('work_order'):
-		stock_entry = update_stock_entry_based_on_work_order(pick_list, stock_entry)
-	elif pick_list.get('material_request'):
-		stock_entry = update_stock_entry_based_on_material_request(pick_list, stock_entry)
-	else:
-		stock_entry = update_stock_entry_items_with_no_reference(pick_list, stock_entry)
-
-	stock_entry.set_incoming_rate()
-	stock_entry.set_actual_qty()
-	stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
-
-	return stock_entry.as_dict()
-
-@frappe.whitelist()
 def get_pending_work_orders(doctype, txt, searchfield, start, page_length, filters, as_dict):
 	return frappe.db.sql("""
 		SELECT
@@ -580,11 +577,16 @@ def update_stock_entry_based_on_material_request(pick_list, stock_entry):
 
 	return stock_entry
 
-def update_stock_entry_items_with_no_reference(pick_list, stock_entry):
-	for location in pick_list.locations:
-		item = frappe._dict()
-		update_common_item_properties(item, location)
-
+def update_stock_entry_items_with_no_reference(location, stock_entry):
+	item = frappe._dict()
+	update_common_item_properties(item, location)
+	if location.source_package_tag:
+		item.package_tag = location.source_package_tag
+		# item.s_warehouse = location.warehouse
+		stock_entry.append('items', item)
+	if location.package_tag:
+		item.package_tag = location.source_package_tag
+		# item.t_warehouse = location.warehouse
 		stock_entry.append('items', item)
 
 	return stock_entry
