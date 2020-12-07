@@ -35,6 +35,7 @@ class StockLedgerEntry(Document):
 		self.scrub_posting_time()
 		self.validate_and_set_fiscal_year()
 		self.block_transactions_against_group_warehouse()
+		self.validate_with_last_transaction_posting_time()
 
 	def on_submit(self):
 		self.check_stock_frozen_date()
@@ -168,11 +169,6 @@ class StockLedgerEntry(Document):
 					msg += "<br><br>" + _("Please contact any of the following users to {} this transaction.")
 					msg += "<br>" + "<br>".join(authorized_users)
 					frappe.throw(msg, BackDatedStockTransaction, title=_("Backdated Stock Entry"))
-
-	def validate_future_posting(self):
-		if date_diff(self.posting_date, getdate()) > 0:
-			msg = _("Posting future stock transactions are not allowed due to Immutable Ledger")
-			frappe.throw(msg, title=_("Future Posting Not Allowed"))
 
 def on_doctype_update():
 	if not frappe.db.has_index('tabStock Ledger Entry', 'posting_sort_index'):

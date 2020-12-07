@@ -5,10 +5,9 @@
 from __future__ import unicode_literals
 import unittest
 import frappe
-from frappe.utils import flt, time_diff_in_hours, now, add_days, cint
-from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import set_perpetual_inventory
-from erpnext.manufacturing.doctype.work_order.work_order \
-	import make_stock_entry, ItemHasVariantError, stop_unstop, StockOverProductionError, OverProductionError
+from frappe.utils import flt, time_diff_in_hours, now, add_months, cint, today
+from erpnext.manufacturing.doctype.work_order.work_order import (make_stock_entry,
+	ItemHasVariantError, stop_unstop, StockOverProductionError, OverProductionError, CapacityError)
 from erpnext.stock.doctype.stock_entry import test_stock_entry
 from erpnext.stock.utils import get_bin
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
@@ -18,7 +17,6 @@ from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
 
 class TestWorkOrder(unittest.TestCase):
 	def setUp(self):
-		set_perpetual_inventory(0)
 		self.warehouse = '_Test Warehouse 2 - _TC'
 		self.item = '_Test Item'
 

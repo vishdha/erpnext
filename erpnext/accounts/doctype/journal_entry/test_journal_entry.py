@@ -78,13 +78,41 @@ class TestJournalEntry(unittest.TestCase):
 			self.assertRaises(frappe.LinkExistsError, submitted_voucher.cancel)
 
 	def test_jv_against_stock_account(self):
-		from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import set_perpetual_inventory
-		set_perpetual_inventory()
+		company = "_Test Company with perpetual inventory"
+		jv = frappe.copy_doc({
+			"cheque_date": nowdate(),
+			"cheque_no": "33",
+			"company": company,
+			"doctype": "Journal Entry",
+			"accounts": [
+			{
+				"account": "Debtors - TCP1",
+				"party_type": "Customer",
+				"party": "_Test Customer",
+				"credit_in_account_currency": 400.0,
+				"debit_in_account_currency": 0.0,
+				"doctype": "Journal Entry Account",
+				"parentfield": "accounts",
+				"cost_center": "Main - TCP1"
+			},
+			{
+				"account": "_Test Bank - TCP1",
+				"credit_in_account_currency": 0.0,
+				"debit_in_account_currency": 400.0,
+				"doctype": "Journal Entry Account",
+				"parentfield": "accounts",
+				"cost_center": "Main - TCP1"
+			}
+			],
+			"naming_series": "_T-Journal Entry-",
+			"posting_date": nowdate(),
+			"user_remark": "test",
+			"voucher_type": "Bank Entry"
+			})
 
-		jv = frappe.copy_doc(test_records[0])
 		jv.get("accounts")[0].update({
-			"account": get_inventory_account('_Test Company'),
-			"company": "_Test Company",
+			"account": get_inventory_account(company),
+			"company": company,
 			"party_type": None,
 			"party": None
 		})
@@ -93,8 +121,7 @@ class TestJournalEntry(unittest.TestCase):
 
 		from erpnext.accounts.general_ledger import StockAccountInvalidTransaction
 		self.assertRaises(StockAccountInvalidTransaction, jv.submit)
-
-		set_perpetual_inventory(0)
+		jv.cancel()
 
 	def test_multi_currency(self):
 		jv = make_journal_entry("_Test Bank USD - _TC",

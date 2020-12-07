@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import frappe, unittest
 from frappe.utils import flt, nowdate, nowtime
 from erpnext.accounts.utils import get_stock_and_account_balance
-from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import set_perpetual_inventory
 from erpnext.stock.stock_ledger import get_previous_sle, update_entries_after
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import EmptyStockReconciliationItemsError, get_items
 from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
@@ -101,8 +100,6 @@ class TestStockReconciliation(unittest.TestCase):
 			[items[0]["item_code"], items[0]["warehouse"], items[0]["qty"]])
 
 	def test_stock_reco_for_serialized_item(self):
-		set_perpetual_inventory()
-
 		to_delete_records = []
 		to_delete_serial_nos = []
 
@@ -160,8 +157,6 @@ class TestStockReconciliation(unittest.TestCase):
 				frappe.delete_doc("Serial No", d)
 
 	def test_stock_reco_for_batch_item(self):
-		set_perpetual_inventory()
-
 		to_delete_records = []
 		to_delete_serial_nos = []
 
