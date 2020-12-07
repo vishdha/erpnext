@@ -222,6 +222,9 @@ class ProductionPlan(Document):
 			2: 'Cancelled'
 		}.get(self.docstatus)
 
+		if self.per_received == 100:
+			self.db_set("status", "Material Received")
+
 		if self.total_produced_qty > 0:
 			self.status = "In Process"
 			if self.total_produced_qty == self.total_planned_qty:
@@ -389,6 +392,7 @@ class ProductionPlan(Document):
 				"sales_order": item.sales_order,
 				'production_plan': self.name,
 				'material_request_plan_item': item.name,
+				'production_plan_item': item.name,
 				"project": frappe.db.get_value("Sales Order", item.sales_order, "project") \
 					if item.sales_order else None
 			})
