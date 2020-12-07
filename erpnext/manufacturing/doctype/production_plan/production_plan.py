@@ -222,7 +222,7 @@ class ProductionPlan(Document):
 			2: 'Cancelled'
 		}.get(self.docstatus)
 
-		if self.per_received == 100:
+		if self.status == 1 and self.per_received == 100:
 			self.db_set("status", "Material Received")
 
 		if self.total_produced_qty > 0:
