@@ -215,7 +215,7 @@ class ProductionPlan(Document):
 			filters = {'docstatus': 0, 'production_plan': ("=", self.name)}):
 			frappe.delete_doc('Work Order', d.name)
 
-	def set_status(self):
+	def set_status(self, update=False):
 		self.status = {
 			0: 'Draft',
 			1: 'Submitted',
