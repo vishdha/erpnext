@@ -1201,12 +1201,11 @@ def custom_autoname(doc):
 		brand_abbr = get_abbr(doc.brand, max_length=len(company_abbr))
 		brand_abbr = brand_abbr if company_abbr != brand_abbr else None
 		params = list(filter(None, [company_abbr, brand_abbr, item_group_abbr, item_name_abbr]))
-		item_code = "-".join(params)
 	else:
 		brand_abbr = get_abbr(doc.brand)
 		params = list(filter(None, [brand_abbr, item_group_abbr, item_name_abbr]))
-		item_code = "-".join(params)
 
+	item_code = "-".join(params)
 	# Get count
 	count = len(frappe.get_all("Item", filters={"name": ["like", "%{}%".format(item_code)]}))
 
