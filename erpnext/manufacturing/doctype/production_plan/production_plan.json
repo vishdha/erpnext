@@ -294,6 +294,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "per_received",
    "fieldtype": "Percent",
    "label": "% Received"
@@ -301,7 +302,7 @@
  ],
  "icon": "fa fa-calendar",
  "is_submittable": 1,
- "modified": "2020-12-02 03:44:03.932782",
+ "modified": "2020-12-07 03:58:16.048132",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Production Plan",
