@@ -17,6 +17,7 @@
   "set_rate_of_sub_assembly_item_based_on_bom",
   "project",
   "quantity",
+  "avg_manufactured_qty",
   "image",
   "currency_detail",
   "currency",
@@ -506,13 +507,19 @@
    "label": "Manufacturing Type",
    "options": "\nDiscrete\nProcess",
    "reqd": 1
+  },
+  {
+   "fieldname": "avg_manufactured_qty",
+   "fieldtype": "Float",
+   "label": "Avg Manufactured Qty",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-sitemap",
  "idx": 1,
  "image_field": "image",
  "is_submittable": 1,
- "modified": "2020-10-22 04:48:01.576040",
+ "modified": "2020-12-08 23:51:49.289427",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "BOM",
