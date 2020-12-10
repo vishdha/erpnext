@@ -553,3 +553,15 @@ global_search_doctypes = {
 		{'doctype': 'Hotel Room Type', 'index': 4}
 	]
 }
+
+# Coupon code brackets context building
+coupon_brackets_extend_commands = [
+	"erpnext.bloombrackets.coupon_commands.item_query.load_commands",
+	"erpnext.bloombrackets.coupon_commands.quotation_discounts.load_commands",
+	"erpnext.bloombrackets.coupon_commands.tax_charges.load_commands",
+]
+coupon_brackets_extend_meta = [
+	"erpnext.bloombrackets.coupon_commands.item_query.load_commands_meta",
+	"erpnext.bloombrackets.coupon_commands.quotation_discounts.load_commands_meta",
+	"erpnext.bloombrackets.coupon_commands.tax_charges.load_commands_meta",
+]

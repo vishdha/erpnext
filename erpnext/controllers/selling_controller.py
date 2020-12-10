@@ -38,6 +38,7 @@ class SellingController(StockController):
 	def validate(self):
 		super(SellingController, self).validate()
 		self.validate_items()
+		self.validate_coupon()
 		self.validate_marketing_expense()
 		self.validate_max_discount()
 		self.validate_selling_price()
@@ -48,6 +49,11 @@ class SellingController(StockController):
 		self.set_customer_address()
 		self.validate_for_duplicate_items()
 		self.validate_target_warehouse()
+
+	def validate_coupon(self):
+		if self.meta.get_field("coupon_name"):
+			from erpnext.accounts.doctype.coupon_code.coupon_code import apply_coupon
+			apply_coupon(self)
 
 	def set_missing_values(self, for_validate=False):
 

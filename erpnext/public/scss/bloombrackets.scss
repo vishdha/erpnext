@@ -1,0 +1,213 @@
+@import "frappe/public/scss/variables";
+
+$bb-error-background: rgb(248, 172, 172);
+$bb-error-color: rgb(223, 93, 93);
+
+.bb-block {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0;
+  padding: 0;
+
+  &.bb-block-top {
+    padding-left: 0;
+  }
+
+  .bb-if, .bb-set-var {
+    display: block;
+  }
+
+  .bb-component {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bb-actions {
+    display: inline-block;
+  }
+
+  .bb-variable {
+    display: inline-block;
+
+    .bb-fields {
+      display: inline-block;
+    }
+  }
+
+  .bb-container {
+    display: inline-block;
+  }
+
+  .bb-line {
+    display: block;
+    border: 1px solid lightgray;
+    padding: 2px 4px;
+    border-radius: 5px;
+    background-color: #f1f5f9;
+  }
+
+  .bb-line-group {
+    display: block;
+  }
+
+  .bb-line-empty {
+    display: block;
+    border: none;
+    padding: 2px 4px;
+    border-radius: 5px;
+    background-color: white;
+  }
+
+  .bb-addremove {
+    display: flex;
+    flex-direction: row;
+    .bb-content {
+      flex: 1 1 auto;
+    }
+    > i, > .bb-actions {
+      flex: 0 0 auto;
+      line-height: inherit;
+    }
+  }
+
+  .bb-group {
+    display: inline-block;
+    margin: 0;
+  }
+
+  select, input {
+    max-width: 10rem;
+  }
+
+  .bb-text {
+    display: inline-block;
+    font-weight: bold;
+  }
+
+  .bb-conditions, .bb-operators, .bb-inputs {
+    display: inline-block;
+    padding: 0 1rem;
+
+    &:not(:first-child) {
+      padding-left: 0;
+    }
+    &:not(:last-child) {
+      padding-right: 0;
+    }
+  }
+
+  .bb-control {
+    border: 1px solid rgb(194, 194, 194);
+    padding: 2px 5px;
+    border-radius: 5px;
+    background-color: white;
+    display: inline-block;
+
+    select, input {
+      border: none;
+      background-color: transparent;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    &:focus-within {
+      border-color: black;
+    }
+
+    &.bb-var {
+      background: #d1ffd2;
+      border-color: #9dc79d;
+    }
+
+    &.bb-operator {
+      background: #fcffd1;
+      border-color: #c4c79d;
+    }
+
+    &.bb-error {
+      background-color: $bb-error-background;
+      border-color: $bb-error-color;
+    }
+
+  }
+
+  .bb-args {
+    display: inline-block;
+
+    > *:not(:first-child)::before {
+      content: ", ";
+    }
+  }
+
+  .bb-dropdown {
+    display: inline-block;
+
+  }
+
+  .bb-doctype {
+    background-color: #d1ffd2;
+    border-color: #9dc79d;
+  }
+
+  .bb-left, .bb-right {
+    display: inline-block;
+  }
+
+  .loading {
+    display: inline-block;
+    min-width: 10rem;
+    position: relative;
+
+    &::after {
+      content: ' ';
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background-color: gray;
+    }
+  }
+
+  .bb-content {
+    display: inline-block;
+  }
+
+  .bb-actions {
+    display: inline-block;
+  }
+
+  .btn-minus {
+    color: red;
+  }
+
+  .btn {
+    padding: 0.25rem 0;
+    display: inline-block;
+    border-radius: 1rem;
+    margin: 0;
+    font-weight: normal;
+    font-size: 1.5rem;
+  }
+
+  .bb-component {
+    &.bb-delete-warning {
+      background-color: $bb-error-background;
+
+      .bb-control {
+        background-color: transparent;
+        border-color: $bb-error-color;
+      }
+
+      .bb-line {
+        background-color: transparent;
+        border-color: $bb-error-color;
+      }
+    }
+  }
+
+}

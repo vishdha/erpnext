@@ -23,3 +23,34 @@ class CouponCode(Document):
 			self.maximum_use = 1
 			if not self.customer:
 				frappe.throw(_("Please select the customer."))
+
+	def get_brackets_meta(self):
+		from erpnext.bloombrackets.coupon_commands import build_context_meta
+		ctx = {
+			"#META": {}
+		}
+
+		build_context_meta(ctx.get("#META"), "Quotation")
+
+def apply_coupon(doc):
+	code = frappe.get_value("Coupon Code", doc.coupon_name, "brackets_code")
+
+	if code:
+		from erpnext.bloombrackets import run_script
+		from erpnext.bloombrackets.coupon_commands import build_context
+		try:
+			code = JSON.loads(code)
+		except:
+			return
+
+		ctx = {
+			"#VARS": {
+				"doc": doc,
+				[doc.doctype]: doc
+			},
+			"#CALLS": calls
+		}
+
+		build_context(ctx, doc.doctype, skip_meta=True)
+		run_script(code, ctx)
+

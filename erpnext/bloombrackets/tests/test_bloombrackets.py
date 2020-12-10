@@ -1,13 +1,22 @@
 import frappe
 import unittest
 
+from unittest.mock import patch
+from frappe import _dict
+from frappe.model.document import Document
+from frappe.utils.mock import mock_meta, build_get_meta_side_effects, build_get_doc_side_effect
 from erpnext.bloombrackets import resolve_expression
 from erpnext.bloombrackets.commands import *
 
-def create_script():
-	return [
-		[""]
-	]
+QUOTATION_META = mock_meta("Quotation", fields=[
+	{ "fieldname": "name", "fieldtype": "Data" },
+	{ "fieldname": "customer_name", "fieldtype": "Link", "options": "Customer" }
+])
+
+CUSTOMER_META = mock_meta("Customer", fields=[
+	{ "fieldname": "name", "fieldtype": "Data" },
+	{ "fieldname": "full_name", "fieldtype": "Data" }
+])
 
 class TestBloomBrackets(unittest.TestCase):
 	def test_reduce_cmd(self):
@@ -18,7 +27,7 @@ class TestBloomBrackets(unittest.TestCase):
 
 	def test_arithmetic(self):
 		self.assertTrue(resolve_expression([CMD_ADD, 1, 2], {}) == 3, "1 + 2")
-		self.assertTrue(resolve_expression([CMD_SUBSTRACT, 1, 2], {}) == -1, "1 - 2")
+		self.assertTrue(resolve_expression([CMD_SUBTRACT, 1, 2], {}) == -1, "1 - 2")
 		self.assertTrue(resolve_expression([CMD_MULTIPLY, 1, 2], {}) == 2, "1 * 2")
 		self.assertTrue(resolve_expression([CMD_DIVIDE, 1, 2], {}) == .5, "1 / 2")
 
@@ -101,15 +110,41 @@ class TestBloomBrackets(unittest.TestCase):
 		resolve_expression(script, ctx1)
 		self.assertTrue(ctx1.get("foo") == "bar" and ctx1.get("bar") == None, ctx1)
 
-	def test_var_resolve(self):
-		
-		ctx = { "doc": frappe.new_doc("Quotation", {
+	@patch('frappe.new_doc')
+	def test_doctype_field_resolve(self, new_doc):
+		new_doc.side_effect = [_dict({ "status": "Draft" })]
+		ctx = { "doc": frappe.new_doc("Quotation", {}) }
+		status = resolve_expression([CMD_VAR, "doc", "status"], ctx)
 
-		}) }
-		print(ctx)
+		frappe.new_doc.assert_called_once()
+		self.assertTrue(status == "Draft")
 
-		name = resolve_expression([CMD_SET, "foo", [CMD_VAR, "doc", "name"]], ctx)
-		print(name)
-		print(resolve_expression([CMD_VAR, "doc", "status"], ctx))
+	@patch('frappe.get_doc')
+	@patch('frappe.get_meta')
+	def test_doctype_link_resolve(self, get_meta, get_doc):	
+		# set test side effects
+		get_meta.side_effect = build_get_meta_side_effects([
+			QUOTATION_META, 
+			CUSTOMER_META
+		])
+		get_doc.side_effect= build_get_doc_side_effect([
+			Document({
+				"doctype": "Quotation",
+				"name": "test-quotation",
+				"customer_name": "test-customer"
+			}),
+			Document({
+				"doctype": "Customer",
+				"name": "test-customer",
+				"full_name": "Mr. Test Customer"
+			})
+		])
 
-		self.assertTrue(name != None)
+		ctx = { "doc": frappe.get_doc("Quotation", "test-quotation") }
+		full_name = resolve_expression([CMD_VAR, "doc", "customer_name", "full_name"], ctx)
+
+		get_doc.assert_called()
+		get_meta.assert_called()
+		self.assertTrue(full_name == "Mr. Test Customer")
+
+	
