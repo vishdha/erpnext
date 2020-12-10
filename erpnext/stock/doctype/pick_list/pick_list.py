@@ -13,7 +13,7 @@ from frappe.utils import floor, flt, today, cint, unique
 from frappe.model.mapper import get_mapped_doc, map_child_doc
 from erpnext.stock.get_item_details import get_conversion_factor
 from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note as create_delivery_note_from_sales_order
-
+from erpnext.compliance.doctype.package_tag.package_tag import get_package_tag_qty
 # TODO: Prioritize SO or WO group warehouse
 
 class PickList(Document):
@@ -63,6 +63,15 @@ class PickList(Document):
 				if item.qty > ordered_item_qty:
 					frappe.throw(_("Row #{0}: {1}'s quantity ({2}) should be less than or equal to the ordered quantity ({3})").format(
 						item.idx, frappe.bold(item.item_name), frappe.bold(item.qty), frappe.bold(ordered_item_qty)))
+
+				if item.source_package_tag:
+					package_tag_qty = get_package_tag_qty(item.source_package_tag)
+					if not package_tag_qty:
+						frappe.throw(_("Row #{0}: No record found for Package Tag {1} in Stock Ledger Entry ").format(
+							item.idx, frappe.bold(item.source_package_tag)))
+					if item.qty > package_tag_qty[0].qty:
+						frappe.throw(_("Row #{0}: {1}'s quantity ({2}) should not exceed Package Tag {3}'s quantity ({4})").format(
+							item.idx, frappe.bold(item.item_name), frappe.bold(item.qty), frappe.bold(item.source_package_tag), frappe.bold(package_tag_qty[0].qty)))
 
 	def on_submit(self):
 		self.update_order_package_tag()
@@ -216,14 +225,15 @@ class PickList(Document):
 			frappe.db.set_value("Sales Order", self.locations[0].sales_order, "per_picked", per_picked, update_modified=False)
 
 	def create_stock_entry(self):
+		"""To create Stock Entry Repack Against Pick List Delivery !"""
 		validate_item_locations(self)
 		for location in self.locations:
 			if stock_entry_exists(self.get('name')):
 				return frappe.msgprint(_('Stock Entry has been already created against this Pick List'))
+			# Create New Document
 			stock_entry = frappe.new_doc('Stock Entry')
-			stock_entry.self = self.get('name')
-			purpose = self.get('purpose')
-			if purpose in "Delivery":
+			stock_entry.name = self.get('name')
+			if self.get('purpose') == "Delivery":
 				stock_entry.purpose = "Repack"
 			stock_entry.set_stock_entry_type()
 			if self.get('work_order'):
@@ -231,11 +241,15 @@ class PickList(Document):
 			elif self.get('material_request'):
 				stock_entry = update_stock_entry_based_on_material_request(self, stock_entry)
 			else:
-				stock_entry = update_stock_entry_items_with_no_reference(location, stock_entry)
-				stock_entry.set_incoming_rate()
-				stock_entry.set_actual_qty()
-				stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
-				stock_entry.save()
+				if location.source_package_tag:
+					stock_entry = update_stock_entry_items_for_source(location, stock_entry)
+				if location.package_tag:
+					stock_entry = update_stock_entry_items_for_target(location, stock_entry)
+			stock_entry.set_incoming_rate()
+			stock_entry.set_actual_qty()
+			stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
+			stock_entry.save()
+			stock_entry.submit()
 
 def validate_item_locations(pick_list):
 	if not pick_list.locations:
@@ -577,23 +591,33 @@ def update_stock_entry_based_on_material_request(pick_list, stock_entry):
 
 	return stock_entry
 
-def update_stock_entry_items_with_no_reference(location, stock_entry):
+def update_stock_entry_items_for_source(location, stock_entry):
+	"""Append Source Item Row in Stock Entry !"""
 	item = frappe._dict()
 	update_common_item_properties(item, location)
-	if location.source_package_tag:
-		item.package_tag = location.source_package_tag
-		# item.s_warehouse = location.warehouse
-		stock_entry.append('items', item)
-	if location.package_tag:
-		item.package_tag = location.source_package_tag
-		# item.t_warehouse = location.warehouse
-		stock_entry.append('items', item)
+	item.package_tag = location.source_package_tag
+	item.s_warehouse = location.warehouse
 
+	stock_entry.append('items', item)
 	return stock_entry
+
+def update_stock_entry_items_for_target(location, stock_entry):
+	"""Append Target Item Row in Stock Entry !"""
+	item = frappe._dict()
+	update_common_item_properties(item, location)
+	item.package_tag = location.package_tag
+	# If Delivery Settings has Packing Warehouse set, then take that as Target warehouse
+	packing_warehouse = frappe.db.get_single_value("Delivery Settings", "packing_warehouse")
+	if packing_warehouse:
+		item.t_warehouse = packing_warehouse
+	else:
+		item.t_warehouse = location.warehouse
+	stock_entry.append('items', item)
+	return stock_entry
+
 
 def update_common_item_properties(item, location):
 	item.item_code = location.item_code
-	item.s_warehouse = location.warehouse
 	item.qty = location.picked_qty * location.conversion_factor
 	item.transfer_qty = location.picked_qty
 	item.uom = location.uom
