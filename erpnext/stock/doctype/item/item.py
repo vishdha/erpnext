@@ -1142,6 +1142,9 @@ def on_doctype_update():
 @frappe.whitelist()
 def make_purchase_order_item(items):
 	items = json.loads(items)
+	if not items:
+		return
+
 	purchase_orders = []
 
 	for item in items:
