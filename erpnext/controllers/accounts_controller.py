@@ -471,13 +471,20 @@ class AccountsController(TransactionBase):
 	def set_advances(self):
 		"""Returns list of advances against Account, Party, Reference"""
 
-		res = self.get_advance_entries()
+		if self.allocate_advances_based_on_quantities:
+			res = self.get_advance_entries(include_unallocated=False)
+		else:
+			res = self.get_advance_entries()
 
 		self.set("advances", [])
 		advance_allocated = 0
+		print("-------------------------------------------------------------------", res)
 		for d in res:
 			if d.against_order:
-				allocated_amount = flt(d.amount)
+				if self.allocate_advances_based_on_quantities:
+					allocated_amount = flt(self.total_qty / 5000) * d.amount
+				else:
+					allocated_amount = flt(d.amount)
 			else:
 				amount = self.rounded_total or self.grand_total
 				allocated_amount = min(amount - advance_allocated, d.amount)

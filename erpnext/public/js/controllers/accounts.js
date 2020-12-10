@@ -65,7 +65,19 @@ frappe.ui.form.on(cur_frm.doctype, {
 				}
 			})
 		}
-	}
+	},
+	allocate_advances_based_on_quantities: function(frm) {
+		if(frm.doc.allocate_advances_based_on_quantities) {
+			frappe.call({
+				doc: frm.doc,
+				method: "set_advances",
+				callback: function(r, rt) {
+					refresh_field("advances");
+				}
+			})
+		}
+	},
+
 });
 
 frappe.ui.form.on('Sales Invoice Payment', {
