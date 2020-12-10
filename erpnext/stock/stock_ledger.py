@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 
 import frappe, erpnext
 from frappe import _
-from frappe.utils import cint, flt, cstr, now
-from erpnext.stock.utils import get_valuation_method
+from frappe.utils import cint, flt, cstr, now, now_datetime
+from frappe.model.meta import get_field_precision
+from erpnext.stock.utils import get_valuation_method, get_incoming_outgoing_rate_for_cancel
+from erpnext.stock.utils import get_bin
 import json
-
 from six import iteritems
 
 # future reposting
@@ -65,31 +66,32 @@ def make_entry(args, allow_negative_stock=False, via_landed_cost_voucher=False):
 
 def repost_future_sle(args=None, voucher_type=None, voucher_no=None, allow_negative_stock=False, via_landed_cost_voucher=False):
 	if not args and voucher_type and voucher_no:
-		sl_entries = frappe.db.get_all("Stock Ledger Entry",
-			filters={"voucher_type": voucher_type, "voucher_no": voucher_no},
-			fields=["item_code", "warehouse", "posting_date", "posting_time"],
-			order_by="creation asc",
-			group_by="item_code, warehouse")
-	elif args:
-		sl_entries = args
+		args = get_args_for_voucher(voucher_type, voucher_no)
 	
-	distinct_item_warehouses = [(d.item_code, d.warehouse) for d in sl_entries]
+	distinct_item_warehouses = [(d.item_code, d.warehouse) for d in args]
 
 	i = 0
-	while i < len(sl_entries):
-		sle = sl_entries[i]
+	while i < len(args):
 		obj = update_entries_after({
-			"item_code": sle.item_code,
-			"warehouse": sle.warehouse,
-			"posting_date": sle.posting_date,
-			"posting_time": sle.posting_time
+			"item_code": args[i].item_code,
+			"warehouse": args[i].warehouse,
+			"posting_date": args[i].posting_date,
+			"posting_time": args[i].posting_time
 		}, allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher)
 
 		for item_wh, new_sle in iteritems(obj.new_items):
 			if item_wh not in distinct_item_warehouses:
-				sl_entries.append(new_sle)
+				args.append(new_sle)
 		
 		i += 1
+
+def get_args_for_voucher(voucher_type, voucher_no):
+	return frappe.db.get_all("Stock Ledger Entry",
+		filters={"voucher_type": voucher_type, "voucher_no": voucher_no},
+		fields=["item_code", "warehouse", "posting_date", "posting_time"],
+		order_by="creation asc",
+		group_by="item_code, warehouse"
+	)
 
 class update_entries_after(object):
 	"""
@@ -106,9 +108,7 @@ class update_entries_after(object):
 			}
 	"""
 	def __init__(self, args, allow_zero_rate=False, allow_negative_stock=None, via_landed_cost_voucher=False, verbose=1):
-		from frappe.model.meta import get_field_precision
-
-		self.exceptions = []
+		self.exceptions = {}
 		self.verbose = verbose
 		self.allow_zero_rate = allow_zero_rate
 		self.allow_negative_stock = allow_negative_stock
@@ -121,18 +121,20 @@ class update_entries_after(object):
 		if self.args.sle_id:
 			self.args['name'] = self.args.sle_id
 
-		self.data = frappe._dict()
-		self.initialize_previous_data(self.args)
-		
 		self.company = frappe.get_cached_value("Warehouse", self.args.warehouse, "company")
-		company_base_currency = frappe.get_cached_value('Company',  self.company,  "default_currency")
-		self.precision = get_field_precision(frappe.get_meta("Stock Ledger Entry").get_field("stock_value"),
-			currency=company_base_currency)
-
+		self.get_precision()
 		self.valuation_method = get_valuation_method(self.item_code)
 		self.new_items = {}
 
+		self.data = frappe._dict()
+		self.initialize_previous_data(self.args)
+
 		self.build()
+	
+	def get_precision(self):
+		company_base_currency = frappe.get_cached_value('Company',  self.company,  "default_currency")
+		self.precision = get_field_precision(frappe.get_meta("Stock Ledger Entry").get_field("stock_value"),
+			currency=company_base_currency)
 
 		self.args = args
 		for key, value in iteritems(args):
@@ -152,14 +154,9 @@ class update_entries_after(object):
 
 	def build(self):
 		if self.args.get("sle_id"):
-			sl_entries = self.get_sle_against_voucher()
-			for sle in sl_entries:
-				self.process_sle(sle)
+			self.process_sle_against_current_voucher()
 		else:
-			# includes current entry!
-			args = self.data[self.args.warehouse].previous_sle \
-				or frappe._dict({"item_code": self.item_code, "warehouse": self.args.warehouse})
-			entries_to_fix = list(self.get_sle_after_datetime(args))
+			entries_to_fix = self.get_future_entries_to_fix()
 
 			i = 0
 			while i < len(entries_to_fix):
@@ -170,31 +167,8 @@ class update_entries_after(object):
 		# includes current entry!
 		entries_to_fix = self.get_sle_after_datetime()
 
-		for sle in entries_to_fix:
-			self.process_sle(sle)
-
-					if dependant_sle.item_code == self.item_code and dependant_sle.warehouse == self.args.warehouse:
-						continue
-					elif dependant_sle.item_code != self.item_code \
-							and (dependant_sle.item_code, dependant_sle.warehouse) not in self.new_items:
-						self.new_items[(dependant_sle.item_code, dependant_sle.warehouse)] = dependant_sle
-						continue
-
-		self.update_bin()
-
-					args = self.data[dependant_sle.warehouse].previous_sle \
-						or frappe._dict({"item_code": self.item_code, "warehouse": dependant_sle.warehouse})
-					future_sle_for_dependant = list(self.get_sle_after_datetime(args))
-
-		if not bin_name:
-			bin_doc = frappe.get_doc({
-				"doctype": "Bin",
-				"item_code": self.item_code,
-				"warehouse": self.warehouse
-			})
-			bin_doc.insert(ignore_permissions=True)
-		else:
-			bin_doc = frappe.get_doc("Bin", bin_name)
+				if sle.dependant_sle_voucher_detail_no:
+					self.get_dependent_entries_to_fix(entries_to_fix, sle)
 
 		bin_doc.update({
 			"valuation_rate": self.valuation_rate,
@@ -205,7 +179,12 @@ class update_entries_after(object):
 
 		bin_doc.save(ignore_permissions=True)
 
-	def get_sle_against_voucher(self):
+	def process_sle_against_current_voucher(self):
+		sl_entries = self.get_sle_against_current_voucher()
+		for sle in sl_entries:
+			self.process_sle(sle)
+
+	def get_sle_against_current_voucher(self):
 		return frappe.db.sql("""
 			select
 				*, timestamp(posting_date, posting_time) as "timestamp"
@@ -220,6 +199,35 @@ class update_entries_after(object):
 				creation ASC
 			for update
 		""", self.args, as_dict=1)
+
+	def get_future_entries_to_fix(self):
+		# includes current entry!
+		args = self.data[self.args.warehouse].previous_sle \
+			or frappe._dict({"item_code": self.item_code, "warehouse": self.args.warehouse})
+		
+		return list(self.get_sle_after_datetime(args))
+
+	def get_dependent_entries_to_fix(self, entries_to_fix, sle):
+		dependant_sle = get_sle_by_voucher_detail_no(sle.dependant_sle_voucher_detail_no,
+			excluded_sle=sle.name)
+		
+		if not dependant_sle:
+			return
+		elif dependant_sle.item_code == self.item_code and dependant_sle.warehouse == self.args.warehouse:
+			return
+		elif dependant_sle.item_code != self.item_code \
+				and (dependant_sle.item_code, dependant_sle.warehouse) not in self.new_items:
+			self.new_items[(dependant_sle.item_code, dependant_sle.warehouse)] = dependant_sle
+			return
+
+		self.initialize_previous_data(dependant_sle)
+
+		args = self.data[dependant_sle.warehouse].previous_sle \
+			or frappe._dict({"item_code": self.item_code, "warehouse": dependant_sle.warehouse})
+		future_sle_for_dependant = list(self.get_sle_after_datetime(args))
+
+		entries_to_fix.extend(future_sle_for_dependant)
+		entries_to_fix = sorted(entries_to_fix, key=lambda k: k['timestamp'])
 
 	def process_sle(self, sle):
 		if (sle.serial_no and not self.via_landed_cost_voucher) or not cint(self.allow_negative_stock):
@@ -257,11 +265,9 @@ class update_entries_after(object):
 					self.stock_value = sum((flt(batch[0]) * flt(batch[1]) for batch in self.stock_queue))
 
 		# rounding as per precision
-		self.stock_value = flt(self.stock_value, self.precision)
-
-		stock_value_difference = self.stock_value - self.prev_stock_value
-
-		self.prev_stock_value = self.stock_value
+		self.wh_data.stock_value = flt(self.wh_data.stock_value, self.precision)
+		stock_value_difference = self.wh_data.stock_value - self.wh_data.prev_stock_value
+		self.wh_data.prev_stock_value = self.wh_data.stock_value
 
 		# update current sle
 		sle.qty_after_transaction = self.qty_after_transaction
@@ -587,23 +593,41 @@ class update_entries_after(object):
 	def raise_exceptions(self):
 		deficiency = min(e["diff"] for e in self.exceptions)
 
-		if ((self.exceptions[0]["voucher_type"], self.exceptions[0]["voucher_no"]) in
-			frappe.local.flags.currently_saving):
+			if ((exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]) in
+				frappe.local.flags.currently_saving):
 
-			msg = _("{0} units of {1} needed in {2} to complete this transaction.").format(
-				abs(deficiency), frappe.get_desk_link('Item', self.item_code),
-				frappe.get_desk_link('Warehouse', self.warehouse))
-		else:
-			msg = _("{0} units of {1} needed in {2} on {3} {4} for {5} to complete this transaction.").format(
-				abs(deficiency), frappe.get_desk_link('Item', self.item_code),
-				frappe.get_desk_link('Warehouse', self.warehouse),
-				self.exceptions[0]["posting_date"], self.exceptions[0]["posting_time"],
-				frappe.get_desk_link(self.exceptions[0]["voucher_type"], self.exceptions[0]["voucher_no"]))
+				msg = _("{0} units of {1} needed in {2} to complete this transaction.").format(
+					abs(deficiency), frappe.get_desk_link('Item', self.item_code),
+					frappe.get_desk_link('Warehouse', warehouse))
+			else:
+				msg = _("{0} units of {1} needed in {2} on {3} {4} for {5} to complete this transaction.").format(
+					abs(deficiency), frappe.get_desk_link('Item', self.item_code),
+					frappe.get_desk_link('Warehouse', warehouse),
+					exceptions[0]["posting_date"], exceptions[0]["posting_time"],
+					frappe.get_desk_link(exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]))
 
-		if self.verbose:
-			frappe.throw(msg, NegativeStockError, title='Insufficient Stock')
-		else:
-			raise NegativeStockError(msg)
+			if msg:
+				msg_list.append(msg)
+
+		if msg_list:
+			message = "\n\n".join(msg_list)
+			if self.verbose:
+				frappe.throw(message, NegativeStockError, title='Insufficient Stock')
+			else:
+				raise NegativeStockError(message)
+	
+	def update_bin(self):
+		# update bin for each warehouse
+		for warehouse, data in iteritems(self.data):
+			bin_doc = get_bin(self.item_code, warehouse)
+
+			bin_doc.update({
+				"valuation_rate": data.valuation_rate,
+				"actual_qty": data.qty_after_transaction,
+				"stock_value": data.stock_value
+			})
+			bin_doc.flags.via_stock_ledger_entry = True
+			bin_doc.save(ignore_permissions=True)
 
 def get_previous_sle(args, for_update=False):
 	"""
@@ -744,21 +768,7 @@ def validate_negative_qty_in_future_sle(args, allow_negative_stock=None):
 		or cint(frappe.db.get_single_value("Stock Settings", "allow_negative_stock"))
 
 	if args.actual_qty < 0 and not allow_negative_stock:
-		sle = frappe.db.sql("""
-			select
-				qty_after_transaction, posting_date, posting_time,
-				voucher_type, voucher_no
-			from `tabStock Ledger Entry`
-			where 
-				item_code = %(item_code)s
-				and warehouse = %(warehouse)s
-				and voucher_no != %(voucher_no)s
-				and timestamp(posting_date, posting_time) >= timestamp(%(posting_date)s, %(posting_time)s)
-				and is_cancelled = 0
-				and qty_after_transaction < 0
-			limit 1
-		""", args, as_dict=1)
-
+		sle = self.get_future_sle_with_negative_qty(args)
 		if sle:
 			message = _("{0} units of {1} needed in {2} on {3} {4} for {5} to complete this transaction.").format(
 				abs(sle[0]["qty_after_transaction"]),
@@ -768,3 +778,19 @@ def validate_negative_qty_in_future_sle(args, allow_negative_stock=None):
 				frappe.get_desk_link(sle[0]["voucher_type"], sle[0]["voucher_no"]))
 						
 			frappe.throw(message, NegativeStockError, title='Insufficient Stock')
+
+def get_future_sle_with_negative_qty(args):
+	return frappe.db.sql("""
+		select
+			qty_after_transaction, posting_date, posting_time,
+			voucher_type, voucher_no
+		from `tabStock Ledger Entry`
+		where 
+			item_code = %(item_code)s
+			and warehouse = %(warehouse)s
+			and voucher_no != %(voucher_no)s
+			and timestamp(posting_date, posting_time) >= timestamp(%(posting_date)s, %(posting_time)s)
+			and is_cancelled = 0
+			and qty_after_transaction < 0
+		limit 1
+	""", args, as_dict=1)
