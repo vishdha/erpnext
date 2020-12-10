@@ -66,7 +66,10 @@ class PickList(Document):
 
 				if item.source_package_tag:
 					package_tag_qty = get_package_tag_qty(item.source_package_tag)
-					if package_tag_qty and item.qty > package_tag_qty[0].qty:
+					if not package_tag_qty:
+						frappe.throw("Row #{0}: No record found for Package Tag {1} in Stock Ledger Entry ").format(
+							item.idx, frappe.bold(item.source_package_tag))
+					if item.qty > package_tag_qty[0].qty:
 						frappe.throw(_("Row #{0}: {1}'s quantity ({2}) should not exceed Package Tag {3}'s quantity ({4})").format(
 							item.idx, frappe.bold(item.item_name), frappe.bold(item.qty), frappe.bold(item.source_package_tag), frappe.bold(package_tag_qty[0].qty)))
 
