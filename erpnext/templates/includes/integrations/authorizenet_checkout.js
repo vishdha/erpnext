@@ -28,7 +28,7 @@ $('#submit').on("click", function(e) {
 		frappe.throw(__("Card Number length should be between 13 and 16 characters"));
 	}
 
-	if(expirationMonth === "00" || expirationMonth.length !== 2 || expirationYear === "0000" || expirationYear.length !== 4){
+	if(expirationMonth === "00" || expirationMonth.length !== 2 || expirationYear === "00" || expirationYear.length !== 2){
 		frappe.throw(__("Card Expiration Date is invalid"));
 	}
 
