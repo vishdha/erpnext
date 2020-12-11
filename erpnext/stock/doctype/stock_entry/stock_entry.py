@@ -1602,19 +1602,16 @@ def validate_sample_quantity(item_code, sample_quantity, qty, batch_no = None):
 
 def raw_material_update_on_bom():
 	past_seven_days = get_date_str(add_days(today(), -7))
-	todays_date = today()
 	boms = frappe.get_all("BOM", filters= {
 		"manufacturing_type" : "Process"
-	},
-	fields=["name"]
-	)
+	})
 	for bom in boms:
 		stocks = frappe.get_all("Stock Entry", filters={
 			"bom_no": bom.name,
-			"posting_date": ["BETWEEN", [past_seven_days, todays_date]]
+			"posting_date": ["BETWEEN", [past_seven_days, today()]]
 		})
 		raw_material = 0
-		fg= 0
+		finished_good = 0
 		avg_manufactured_qty = 0
 		for stock in stocks:
 			stock_entry = frappe.get_doc("Stock Entry", {"name": stock.name, "bom_no": bom.name})
@@ -1622,7 +1619,7 @@ def raw_material_update_on_bom():
 				if item.s_warehouse:
 					raw_material = raw_material + item.qty
 				elif item.t_warehouse:
-					fg = fg + item.qty
-		if fg and raw_material:
-			avg_manufactured_qty= fg/raw_material
+					finished_good  = finished_good + item.qty
+		if finished_good  and raw_material:
+			avg_manufactured_qty= finished_good / raw_material
 		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
