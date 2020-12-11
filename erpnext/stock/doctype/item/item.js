@@ -800,6 +800,7 @@ frappe.ui.form.on("Item Supplier", {
 					if (!r.exc && r.message) {
 						frappe.model.set_value(cdt, cdn, "price_list", r.message.price_list);
 						frappe.model.set_value(cdt, cdn, "price_list_rate", r.message.price_list_rate);
+						frappe.model.set_value(cdt, cdn, "uom", r.message.uom);
 					}
 				}
 			});
@@ -811,7 +812,6 @@ function create_purchase_order(frm) {
 	frappe.call({
 		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",
 		args: {
-			'doc': frm.doc,
 			'items': frm.doc.supplier_items,
 		},
 		callback: function(r) {
@@ -841,8 +841,14 @@ function create_purchase_order(frm) {
 								fieldtype: 'Link',
 								fieldname: "price_list",
 								options: "Price List",
-								reqd:1,
-								in_list_view: 1
+								in_list_view: 1,
+								get_query: function() {
+									return {
+										filters: {
+											Buying: 1
+										}
+									}
+								}
 							},
 							{
 								label: __("Warehouse"),
@@ -876,7 +882,7 @@ function create_purchase_order(frm) {
 
 					items.forEach(item => {
 						if (!item.supplier || !item.warehouse || !item.qty) {
-							frappe.throw(__("Row #{0}: The supplier, price_list, warehouse and item qty cannot be empty.",
+							frappe.throw(__("Row #{0}: The supplier, warehouse and item qty cannot be empty.",
 								[item.idx]));
 						}
 					})
@@ -885,6 +891,7 @@ function create_purchase_order(frm) {
 						method: "erpnext.stock.doctype.item.item.make_purchase_order_item",
 						freeze: true,
 						args: {
+							"doc": frm.doc,
 							"items": items
 						},
 						callback: function (r) {
