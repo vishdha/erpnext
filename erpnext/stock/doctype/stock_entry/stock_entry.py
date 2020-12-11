@@ -24,6 +24,10 @@ from frappe import _
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import (cint, comma_or, cstr, flt, format_time, formatdate, getdate, nowdate, today, get_date_str, add_days)
 
+from erpnext.accounts.general_ledger import process_gl_map
+import json
+
+from six import string_types, itervalues, iteritems
 
 class IncorrectValuationRateError(frappe.ValidationError): pass
 class DuplicateEntryForWorkOrderError(frappe.ValidationError): pass
@@ -771,7 +775,7 @@ class StockEntry(StockController):
 						"credit": -1 * amount # put it as negative credit instead of debit purposefully
 					}, item=d))
 
-		return gl_entries
+		return process_gl_map(gl_entries)
 
 	def update_work_order(self):
 		def _validate_work_order(pro_doc):
