@@ -40,7 +40,7 @@ COMMANDS = {
 
 	CMD_IF: lambda args, ctx: ctx["#RUN"](args[1]) if args[0] else ctx["#RUN"](args[2] if len(args) > 2 else []),
 
-	CMD_SET: lambda args, ctx: ctx.update({args[0]: args[1]}),
+	CMD_SET: lambda args, ctx: ctx.get("#VARS").update({args[0]: args[1]}),
 	CMD_CALL: lambda args, ctx: ctx["#CALLS"].get(args[0])(args[1:], ctx),
 
 	CMD_UNSUPPORTED: lambda args, ctx: ctx.update({

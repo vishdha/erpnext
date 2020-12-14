@@ -95,25 +95,25 @@ class TestBloomBrackets(unittest.TestCase):
 
 		ctx1 = {}
 		resolve_expression(script, ctx1)
-		self.assertTrue(ctx1.get("foo") == "bar" and ctx1.get("foo_set") == None, ctx1)
+		self.assertTrue(ctx1.get("#VARS").get("foo") == "bar" and ctx1.get("#VARS").get("foo_set") == None, ctx1.get("#VARS"))
 
-		ctx2 = { "foo": "bar"}
+		ctx2 = { "#VARS": { "foo": "bar" } }
 		resolve_expression(script, ctx2)
-		self.assertTrue(ctx2.get("foo") == "nvm" and ctx2.get("foo_set") == True, ctx2)
+		self.assertTrue(ctx2.get("#VARS").get("foo") == "nvm" and ctx2.get("#VARS").get("foo_set") == True, ctx2.get("#VARS"))
 
 	def test_if_no_else(self):
 		script = [CMD_IF, [CMD_NOT_EQUALS, [CMD_VAR, "foo"], "bar"], [
 			[CMD_SET, "bar", "foo"]
 		]]
 
-		ctx1 = { "foo": "bar"}
+		ctx1 = { "#VARS": { "foo": "bar"} }
 		resolve_expression(script, ctx1)
-		self.assertTrue(ctx1.get("foo") == "bar" and ctx1.get("bar") == None, ctx1)
+		self.assertTrue(ctx1.get("#VARS").get("foo") == "bar" and ctx1.get("#VARS").get("bar") == None, ctx1.get("#VARS"))
 
 	@patch('frappe.new_doc')
 	def test_doctype_field_resolve(self, new_doc):
 		new_doc.side_effect = [_dict({ "status": "Draft" })]
-		ctx = { "doc": frappe.new_doc("Quotation", {}) }
+		ctx = { "#VARS": { "doc": frappe.new_doc("Quotation", {}) } }
 		status = resolve_expression([CMD_VAR, "doc", "status"], ctx)
 
 		frappe.new_doc.assert_called_once()
@@ -140,7 +140,7 @@ class TestBloomBrackets(unittest.TestCase):
 			})
 		])
 
-		ctx = { "doc": frappe.get_doc("Quotation", "test-quotation") }
+		ctx = { "#VARS": { "doc": frappe.get_doc("Quotation", "test-quotation") } }
 		full_name = resolve_expression([CMD_VAR, "doc", "customer_name", "full_name"], ctx)
 
 		get_doc.assert_called()

@@ -34,7 +34,8 @@ def resolve_expression(expression, ctx):
 
 	ctx.update({
 		"#RUN": lambda script: run_script(script, ctx),
-		"#VAR": lambda path: resolve_variable(path, ctx)
+		"#VAR": lambda path: resolve_variable(path, ctx),
+		"#VARS": ctx.get("#VARS", {})
 	})
 
 	if expression_type == TYPE_EXPRESSION:
@@ -97,12 +98,9 @@ def resolve_variable(path, context):
 	if isinstance(path, str):
 		path = [path]
 
-	idx = 0
 	value = context.get("#VARS")
 
-	for idx in range(0, len(path)):
-		key = path[idx]
-
+	for key in path:
 		doc = None
 		field_meta = None
 		if isinstance(value, Document):
