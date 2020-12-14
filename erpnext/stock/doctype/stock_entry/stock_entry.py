@@ -22,7 +22,7 @@ from erpnext.stock.stock_ledger import NegativeStockError, get_previous_sle, get
 from erpnext.stock.utils import get_bin, get_incoming_rate
 from frappe import _
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import (cint, comma_or, cstr, flt, format_time, formatdate, getdate, nowdate)
+from frappe.utils import (cint, comma_or, cstr, flt, format_time, formatdate, getdate, nowdate, today, get_date_str, add_days)
 
 
 class IncorrectValuationRateError(frappe.ValidationError): pass
@@ -1606,14 +1606,20 @@ def raw_material_update_on_bom():
 		"manufacturing_type" : "Process"
 	})
 	for bom in boms:
-		stocks = frappe.get_all("Stock Entry", filters={
-			"bom_no": bom.name,
-			"posting_date": ["BETWEEN", [past_seven_days, today()]]
-		})
+		stock_entries = frappe.db.sql("""
+			SELECT
+				name
+			FROM
+				`tabStock Entry` AS stock_entry
+			WHERE
+				stock_entry.bom_no = (%s)
+				AND
+				stock_entry.posting_date between date(%s) and date(%s)
+		""",(bom.name, past_seven_days, today()), as_dict=1)
 		raw_material = 0
 		finished_good = 0
 		avg_manufactured_qty = 0
-		for stock in stocks:
+		for stock in stock_entries:
 			stock_entry = frappe.get_doc("Stock Entry", {"name": stock.name, "bom_no": bom.name})
 			for item in stock_entry.items:
 				if item.s_warehouse:
