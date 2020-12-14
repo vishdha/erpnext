@@ -1,9 +1,13 @@
 import { Component } from "../component";
 import { CMD_UNDEFINED } from "../constants";
 
-export const VarSet = (ui, { exp, autofocus}) => {
+export const VarSet = (ui, { exp, autofocus, fullWidth }) => {
   let varName = exp[1];
   let $containerRef = null;
+
+  if ( exp[2] === undefined ) {
+    exp.push([CMD_UNDEFINED]);
+  }
 
   const handleRightChange = (e, value) => {
     // exp[2] = value;
@@ -26,10 +30,10 @@ export const VarSet = (ui, { exp, autofocus}) => {
 
       // Remove old variable name
       if ( oldVarName != CMD_UNDEFINED ) {
-        delete ui.context['#VAR'][oldVarName];
+        delete ui.context['#VARMETA'][oldVarName];
       }
 
-      ui.context['#VAR'][varName] = exp[1];
+      ui.context['#VARMETA'][varName] = exp[1];
       if ( oldVarName != CMD_UNDEFINED && oldVarName != varName ) {
         ui.$wrapper.trigger('bb-var-rename', [oldVarName, varName]);
       }

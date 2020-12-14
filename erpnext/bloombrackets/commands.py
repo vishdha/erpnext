@@ -1,3 +1,4 @@
+from frappe.utils import flt
 from functools import reduce
 from erpnext.bloombrackets.constants import *
 
@@ -16,10 +17,10 @@ COMMANDS = {
 	CMD_NOT_LIKE: lambda args, ctx: args[0] not in args[1],
 	CMD_BETWEEN: lambda args, ctx: args[0] > args[1] and args[0] < args[2],
 
-	CMD_GREATER_THAN: lambda args, ctx: reduce(lambda a, b: a > b, args),
-	CMD_GREATER_AND_EQUAL: lambda args, ctx: reduce(lambda a, b: a >= b, args),
-	CMD_LESS_THAN: lambda args, ctx: reduce(lambda a, b: a < b, args),
-	CMD_LESS_AND_EQUAL: lambda args, ctx: reduce(lambda a, b: a <= b, args),
+	CMD_GREATER_THAN: lambda args, ctx: reduce(lambda a, b: flt(a) > flt(b), args),
+	CMD_GREATER_AND_EQUAL: lambda args, ctx: reduce(lambda a, b: flt(a) >= flt(b), args),
+	CMD_LESS_THAN: lambda args, ctx: reduce(lambda a, b: flt(a) < flt(b), args),
+	CMD_LESS_AND_EQUAL: lambda args, ctx: reduce(lambda a, b: flt(a) <= flt(b), args),
 
 	CMD_AND: lambda args, ctx: all(args),
 	CMD_OR: lambda args, ctx: any(args),
@@ -35,11 +36,12 @@ COMMANDS = {
 	
 	CMD_ARRAY: lambda args, ctx: list(args),
 	CMD_VAR: lambda args, ctx: ctx.get("#VAR")(args),
+	CMD_VAL: lambda args, ctx: args[0],
 
 	CMD_IF: lambda args, ctx: ctx["#RUN"](args[1]) if args[0] else ctx["#RUN"](args[2] if len(args) > 2 else []),
 
 	CMD_SET: lambda args, ctx: ctx.update({args[0]: args[1]}),
-	CMD_CALL: lambda args, ctx: ctx.get(args[0])(*args[1:]),
+	CMD_CALL: lambda args, ctx: ctx["#CALLS"].get(args[0])(args[1:], ctx),
 
 	CMD_UNSUPPORTED: lambda args, ctx: ctx.update({
 		"error": "Unsupported command".format(args[0])

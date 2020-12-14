@@ -39,10 +39,10 @@ export function gen_id() {
 const meta_cache = new Map();
 export async function get_meta(doctype) {
   if (meta_cache.has(doctype)) {
-    return meta_cache.get(doctype)
+    return await meta_cache.get(doctype)
   }
 
-  const meta = await frappe.call({
+  const meta = frappe.call({
     method: "erpnext.bloombrackets.utils.get_meta",
     args: {
       doctype
@@ -52,7 +52,7 @@ export async function get_meta(doctype) {
 
   meta_cache.set(doctype, meta);
 
-  return meta;
+  return await meta;
 }
 
 export function resolve_type(value) {

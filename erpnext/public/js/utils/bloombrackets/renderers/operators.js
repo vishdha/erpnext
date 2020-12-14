@@ -13,16 +13,14 @@ export const ComparisonOperatorSelector = (ui, { exp, autofocus, reference_exp }
   }
 
   const handleLeftChange = (exp, meta) => {
-    console.log("ON LEFT CHANGE: ", exp, meta);
     $containerRef.find('.bb-control').trigger('bb-change', [exp, meta, 'left']);
     if ( rightApi ) {
       rightApi.updateFieldType(meta.fieldtype);
     }
   }
 
-  const handleRightChange = (exp, meta) => {
-    console.log("ON RIGHT CHANGE: ", exp, meta);
-    $containerRef.find('.bb-control').trigger('bb-change', [exp, meta, 'right']);
+  const initializeOperator = () => {
+    
   }
 
   return Component((ui, $container) => {
@@ -31,14 +29,15 @@ export const ComparisonOperatorSelector = (ui, { exp, autofocus, reference_exp }
 
     $select.on('change', () => {
       if (!$select.hasClass('hidden')) {
-        console.log("OP CHANGE: ", $select.val());
         // update expression operator command
         exp[0] = $select.val();
         ui.$wrapper.trigger('bb-script-change');
       }
     });
+
+    initializeOperator();
   }, (ui) => {
-    const options = ops.map((op, i) => `<option ${i == 0 ? 'selected' : ''} value="${op}">${OP_LABELS[op]}</option>`).join('');
+    const options = ops.map((op, i) => `<option ${(exp[0] == op) ? 'selected' : ''} value="${op}">${OP_LABELS[op]}</option>`).join('');
 
     return `
       <div class="bb-left">
@@ -46,7 +45,6 @@ export const ComparisonOperatorSelector = (ui, { exp, autofocus, reference_exp }
           exp: exp[1],
           autofocus, 
           open: true, 
-          reference_exp,
           onChange: handleLeftChange
         })}
       </div>
@@ -58,12 +56,10 @@ export const ComparisonOperatorSelector = (ui, { exp, autofocus, reference_exp }
           exp: exp[2], 
           autofocus: undefined, 
           open: true, 
-          reference_exp: reference_exp, 
-          onChange: handleRightChange,
           ref: handleRightRef
         })}
       </div>
-      <div class="bb-group bb-between">
+      <div class="bb-group bb-between hidden">
         <div class="bb-text">AND</div>
         <div class="bb-right2"></div>
       </div>

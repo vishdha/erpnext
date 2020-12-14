@@ -1,5 +1,6 @@
 CMD_ARRAY = "ARRAY"
 CMD_VAR = "VAR"
+CMD_VAL = "VAL"
 CMD_IF = "IF"
 CMD_CALL = "CALL"
 CMD_EQUALS = "=="

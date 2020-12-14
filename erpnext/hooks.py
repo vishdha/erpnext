@@ -565,3 +565,6 @@ coupon_brackets_extend_meta = [
 	"erpnext.bloombrackets.coupon_commands.quotation_discounts.load_commands_meta",
 	"erpnext.bloombrackets.coupon_commands.tax_charges.load_commands_meta",
 ]
+coupon_brackets_extend_vars_meta = [
+	"erpnext.bloombrackets.coupon_commands.variables.load_variable_meta"
+]

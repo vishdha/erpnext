@@ -3,7 +3,7 @@
 frappe.ui.form.on('Coupon Code', {
 	setup: function(frm) {
 		const $container = $(frm.page.current_view).find('[data-fieldname=brackets_widget]');
-		$container.data("brackets_widget", new erpnext.bloombrackets.Component($container, frm, "brackets_script"));
+		$container.data("brackets_widget", new erpnext.bloombrackets.Component($container, frm, "brackets_code"));
 	},
 	coupon_name:function(frm){
 		if (frm.doc.__islocal===1) {

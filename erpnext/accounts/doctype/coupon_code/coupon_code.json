@@ -21,7 +21,8 @@
   "description",
   "amended_from",
   "rules_section",
-  "brackets_widget"
+  "brackets_widget",
+  "brackets_code"
  ],
  "fields": [
   {
@@ -116,9 +117,14 @@
   {
    "fieldname": "brackets_widget",
    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "brackets_code",
+   "fieldtype": "Code",
+   "hidden": 1
   }
  ],
- "modified": "2020-12-01 18:17:52.371095",
+ "modified": "2020-12-10 11:50:01.147262",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Coupon Code",

@@ -6,11 +6,19 @@ export const Block = Component('bb-block', (ui, $container, { cls }) => {
   }
   $container.removeClass('bb-component');
 }, (ui, { block }) => {
-  const html = block.map((h, i) => ui.insertCommandInsert({ exp: h, order: i })).join('');
+  const html = block.map((exp, i) => ui.insertCommandInsert({ 
+    block,
+    exp,
+    order: i,
+    has_data: true,
+    no_extra_command_insert: true,
+    hideRemoveBtn: false,
+    fullWidth: true
+  })).join('');
 
   return `
     ${html}
-    ${ ui.insertCommandInsert({ block, order: block.length })}
+    ${ ui.insertCommandInsert({ block, order: block.length, fullWidth: true })}
   `
 });
 

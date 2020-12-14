@@ -37,89 +37,14 @@ class BloomBracketsComponent {
 
     // Default script to kickoff UI:
     this.script = [];
-    this.context = {
-      "#VAR": {
-        quotation: {
-          fieldtype: undefined,
-          doctype: "Quotation"
-        },
-        coupon: {
-          fieldtype: undefined,
-          doctype: "Coupon Code"
-        },
-        today: {
-          fieldtype: "Date"
-        }
-      },
-      "#CALL": {
-        "Apply Discount": {
-          description: "Applies a price discount.",
-          args: [{
-            fieldname: "discount",
-            fieldtype: "Currency",
-            maxlength: 20,
-            description: "The discount value to apply.",
-            validate: (value) => {
-              return parseFloat(value);
-            }
-          }]
-        },
-        "Apply Percent Discount": {
-          description: "Applies a percent discount",
-          args: [{
-            fieldname: "discount",
-            fieldtype: "Float",
-            maxlength: 20,
-            required: true,
-            description: "The discount percentage to apply.",
-            validate: (value) => {
-              value = parseFloat(value);
-              if ( value < 0 ) {
-                value = 0;
-              } else if ( value > 100 ) {
-                value = 100;
-              }
+    this.context = {};
 
-              return value;
-            }
-          }]
-        },
-        "Item Present": {
-          description: "Finds the specified item on the document",
-          returns: 'boolean',
-          args: [{
-            fieldname: "item_name",
-            fieldtype: "Link",
-            option: "Item",
-            maxlength: 40,
-            required: true
-          }]
-        }, 
-        "Item Present With Min Qty": {
-          description: "Finds the specified item on the document",
-          returns: 'boolean',
-          args: [{
-            fieldname: "item_name",
-            fieldtype: "Link",
-            option: "Item",
-            maxlength: 40,
-            required: true,
-            description: "The item to find"
-          }, {
-            fieldname: "qty",
-            fieldtype: "Int",
-            maxlength: 40,
-            required: true,
-            description: "The item to find"
-          }]
-        }
-      }
-    };
     this.script_field = script_field;
     this.id_count = 0;
-    if (frm[script_field]) {
+    if (frm.doc[this.script_field]) {
       try {
-        this.script = JSON.parse(frm[script_field]);
+        this.script = JSON.parse(frm.doc[this.script_field]);
+        console.dir(this.script);
       } catch (err) {
         console.error(err);
       }
@@ -129,6 +54,20 @@ class BloomBracketsComponent {
   }
 
   make() {
+    return frappe.run_serially([
+      () => frappe.dom.freeze(),
+      () => this.load_meta(),
+			() => this.build_editor(),
+			() => frappe.dom.unfreeze()
+		]);
+  }
+
+  async load_meta() {
+    const meta = await this.frm.call("get_brackets_meta");
+    this.context = meta.message;
+  }
+
+  build_editor() {
     const html = Block(this, { block: this.script, cls: 'bb-block-top' });
     //const html = this.render_block(this.script);
 
@@ -137,14 +76,16 @@ class BloomBracketsComponent {
     this.$wrapper.trigger('bb-init');
 
     this.$wrapper.on('bb-script-change', () => {
-      console.log(JSON.stringify(this.script, null, 2));
+      if ( this.script ) {
+        const script = JSON.stringify(this.script);
+        this.frm.set_value(this.script_field, script);
+      }
     })
   }
 
   list_vars() {
-    return Object.keys(this.context['#VAR']);
+    return Object.keys(this.context['#VARMETA']);
   }
-
 }
 
 erpnext.bloombrackets.Component = BloomBracketsComponent;

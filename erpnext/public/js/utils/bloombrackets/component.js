@@ -30,27 +30,28 @@ export function Component(...compArgs) {
 
   return (ui, props) => {
     const id = `bb-component-${gen_id()}`;
+    let onInit = init;
+    let onRender = render;
 
     if (ui == undefined) {
-      throw new ReferenceError("ui refenrece is undefined...");
+      throw new ReferenceError("ui reference is undefined...");
     }
 
-    if (init) {
-      let initialized = false;
+    if (onInit) {
       // Wait for widget to be ready before init
       ui.$wrapper.one('bb-init', () => {
         // Sanity check, only run init once for this component
-        if ( !initialized ) {
-          initialized = true;
+        if ( onInit ) {
           const $comp = ui.$wrapper.find(`#${id}`);
-          init(ui, $comp, props, cls);
+          onInit(ui, $comp, props, cls);
+          onInit = undefined;
         }
       });
     }
 
     return `
       <div id="${id}" class="bb-component${ cls ? ` ${cls}` : ''}">
-        ${render(ui, props, cls)}
+        ${onRender(ui, props, cls)}
       </div>
     `
   }

@@ -1,5 +1,18 @@
 import { Component } from "../component";
-import { CMD_STRING, CMD_VAR, CMD_ADD, CMD_UNDEFINED, CMD_EQUALS, CMD_CALL, CMD_VAL } from "../constants";
+import { 
+  CMD_STRING, 
+  CMD_VAR, 
+  CMD_FLOAT,
+  CMD_INT,
+  CMD_UNDEFINED, 
+  CMD_EQUALS, 
+  CMD_CALL, 
+  CMD_VAL, 
+  CMD_ADD, 
+  CMD_SUBTRACT, 
+  CMD_MULTIPLY, 
+  CMD_DIVIDE 
+} from "../constants";
 
 /**
  * Component which inserts expressions (variables, inputs, math and commands which return values)
@@ -68,27 +81,35 @@ export const ExpressionInsert = Component((ui, $container, {
 
     switch (insert) {
       case "input":
-        exp[0] = CMD_VAL;
+        if ( exp[0] == CMD_UNDEFINED ) {
+          exp[0] = CMD_VAL;
+        }
+
         html = ui.insertInput({
-          exp, 
-          autofocus: autofocus != undefined?autofocus:true, 
+          exp,
+          autofocus: autofocus != undefined?autofocus:true,
           reference_exp,
-          onDelete: handleExpressionDelete, 
-          onChange, 
+          onDelete: handleExpressionDelete,
+          onChange,
           exp_meta,
+          open,
           onRef
         });
         $content.empty().append(html);
         $actions.hide();
         break;
       case "var":
-        exp[0] = CMD_VAR;
+        if ( exp[0] == CMD_UNDEFINED ) {
+          exp[0] = CMD_VAR;
+        }
+
         html = ui.insertVariable({
           exp, 
           autofocus: autofocus != undefined?autofocus:true, 
           onDelete: handleExpressionDelete, 
           onChange, 
           exp_meta,
+          open,
           onRef
         });
         $content.empty().append(html);
@@ -101,15 +122,18 @@ export const ExpressionInsert = Component((ui, $container, {
           exp[1] = [CMD_UNDEFINED];
           exp[2] = [CMD_UNDEFINED];
         }
+
         html = ui.insertMathExp({
-          exp
+          exp,
+          open,
         });
         $content.empty().append(html);
         $actions.hide();
         break;
       case "method":
         html = ui.insertCommandInsert({
-          block: exp,
+          exp,
+          has_data: !!exp,
           open: true,
           no_void_cmds: true,
           insert_directly: true,
@@ -120,13 +144,16 @@ export const ExpressionInsert = Component((ui, $container, {
         })
         $content.empty().append(html);
         $actions.hide();
+        break;
+      default:
+        console.warn("Missing expression: ", insert);
+        break;
     }
 
     if (html) {
-      ui.$wrapper.trigger('bb-init');
+      setTimeout(() => ui.$wrapper.trigger('bb-init'), 1);
+      $container.trigger('bb-script-change');
     }
-
-    $container.trigger('bb-script-change');
   }
 
   // Binds
@@ -135,13 +162,29 @@ export const ExpressionInsert = Component((ui, $container, {
   $btn_min.on('click', handleCloseOptions);
   $btn_min.hover(handleHoverCloseOptionsIn, handleHoverCloseOptionsOut);
 
-  // Initialize inserts if already defined
-  if (exp[0] == CMD_VAR) {
-    handleInsert('var');
-  }
-
-  if (exp[0] == CMD_STRING) {
-    handleInsert('input');
+  const initExpression = () => {
+    switch(exp[0]) {
+      case CMD_STRING:
+      case CMD_VAL:
+      case CMD_INT:
+      case CMD_FLOAT:
+        handleInsert('input');
+        break;
+      case CMD_VAR:
+        handleInsert('var');
+        break;
+      case CMD_ADD:
+      case CMD_SUBTRACT:
+      case CMD_MULTIPLY:
+      case CMD_DIVIDE:
+        handleInsert('math');
+        break;
+      case CMD_CALL:
+        handleInsert('method');
+        break;
+      default:
+        console.warn("Invalid expression: ", exp[0]);
+    }
   }
 
   // open options from the start
@@ -149,7 +192,12 @@ export const ExpressionInsert = Component((ui, $container, {
     handleOpenOptions();
   }
 
-}, (ui) => `
+  if ( exp ) {
+    initExpression();
+  }
+
+}, (ui, { exp }) => {
+  return `
   <div class="bb-actions">
     <i class="btn btn-plus octicon octicon-plus"></i>
     <div class="bb-control hidden">
@@ -165,4 +213,4 @@ export const ExpressionInsert = Component((ui, $container, {
   <div class="bb-content">
   </div>
   <i class="btn btn-minus octicon octicon-x hidden"></i>
-`);
+`});

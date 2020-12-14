@@ -32,8 +32,6 @@ export const MathExp = Component((ui, $container, {
   }
 
   const handleValueChange = (side, $parent, side_exp) => {
-    console.log('MATH VALUE CHANGE: ', side, $parent, side_exp);
-
     if ( onChange ) {
       onChange(exp);
     }

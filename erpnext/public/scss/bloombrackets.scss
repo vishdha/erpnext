@@ -1,13 +1,26 @@
 @import "frappe/public/scss/variables";
 
+$bb-line-color: #f5f7fa;
+$bb-line-outline-color: lightgray;
 $bb-error-background: rgb(248, 172, 172);
 $bb-error-color: rgb(223, 93, 93);
+$bb-control-outline-color: rgb(218, 218, 218);
+$bb-control-focused-outline-color: black;
 
 .bb-block {
   display: flex;
   flex-direction: column;
   margin: 2px 0;
   padding: 0;
+
+  .clearfix {
+    height: 0;
+  }
+
+  .frappe-control, .form-control, .form-group {
+    margin: 0;
+    padding: 0;
+  }
 
   &.bb-block-top {
     padding-left: 0;
@@ -41,10 +54,11 @@ $bb-error-color: rgb(223, 93, 93);
 
   .bb-line {
     display: block;
-    border: 1px solid lightgray;
+    border: 1px solid $bb-line-outline-color;
     padding: 2px 4px;
     border-radius: 5px;
-    background-color: #f1f5f9;
+    background-color: $bb-line-color;
+    margin-top: -1px;
   }
 
   .bb-line-group {
@@ -68,6 +82,7 @@ $bb-error-color: rgb(223, 93, 93);
     > i, > .bb-actions {
       flex: 0 0 auto;
       line-height: inherit;
+      padding-top: 1rem;
     }
   }
 
@@ -78,6 +93,11 @@ $bb-error-color: rgb(223, 93, 93);
 
   select, input {
     max-width: 10rem;
+    height: 30px;
+  }
+
+  .awesomplete > ul {
+    min-width: 250px;
   }
 
   .bb-text {
@@ -98,10 +118,9 @@ $bb-error-color: rgb(223, 93, 93);
   }
 
   .bb-control {
-    border: 1px solid rgb(194, 194, 194);
     padding: 2px 5px;
+    border: 1px dashed $bb-control-outline-color;
     border-radius: 5px;
-    background-color: white;
     display: inline-block;
 
     select, input {
@@ -111,10 +130,6 @@ $bb-error-color: rgb(223, 93, 93);
       &:focus {
         outline: none;
       }
-    }
-
-    &:focus-within {
-      border-color: black;
     }
 
     &.bb-var {
@@ -130,6 +145,16 @@ $bb-error-color: rgb(223, 93, 93);
     &.bb-error {
       background-color: $bb-error-background;
       border-color: $bb-error-color;
+    }
+
+    &:hover {
+      border: 1px solid $bb-control-focused-outline-color;
+      background-color: white;
+    }
+
+    &:focus-within {
+      border: 1px solid $bb-control-focused-outline-color;
+      background-color: white;
     }
 
   }

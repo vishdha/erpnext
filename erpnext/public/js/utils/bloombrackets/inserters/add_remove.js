@@ -41,28 +41,37 @@ export const AddRemoveWrapper = Component("bb-addremove", (ui, $container, {
   const $select = $container.find('> .bb-actions select');
   const $actions = $container.find('> .bb-actions');
   const $content = $container.find('> .bb-content');
+  const api = {
+    selectOption (data) {
+      const [contentHtml, insertHtml=undefined] = onOptionSelected(data.value, data);
 
-  console.log("Should it be full width? ", fullWidth);
+      if (contentHtml) {
+        if ( hideRemoveBtn ) {
+          $btn_min.addClass('hidden');
+        } else {
+          $btn_min.removeClass('hidden');
+        }
+      
+        if ( insertHtml ) {
+          const $parent = $container.parent();
+          $parent.append($(insertHtml));
+        }
+        $content.empty().append($(contentHtml));
+        $actions.hide();
+
+        setTimeout(() => ui.$wrapper.trigger('bb-init'), 1);
+        ui.$wrapper.trigger('bb-script-change');
+        return;
+      }
+    }
+  }
+
   if ( fullWidth ) {
     $container.width('100%');
   }
 
   if ( hideRemoveBtn ) {
     $btn_min.addClass('hidden');
-  }
-
-  /**
-   * handles the delete button click event.
-   */
-  const handleExpressionDelete = () => {
-    exp.splice(1);
-    exp[0] = CMD_UNDEFINED;
-    $container.trigger('bb-script-change');
-    if (onDelete) {
-      onDelete();
-    }
-
-    handleCloseOptions();
   }
 
   /**
@@ -80,12 +89,15 @@ export const AddRemoveWrapper = Component("bb-addremove", (ui, $container, {
    * Resets display state of this component to only display the + button.
    */
   const handleCloseOptions = () => {
-    $select.parent().addClass('hidden');
-    $btn_plus.removeClass('hidden');
-    $btn_min.addClass('hidden');
-
+    let success = true;
     if ( onDelete ) {
-      onDelete($container, exp);
+      success = onDelete($container, exp);
+    }
+
+    if ( success ) {
+      $select.parent().addClass('hidden');
+      $btn_plus.removeClass('hidden');
+      $btn_min.addClass('hidden');
     }
   }
 
@@ -98,21 +110,9 @@ export const AddRemoveWrapper = Component("bb-addremove", (ui, $container, {
     if (onOptionSelected) {
       const $selected_option = $select.find('option:selected');
       const data = $selected_option.data('option');
-      const [contentHtml, insertHtml=undefined] = onOptionSelected($select.val(), data);
-
-      if (contentHtml) {
-        if ( insertHtml ) {
-          const $parent = $container.parent();
-          $parent.append($(insertHtml));
-        }
-        $content.empty().append($(contentHtml));
-        $actions.hide();
-        ui.$wrapper.trigger('bb-init');
-        ui.$wrapper.trigger('bb-script-change');
-        return;
-      }
+      api.selectOption(data);
+      $select.val('');
     }
-    $select.val('');
   }
 
   /**
@@ -159,22 +159,22 @@ export const AddRemoveWrapper = Component("bb-addremove", (ui, $container, {
 
   // let parent component know when this component was initialized.
   if (onInit) {
-    onInit(ui, $container);
+    onInit(ui, $container, api);
   }
 
-  if ( order != undefined ) {
-    $container.css('order', order);
-  }
+  // if ( order != undefined ) {
+  //   $container.css('order', order);
+  // }
 
 }, (ui, { title }) => `
-<i class="btn btn-minus octicon octicon-x hidden"></i>
-<div class="bb-actions">
-    <i class="btn btn-plus octicon octicon-plus"></i>
-    <div class="bb-control hidden">
-      <select title="${title}">
-        <option hidden disabled selected value> -- </option>
-      </select>
+  <i class="btn btn-minus octicon octicon-x hidden"></i>
+  <div class="bb-actions">
+      <i class="btn btn-plus octicon octicon-plus"></i>
+      <div class="bb-control hidden">
+        <select title="${title}">
+          <option hidden disabled selected value> -- </option>
+        </select>
+      </div>
     </div>
-  </div>
-<div class="bb-content"></div>
+  <div class="bb-content"></div>
 `);

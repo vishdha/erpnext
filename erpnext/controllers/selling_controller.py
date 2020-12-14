@@ -51,7 +51,7 @@ class SellingController(StockController):
 		self.validate_target_warehouse()
 
 	def validate_coupon(self):
-		if self.meta.get_field("coupon_name"):
+		if self.meta.get_field("coupon_code"):
 			from erpnext.accounts.doctype.coupon_code.coupon_code import apply_coupon
 			apply_coupon(self)
 

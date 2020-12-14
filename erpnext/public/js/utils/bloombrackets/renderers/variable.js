@@ -7,7 +7,7 @@ export const Variable = Component((ui, $container, { exp, autofocus, onChange })
   const $fields = $container.find('.bb-fields');
   let doctype = undefined;
   if (exp.length > 1) {
-    doctype = ui.context['#VAR'][exp[1]].doctype;
+    doctype = ui.context['#VARMETA'][exp[1]].doctype;
   }
 
   const variableFieldSelectHandle = (position, selection, meta) => {
@@ -76,7 +76,7 @@ export const Variable = Component((ui, $container, { exp, autofocus, onChange })
   const buildVariableList = () => {
     const selected = exp.length > 1 ? exp[1] : undefined;
     const options = ui.list_vars().map((v) => {
-      const meta = ui.context['#VAR'][v];
+      const meta = ui.context['#VARMETA'][v];
       return $(`<option class="${meta.doctype ? 'doctype' : ''}" data-fieldtype="${meta.fieldname || ''}" data-doctype="${meta.doctype || ''}" title="${v}" value="${v}">${v}</option>`);
     });
   
@@ -113,8 +113,17 @@ export const Variable = Component((ui, $container, { exp, autofocus, onChange })
 
   // prime fields if values are set
   if (exp.length > 1) {
-    fields = exp.slice(2).map((x, i) => VariableField(ui, exp, i, doctype, x, x, false, variableFieldSelectHandle)).join('');
+    let fields = exp.slice(2).map((x, i) => VariableField(ui, {
+      exp, 
+      position: i, 
+      doctype, 
+      selected: x, 
+      title: x, 
+      autofocus: false, 
+      onFieldChange: variableFieldSelectHandle
+    })).join('');
     $fields.append(fields);
+    ui.$wrapper.trigger('bb-init');
   }
 }, (ui, { exp }) => {
   if (exp[0] !== CMD_VAR) {

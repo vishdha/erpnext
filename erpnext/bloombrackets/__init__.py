@@ -45,9 +45,7 @@ def resolve_expression(expression, ctx):
 		if fn == CMD_UNSUPPORTED:
 			args = cmd
 
-		# print("[{}] {} => {}".format(cmd, args, fn))
 		result = fn(args, ctx)
-		# print("CTX: {}".format(ctx))
 		return result
 	elif expression_type == TYPE_LIST:
 		args = [ resolve_expression(arg, ctx) for arg in expression[1:] ]
@@ -100,7 +98,7 @@ def resolve_variable(path, context):
 		path = [path]
 
 	idx = 0
-	value = context
+	value = context.get("#VARS")
 
 	for idx in range(0, len(path)):
 		key = path[idx]
