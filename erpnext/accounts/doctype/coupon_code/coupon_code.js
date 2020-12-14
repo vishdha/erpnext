@@ -30,7 +30,6 @@ frappe.ui.form.on('Coupon Code', {
 	},
 	refresh: function(frm) {
 		const $container = $(frm.page.current_view).find('[data-fieldname=brackets_widget]');
-		console.log($container.data("brackets_widget"));
 	}
 });
 

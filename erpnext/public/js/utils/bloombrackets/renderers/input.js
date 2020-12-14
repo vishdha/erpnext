@@ -42,7 +42,6 @@ export const Input = Component("bb-control", (ui, $container, {
       link_input.make_input();
       link_input.toggle_description(false);
       $input = link_input.$input;
-      console.log($input)
     } 
 
     if ( exp_meta.description ) {

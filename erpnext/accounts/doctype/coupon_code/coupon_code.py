@@ -73,9 +73,7 @@ def run_coupon_undo_script(doc):
 		coupon_code_before_change = frappe.get_value(doc.doctype, doc.name, "coupon_code")
 
 		if doc.coupon_code != coupon_code_before_change:
-			print("RUNNING SCRIPT... {} != {}".format(doc.coupon_code, coupon_code_before_change))
 			script = doc_automation.get("coupon_undo_script", [])
-			print(script)
 			ctx = run_brackets_script(script, doc, None)
 
 			# remove coupon link and undo script references from automation scripts
@@ -89,13 +87,10 @@ def run_coupon_undo_script(doc):
 				taxes = []
 				for item in doc.taxes:
 					item_automation = get_automation_data(item)
-					print(item)
-					print(item_automation)
 					if item_automation.get("linked_coupon", None) != coupon_code_before_change:
 						taxes.append(item)
 
 			doc.taxes = taxes
-			print(doc.taxes)
 
 def get_automation_data(doc):
 	"""Parses automation data object where undo and coupon scripts references are stored"""

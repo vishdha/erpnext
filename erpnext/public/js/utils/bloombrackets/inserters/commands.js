@@ -44,8 +44,6 @@ export const CommandInsert = (ui, {
     let html = undefined;
     let insertHtml = undefined;
 
-    console.log("INSERT COMMAND: ", cmd, opt);
-
     switch (cmd) {
       case CMD_IF:
         if (!has_data) {
@@ -108,7 +106,6 @@ export const CommandInsert = (ui, {
           }
         }
 
-        console.log("Insert Custom Command: ", has_data, exp);
         html = ui.insertCustomCommand({
           exp,
           onRef,
