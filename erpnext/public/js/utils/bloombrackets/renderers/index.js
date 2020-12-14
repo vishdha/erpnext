@@ -7,3 +7,5 @@ export * from './input';
 export * from './var_set';
 export * from './custom_commands';
 export * from './math';
+
+export default {}
