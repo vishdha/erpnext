@@ -9,6 +9,7 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext.compliance.doctype.compliance_info.compliance_info import validate_license_expiry
 from erpnext.compliance.taxes import calculate_cannabis_tax
 from erpnext.accounts.utils import get_fiscal_year, get_stock_and_account_balance
+from erpnext.accounts.utils import get_fiscal_year
 from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries, process_gl_map
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.stock import get_warehouse_account_map
@@ -382,15 +383,6 @@ class StockController(AccountsController):
 			"voucher_no": self.name,
 			"company": self.company
 		})
-		if cint(erpnext.is_perpetual_inventory_enabled(self.company)):
-			account_bal, stock_bal, warehouse_list = get_stock_and_account_balance('Stock In Hand - TCP1',
-			self.posting_date, self.company)
-			if account_bal != stock_bal:
-				print("-"*30)
-				print(self.company, self.posting_date)
-				print(account_bal, stock_bal, warehouse_list)
-				print("-"*30)
-				raise
 
 		if check_if_future_sle_exists(args):
 			create_repost_item_valuation_entry(args)
