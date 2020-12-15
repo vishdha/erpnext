@@ -1,5 +1,9 @@
-export * from './add_remove';
-export * from './expressions';
-export * from './commands';
+import { AddRemoveWrapper } from './add_remove';
+import { ExpressionInsert } from './expressions';
+import { CommandInsert } from './commands';
 
-export default {}
+export default {
+  AddRemoveWrapper,
+  CommandInsert,
+  ExpressionInsert
+}
