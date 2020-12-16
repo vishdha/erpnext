@@ -1,0 +1,31 @@
+<html>
+<style>
+.column {
+  float: left;
+  width: 25%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.title{
+  padding-top: 10px;
+  padding-bottom: 30px;
+  padding-left: 10px;
+  text-align: left;
+  background-color: rgb(141, 153, 166);
+  color: white;
+}
+</style>
+<div class="title">
+    <div class="column">Warehouse</div>
+    <div class="column">Item</div>
+    <div class="column">Stock UOM</div>
+    <div class="column">Available Qty</div>
+  </div>
+
+</html>

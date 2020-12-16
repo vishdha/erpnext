@@ -32,6 +32,36 @@ class Warehouse(NestedSet):
 
 	def on_update(self):
 		self.update_nsm_model()
+		self.create_warehouse_address()
+		self.create_warehouse_contact()
+
+	def create_warehouse_address(self):
+		if self.customer:
+			address_names = frappe.get_all('Dynamic Link', filters={
+				"parenttype": "Address",
+				"link_doctype": "Customer",
+				"link_name": self.customer
+			}, fields=["parent as name"])
+
+			for address_name in address_names:
+				address = frappe.get_doc('Address', address_name.get('name'))
+				if not address.has_link('Warehouse', self.name):
+					address.append('links', dict(link_doctype='Warehouse', link_name=self.name))
+					address.save()
+
+	def create_warehouse_contact(self):
+		if self.customer:
+			contact_names = frappe.get_all('Dynamic Link', filters={
+				"parenttype": "Contact",
+				"link_doctype": "Customer",
+				"link_name": self.customer
+			}, fields=["parent as name"])
+
+			for contact_name in contact_names:
+				contact = frappe.get_doc('Contact', contact_name.get('name'))
+				if not contact.has_link('Warehouse', self.name):
+					contact.append('links', dict(link_doctype='Warehouse', link_name=self.name))
+					contact.save()
 
 	def update_nsm_model(self):
 		frappe.utils.nestedset.update_nsm(self)
@@ -200,3 +230,38 @@ def get_warehouses_based_on_account(account, company=None):
 			.format(account))
 
 	return warehouses
+
+def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
+	user = frappe.session.user
+	customer = frappe.get_value("User", user, "full_name")
+	if customer == "Administrator":
+		warehouses = frappe.db.sql('''select name from `tabWarehouse`
+		where published=1''')
+		docs = []
+		for warehouse in warehouses:
+			docs += frappe.db.sql('''select * from `tabBin`
+			where warehouse=%s''', (warehouse), as_dict = True)
+		for doc in docs:
+			item_name = frappe.get_value("Item", doc.item_code, "item_name")
+			doc = doc.update({"item_name": item_name})
+		return docs
+
+	elif customer :
+		docs = frappe.db.sql('''SELECT * FROM `tabBin`
+		WHERE warehouse=(SELECT name FROM `tabWarehouse`
+		WHERE customer=%s AND published=1)''', (customer), as_dict = True)
+		for doc in docs:
+			item_name = frappe.get_value("Item", doc.item_code, "item_name")
+			doc = doc.update({"item_name": item_name})
+		return docs
+
+def get_list_context(context=None):
+	return {
+		"show_sidebar": True,
+		"show_search": True,
+		'no_breadcrumbs': True,
+		"title": _("Warehouse"),
+		"get_list": get_warehouse_list,
+		"row_template": "stock/doctype/warehouse/templates/warehouse_row.html",
+		"result_heading_template": "stock/doctype/warehouse/templates/result_heading_template.html"
+	}
