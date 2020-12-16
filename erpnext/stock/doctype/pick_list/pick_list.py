@@ -212,6 +212,9 @@ class PickList(Document):
 					})
 					package_tag.save()
 
+			if item.package_tag and frappe.db.exists("Package Tag", {"name": item.package_tag, "item_code": ""}):
+				frappe.db.set_value("Package Tag", item.package_tag, "item_code", item.item_code)
+
 	def set_per_picked(self):
 		"""
 		Set Percentage Picked(per_picked)in Sales Order on the basis of Pick List created.
