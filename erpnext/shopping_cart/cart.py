@@ -19,12 +19,15 @@ class WebsitePriceListMissingError(frappe.ValidationError):
 
 def set_cart_count(quotation=None):
 	if cint(frappe.db.get_singles_value("Shopping Cart Settings", "enabled")):
+		cart_count = 0
 		if not quotation:
 			quotation = _get_cart_quotation()
-		cart_count = cstr(len(quotation.get("items")))
+
+		for item in quotation.get("items"):
+			cart_count += cint(item.get("qty"))
 
 		if hasattr(frappe.local, "cookie_manager"):
-			frappe.local.cookie_manager.set_cookie("cart_count", cart_count)
+			frappe.local.cookie_manager.set_cookie("cart_count", cstr(cart_count))
 
 @frappe.whitelist()
 def get_cart_quotation(doc=None):
@@ -68,7 +71,7 @@ def place_order():
 	if not (quotation.shipping_address_name or quotation.customer_address):
 		frappe.throw(_("Set Shipping Address or Billing Address"))
 
-	#We have migrated the order placement to the make_payment_entry function to accomodate quotations 
+	#We have migrated the order placement to the make_payment_entry function to accomodate quotations
 
 	# Checking if items in quotation are in stock, if not throw an error
 	if not cint(cart_settings.allow_items_not_in_stock):
