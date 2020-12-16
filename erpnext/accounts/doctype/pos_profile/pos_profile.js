@@ -12,10 +12,6 @@ frappe.ui.form.on("POS Profile", "onload", function(frm) {
 		return { filters: { selling: 1 } };
 	});
 
-	erpnext.queries.setup_queries(frm, "Warehouse", function() {
-		return erpnext.queries.warehouse(frm.doc);
-	});
-
 	frm.call({
 		method: "erpnext.accounts.doctype.pos_profile.pos_profile.get_series",
 		callback: function(r) {
@@ -67,6 +63,10 @@ frappe.ui.form.on('POS Profile', {
 					link_name: doc.company
 				}
 			};
+		});
+
+		erpnext.queries.setup_queries(frm, "Warehouse", function() {
+			return erpnext.queries.warehouse(frm.doc);
 		});
 	},
 

@@ -44,7 +44,7 @@ frappe.ui.form.on('Woocommerce Settings', {
 	}
 });
 
-frappe.ui.form.on("Woocommerce Settings", "onload", function () {
+frappe.ui.form.on("Woocommerce Settings", "onload", function (frm) {
 	frappe.call({
 		method: "erpnext.erpnext_integrations.doctype.woocommerce_settings.woocommerce_settings.get_series",
 		callback: function (r) {
@@ -52,5 +52,8 @@ frappe.ui.form.on("Woocommerce Settings", "onload", function () {
 				set_field_options(key, value);
 			});
 		}
+	});
+	erpnext.queries.setup_queries(frm, "Warehouse", function() {
+		return erpnext.queries.warehouse(frm.doc);
 	});
 });
