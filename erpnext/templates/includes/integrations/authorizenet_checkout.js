@@ -19,6 +19,10 @@ $('#submit').on("click", function(e) {
 	if (!cardHolderEmail) {
 		frappe.throw(__("Card Holder Email is mandatory."));
 	}
+	
+	if (!validate_email(cardHolderEmail)) {
+		frappe.throw(__("Card Holder Email is invalid."));
+	}
 
 	if (!validate_email(cardHolderEmail)) {
 		frappe.throw(__("Card Holder Email is invalid."));
