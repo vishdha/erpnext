@@ -1606,26 +1606,20 @@ def raw_material_update_on_bom():
 		"manufacturing_type" : "Process"
 	})
 	for bom in boms:
-		stock_entries = frappe.db.sql("""
-			SELECT
-				name
-			FROM
-				`tabStock Entry` AS stock_entry
-			WHERE
-				stock_entry.bom_no = (%s)
-				AND
-				stock_entry.posting_date between date(%s) and date(%s)
-		""",(bom.name, past_seven_days, today()), as_dict=1)
+		stock_entries = frappe.get_all("Stock Entry", filters={
+			"bom_no": bom.name,
+			"posting_date": ["BETWEEN", [past_seven_days, today()]]
+		})
 		raw_material = 0
 		finished_good = 0
 		avg_manufactured_qty = 0
-		for stock in stock_entries:
-			stock_entry = frappe.get_doc("Stock Entry", {"name": stock.name, "bom_no": bom.name})
+		for stock_entry in stock_entries:
+			stock_entry = frappe.get_doc("Stock Entry", {"name": stock_entry.name, "bom_no": bom.name})
 			for item in stock_entry.items:
 				if item.s_warehouse:
 					raw_material = raw_material + item.qty
 				elif item.t_warehouse:
 					finished_good  = finished_good + item.qty
-		if finished_good  and raw_material:
+		if finished_good and raw_material:
 			avg_manufactured_qty= finished_good / raw_material
 		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
