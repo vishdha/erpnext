@@ -77,8 +77,11 @@ def run_coupon_undo_script(doc):
 			ctx = run_brackets_script(script, doc, None)
 
 			# remove coupon link and undo script references from automation scripts
-			del doc_automation["linked_coupon"]
-			del doc_automation["coupon_undo_script"]
+			if "linked_coupon" in doc_automation:
+				del doc_automation["linked_coupon"]
+			if "coupon_undo_script" in doc_automation:
+				del doc_automation["coupon_undo_script"]
+
 			doc.automation_data = json.dumps(doc_automation)
 
 			if doc.meta.has_field('taxes'):

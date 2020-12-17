@@ -17,6 +17,8 @@
   "valid_upto",
   "maximum_use",
   "used",
+  "allowed_customer",
+  "allowed_customer_group",
   "column_break_11",
   "description",
   "amended_from",
@@ -122,10 +124,22 @@
    "fieldname": "brackets_code",
    "fieldtype": "Code",
    "hidden": 1
+  },
+  {
+   "fieldname": "allowed_customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "allowed_customer_group",
+   "fieldtype": "Link",
+   "label": "Customer Group",
+   "options": "Customer Group"
   }
  ],
- "modified": "2020-12-10 11:50:01.147262",
- "modified_by": "Administrator",
+ "modified": "2020-12-17 00:02:05.148366",
+ "modified_by": "forellana@digithinkit.com",
  "module": "Accounts",
  "name": "Coupon Code",
  "owner": "Administrator",

@@ -1,8 +1,10 @@
 from frappe.utils import flt
+from erpnext.bloombrackets.coupon_commands.utils import flat_item_group_tree_list
 
 CMD_HAS_ITEM = "Has Item"
 CMD_HAS_ITEM_MIN_QTY = "Has Item Min Qty"
 CMD_ITEM_QTY = "Item Qty"
+CMD_ITEM_GROUP_QTY = "Item Group Qty"
 
 def load_commands(commands, for_doctype):
 
@@ -33,10 +35,27 @@ def load_commands(commands, for_doctype):
 				total_qty = total_qty + item.qty
 		return total_qty
 
+	def get_item_group_qty(args, ctx):
+		item_group_name = args[0]
+		total_qty = 0
+
+		# get a list of item group parents we could logically match against
+		# Ex: 
+		#	In the case of: Accessories -> Cases
+		#	If we are looking for accessories and the item is in the cases group
+		# 	we would accept that match since cases belong to accessories.
+		item_groups = flat_item_group_tree_list(item_group_name)
+
+		for item in ctx["#VARS"]["doc"].items:
+			if item.item_group in item_groups:
+				total_qty = total_qty + item.qty
+		return total_qty
+
 	commands.update({
 		CMD_HAS_ITEM: has_item,
 		CMD_HAS_ITEM_MIN_QTY: has_item_min_qty,
-		CMD_ITEM_QTY: get_item_qty
+		CMD_ITEM_QTY: get_item_qty,
+		CMD_ITEM_GROUP_QTY: get_item_group_qty
 	})
 
 def load_commands_meta(meta, for_doctype):
@@ -76,6 +95,16 @@ def load_commands_meta(meta, for_doctype):
 				"fieldtype": "Link",
 				"options": "Item"
 			}]
-		}
+		},
+		CMD_ITEM_GROUP_QTY: {
+			"description": "Returns the qty of a certain item group items in the document",
+			"returns": "int",
+			"args": [{
+				"name": "item_group",
+				"description": "The item's group name",
+				"fieldtype": "Link",
+				"options": "Item Group"
+			}]
+		},
 	})
 
