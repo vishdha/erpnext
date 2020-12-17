@@ -239,30 +239,104 @@ frappe.ui.form.on('Material Request', {
 	},
 
 	make_purchase_order: function (frm) {
-		frappe.prompt(
-			{
-				label: __('For Default Supplier (Optional)'),
-				fieldname: 'default_supplier',
-				fieldtype: 'Link',
-				options: 'Supplier',
-				description: __('Select a Supplier from the Default Supplier List of the items below.'),
-				get_query: () => {
-					return {
-						query: "erpnext.stock.doctype.material_request.material_request.get_default_supplier_query",
-						filters: { 'doc': frm.doc.name }
-					}
-				}
+		// frappe.prompt(
+		// 	{
+		// 		label: __('For Default Supplier (Optional)'),
+		// 		fieldname: 'default_supplier',
+		// 		fieldtype: 'Link',
+		// 		options: 'Supplier',
+		// 		description: __('Select a Supplier from the Default Supplier List of the items below.'),
+		// 		get_query: () => {
+		// 			return {
+		// 				query: "erpnext.stock.doctype.material_request.material_request.get_default_supplier_query",
+		// 				filters: { 'doc': frm.doc.name }
+		// 			}
+		// 		}
+		// 	},
+		// 	(values) => {
+		// 		frappe.model.open_mapped_doc({
+		// 			method: "erpnext.stock.doctype.material_request.material_request.make_purchase_order",
+		// 			frm: frm,
+		// 			args: { default_supplier: values.default_supplier },
+		// 			run_link_triggers: true
+		// 		});
+		// 	},
+		// 	__('Enter Supplier')
+		// )
+		frappe.call({
+			method: 'erpnext.stock.doctype.item.item.get_supplier_for_purchase_order',
+			args: {
+				'items': frm.doc.items
 			},
-			(values) => {
-				frappe.model.open_mapped_doc({
-					method: "erpnext.stock.doctype.material_request.material_request.make_purchase_order",
-					frm: frm,
-					args: { default_supplier: values.default_supplier },
-					run_link_triggers: true
-				});
-			},
-			__('Enter Supplier')
-		)
+		callback: function(r) {
+			console.log(r.message)
+			const dialog = new frappe.ui.Dialog({
+				title: __("Make Purchase Order"),
+				fields:[{
+					label: __("Items"),
+					fieldname: "items",
+					fieldtype: "Table",
+					data: r.message,
+					in_place_edit: true,
+					get_data: () => {
+						return r.message
+					},
+					fields: [
+						{
+							label: __("Supplier"),
+							fieldtype: 'Link',
+							fieldname: "supplier",
+							options: "Supplier",
+							in_list_view: 1,
+							get_query: () => {
+								return {
+									query: "erpnext.stock.doctype.material_request.material_request.get_suppliers",
+									filters: { 'doc': frm.doc.name }
+								}
+							}
+						},
+						{
+							label: __("Rate"),
+							fieldtype: 'Currency',
+							fieldname: "price_list_rate",
+							// read_only: true,
+							in_list_view: 1,
+							get_query: () => {
+								console.log("QUERY", dialog.get_values())
+								return {
+									query: "erpnext.stock.doctype.material_request.material_request.get_rate",
+									filters: { 'doc': frm.doc.name, 'supplier': data.supplier }
+								}
+							}
+						},
+						{
+							label: __("UOM"),
+							fieldtype: 'Link',
+							fieldname: "uom",
+							options: "UOM",
+							in_list_view: 1,
+							get_query: () => {
+								console.log("HELLO",dialog.get_values().items)
+								return {
+									query: "erpnext.stock.doctype.material_request.material_request.get_suppliers",
+									filters: { 'doc': frm.doc.name }
+								}
+							}
+						},
+					]
+				}],
+				primary_action: function() {
+					const items = dialog.get_values().items;
+					items.forEach(item => {
+						console.log("Hello", item)
+					})
+					dialog.hide()
+				},
+				primary_action_label: __('Create')
+			})
+			dialog.show()
+		}
+	})
 	},
 
 	make_request_for_quotation: function (frm) {

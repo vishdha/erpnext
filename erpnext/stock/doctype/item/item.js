@@ -797,6 +797,7 @@ frappe.ui.form.on("Item Supplier", {
 					item_code: frm.doc.item_code
 				},
 				callback: function(r) {
+					console.log(r.message)
 					if (!r.exc && r.message) {
 						frappe.model.set_value(cdt, cdn, "price_list", r.message.price_list);
 						frappe.model.set_value(cdt, cdn, "price_list_rate", r.message.price_list_rate);

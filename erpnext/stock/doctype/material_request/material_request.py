@@ -389,16 +389,48 @@ def get_material_requests_based_on_supplier(supplier):
 	return material_requests, supplier_items
 
 def get_default_supplier_query(doctype, txt, searchfield, start, page_len, filters):
+	print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++=")
 	doc = frappe.get_doc("Material Request", filters.get("doc"))
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-
+	print("------------------------------------------------", item_list)
 	return frappe.db.sql("""select default_supplier
 		from `tabItem Default`
 		where parent in ({0}) and
 		default_supplier IS NOT NULL
 		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+
+# @frappe.whitelist()
+def get_suppliers(doctype, txt, searchfield, start, page_len, filters):
+	print("-----------------------------------------------------------------")
+	doc = frappe.get_doc("Material Request", filters.get("doc"))
+	print("++++++++++++++++++++++++++++++++++++++++++++", filters)
+	item_list = []
+	for d in doc.items:
+		item_list.append(d.item_code)
+	print("-----------------------------------------", item_list)
+	data = frappe.db.sql("""select supplier
+		from `tabItem Supplier`
+		where parent in ({0})
+		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+	print("-------------------------------------------------------------", data)
+	return data
+	# print("--------")
+
+def get_rate(doctype, txt, searchfield, start, page_len, filters):
+	doc = frappe.get_doc("Material Request", filters.get("doc"))
+	print("+++++++++++++++++++++RATE+++++++++++++++++++++++", filters)
+	item_list = []
+	for d in doc.items:
+		item_list.append(d.item_code)
+	print("-----------------------------------------", item_list)
+	data = frappe.db.sql("""select price_list_rate
+		from `tabItem Supplier`
+		where parent in ({0})
+		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+	print("-------------------------------------------------------------", data)
+	return data
 
 @frappe.whitelist()
 def make_supplier_quotation(source_name, target_doc=None):
