@@ -18,9 +18,16 @@ class ProductionPlan(Document):
 	def validate(self):
 		self.calculate_total_planned_qty()
 		self.set_status()
+		items = []
+		show_default_bom_msg = False
 		for d in self.get('po_items'):
 			if not d.bom_no:
-				frappe.throw(_("Row {0}: Please select default BOM for Item {1} ".format(d.idx, d.item_code)))
+				items.append(d.item_code+": "+d.item_name)
+			if d.sales_order:
+				show_default_bom_msg = True
+		if show_default_bom_msg:
+			items = dict.fromkeys(items)
+			frappe.throw(_("In Sales Order <b>{0}</b> Please set default <b>{1}</b> for Item: <ol><li>{2}</li></ol>".format(d.sales_order, "<a href='#List/BOM/List'>BOM</a>", '<li>'.join(items))))
 
 	def validate_data(self):
 		for d in self.get('po_items'):
