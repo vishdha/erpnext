@@ -458,6 +458,7 @@
    "options": "Account",
    "print_hide": 1,
    "print_width": "120px",
+   "reqd": 1,
    "width": "120px"
   },
   {
@@ -783,7 +784,7 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-08-06 04:17:43.605447",
+ "modified": "2020-12-17 03:52:57.946351",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice Item",
