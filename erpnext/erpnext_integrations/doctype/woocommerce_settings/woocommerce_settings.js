@@ -57,7 +57,3 @@ frappe.ui.form.on('Woocommerce Settings', {
 		frm.set_df_property("api_consumer_secret", "reqd", frm.doc.enable_sync);
 	}
 });
-
-frappe.ui.form.on("Woocommerce Settings", "onload", function (frm) {
-	
-});
