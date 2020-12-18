@@ -426,7 +426,7 @@ def get_rate(doc, supplier):
 	for d in doc.items:
 		item_list.append(d.item_code)
 	print("-----------------------FORMAT------------------", tuple(item_list))
-	data = frappe.db.sql("""select item_supplier.price_list_rate
+	data = frappe.db.sql("""select item_supplier.price_list_rate, item_supplier.uom
 		from `tabItem Supplier` as item_supplier
 		where parent in %(item)s and
 		item_supplier.supplier = %(supplier)s

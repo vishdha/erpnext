@@ -305,13 +305,13 @@ frappe.ui.form.on('Material Request', {
 							fieldname: "price_list_rate",
 							// read_only: true,
 							in_list_view: 1,
-							get_query: () => {
-								console.log("QUERY", dialog.get_values())
-								return {
-									query: "erpnext.stock.doctype.material_request.material_request.get_rate",
-									filters: { 'doc': frm.doc.name, 'supplier': data.supplier }
-								}
-							}
+							// get_query: () => {
+							// 	console.log("QUERY", dialog.get_values())
+							// 	return {
+							// 		query: "erpnext.stock.doctype.material_request.material_request.get_rate",
+							// 		filters: { 'doc': frm.doc.name, 'supplier': data.supplier }
+							// 	}
+							// }
 						},
 						{
 							label: __("UOM"),
@@ -319,13 +319,6 @@ frappe.ui.form.on('Material Request', {
 							fieldname: "uom",
 							options: "UOM",
 							in_list_view: 1,
-							get_query: () => {
-								console.log("HELLO",dialog.get_values().items)
-								return {
-									query: "erpnext.stock.doctype.material_request.material_request.get_suppliers",
-									filters: { 'doc': frm.doc.name }
-								}
-							}
 						},
 					]
 				}],
@@ -356,8 +349,9 @@ frappe.ui.form.on('Material Request', {
 					'supplier': supplier
 				},
 				callback: function(r) {
-					item.on_grid_fields_dict.price_list_rate.set_value(r.message[0])
-					console.log("RES", r.message[0])
+					item.on_grid_fields_dict.price_list_rate.set_value(r.message[0][0])
+					item.on_grid_fields_dict.uom.set_value(r.message[0][1])
+					console.log("RES", r.message[0][1])
 				}
 			})
 		})
