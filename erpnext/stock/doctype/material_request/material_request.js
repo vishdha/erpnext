@@ -356,7 +356,8 @@ frappe.ui.form.on('Material Request', {
 					'supplier': supplier
 				},
 				callback: function(r) {
-					console.log("RES", r)
+					item.on_grid_fields_dict.price_list_rate.set_value(r.message[0])
+					console.log("RES", r.message[0])
 				}
 			})
 		})
