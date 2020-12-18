@@ -45,7 +45,7 @@ def apply_coupon(doc):
 	"""
 	if not doc.coupon_code:
 		# Run undo script if coupon_code was removed and automation script exists
-		if doc.automation_data:
+		if hasattr(doc, "automation_data"):
 			run_coupon_undo_script(doc)
 
 		return
