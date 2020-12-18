@@ -1601,6 +1601,10 @@ def validate_sample_quantity(item_code, sample_quantity, qty, batch_no = None):
 	return sample_quantity
 
 def raw_material_update_on_bom():
+	"""
+	Calculates Average Manufactured Qty(avg_manufactured_qty) for BOM on the Basis of Stock Entries created.
+	It fetches the Stock Entries created within past seven days against BOM.
+	"""
 	past_seven_days = get_date_str(add_days(today(), -7))
 	boms = frappe.get_all("BOM", filters= {
 		"manufacturing_type" : "Process"
