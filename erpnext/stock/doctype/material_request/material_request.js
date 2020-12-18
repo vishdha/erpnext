@@ -293,6 +293,10 @@ frappe.ui.form.on('Material Request', {
 									query: "erpnext.stock.doctype.material_request.material_request.get_suppliers",
 									filters: { 'doc': frm.doc.name }
 								}
+							},
+							change: () => {
+								console.log("THIS", this)
+								frm.events.set_dialog_value(dialog, frm)
 							}
 						},
 						{
@@ -335,8 +339,27 @@ frappe.ui.form.on('Material Request', {
 				primary_action_label: __('Create')
 			})
 			dialog.show()
+			console.log("DIalog", dialog.fields_dict.grid)
 		}
 	})
+	},
+	
+	set_dialog_value: function(dialog, frm) {
+		// console.log("VALUE", dialog.fields_dict.items.grid.grid_rows)
+		dialog.fields_dict.items.grid.grid_rows.forEach(item => {
+			console.log("ITEM", item.on_grid_fields_dict.supplier.get_value())
+			let supplier = item.on_grid_fields_dict.supplier.get_value();
+			frappe.call({
+				'method': "erpnext.stock.doctype.material_request.material_request.get_rate",
+				'args': {
+					'doc': frm.doc.name,
+					'supplier': supplier
+				},
+				callback: function(r) {
+					console.log("RES", r)
+				}
+			})
+		})
 	},
 
 	make_request_for_quotation: function (frm) {

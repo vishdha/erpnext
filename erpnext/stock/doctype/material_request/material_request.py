@@ -418,17 +418,19 @@ def get_suppliers(doctype, txt, searchfield, start, page_len, filters):
 	return data
 	# print("--------")
 
-def get_rate(doctype, txt, searchfield, start, page_len, filters):
-	doc = frappe.get_doc("Material Request", filters.get("doc"))
-	print("+++++++++++++++++++++RATE+++++++++++++++++++++++", filters)
+@frappe.whitelist()
+def get_rate(doc, supplier):
+	doc = frappe.get_doc("Material Request", doc)
+	print("+++++++++++++++++++++RATE+++++++++++++++++++++++", type(supplier))
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-	print("-----------------------------------------", item_list)
-	data = frappe.db.sql("""select price_list_rate
-		from `tabItem Supplier`
-		where parent in ({0})
-		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+	print("-----------------------FORMAT------------------", tuple(item_list))
+	data = frappe.db.sql("""select item_supplier.price_list_rate
+		from `tabItem Supplier` as item_supplier
+		where parent in %(item)s and
+		item_supplier.supplier = %(supplier)s
+		""".format(', '.join(['%s']*len(item_list))), {'item': tuple(item_list), 'supplier': supplier})
 	print("-------------------------------------------------------------", data)
 	return data
 
