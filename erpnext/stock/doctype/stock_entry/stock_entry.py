@@ -1623,7 +1623,7 @@ def raw_material_update_on_bom():
 				if item.s_warehouse:
 					raw_material = raw_material + item.qty
 				elif item.t_warehouse:
-					finished_good  = finished_good + item.qty
+					finished_good = finished_good + item.qty
 		if finished_good and raw_material:
 			avg_manufactured_qty= finished_good / raw_material
 		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
