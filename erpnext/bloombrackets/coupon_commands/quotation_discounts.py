@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import flt
+from frappe.utils import flt, cint
 from erpnext.bloombrackets.coupon_commands.utils import flat_item_group_tree_list
 
 NET_TOTAL = "Net Total"
@@ -17,11 +17,17 @@ CMD_APPLY_NET_DISCOUNT_PERCENT = "Apply Net Discount Percent"
 
 CMD_ADD_ITEM_DISCOUNT = "Add Item Discount"
 CMD_ADD_ITEM_DISCOUNT_PERCENT = "Add Item Discount Percent"
+CMD_ADD_ITEM_DISCOUNT_QTY_MIN = "Add Item Discount Qty Min"
+CMD_ADD_ITEM_DISCOUNT_PERCENT_QTY_MIN = "Add Item Discount Percent Qty Min"
 
 CMD_ADD_ITEM_GROUP_DISCOUNT = "Add Item Group Discount"
 CMD_ADD_ITEM_GROUP_DISCOUNT_PERCENT = "Add Item Group Discount Percent"
+CMD_ADD_ITEM_GROUP_DISCOUNT_QTY_MIN = "Add Item Group Discount Qty Min"
+CMD_ADD_ITEM_GROUP_DISCOUNT_PERCENT_QTY_MIN = "Add Item Group Discount Percent Qty Min"
 
 def discount_amount_total_guard(doc):
+	"""discount_amount guard to ensure the discount isn't larger than the quotation value"""
+
 	if doc.apply_discount_on == "Net Total":
 		if doc.discount_amount > doc.net_total:
 			doc.discount_amount = doc.net_total
@@ -33,198 +39,293 @@ def discount_amount_total_guard(doc):
 	if doc.additional_discount_percentage > 100:
 		doc.additional_discount_percentage = 100
 
+def set_discount_grand_total_basis(args, ctx):
+	"""Sets the quotation apply_discount_of field to "Grand Total".
+	
+	Parameters:
+		args - Unused
+		ctx - The script's context
+	"""
+	doc = ctx["#VARS"]["doc"]
+	doc.apply_discount_on = GRAND_TOTAL
+	doc.run_method("calculate_taxes_and_totals")
+
+def set_discount_net_total_basis(args, ctx):
+	"""Sets the quotation apply_discount_of field to "Net Total".
+
+	Parameters:
+		args - Unused
+		ctx - The script's context
+	"""
+	doc = ctx["#VARS"]["doc"]
+	doc.apply_discount_on = NET_TOTAL
+	doc.run_method("calculate_taxes_and_totals")
+
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_SET_DISCOUNT_GRAND_TOTAL_BASIS]
+	)
+
+def add_discount(args, ctx):
+	"""Sets the quotation discount_amount field.
+
+	Parameters:
+		args[0] - The discount value
+		ctx - The script's context
+	"""
+	value = flt(args[0])
+	doc = ctx["#VARS"]["doc"]
+
+	doc.discount_amount = (doc.discount_amount or 0) + value
+	discount_amount_total_guard(doc)
+
+	doc.additional_discount_percentage = 0
+	doc.run_method("calculate_taxes_and_totals")
+
+	# How we undo this script's data
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_APPLY_DISCOUNT, 0]
+	)
+
+def add_item_discount(args, ctx):
+	"""Adds a discount value to the existing discount_amount field.
+
+	Parameters:
+		args[0] - The item name to match
+		args[1] - The discount value
+		args[2] - Min item qty to match
+		args[3] - Max item qty to match
+	"""
+	item_name = args[0]
+	discount = flt(args[1])
+	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
+	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
+
+	doc = ctx["#VARS"]["doc"]
+	total_discount = 0
+
+	for item in doc.items:
+		if item.item_code == item_name:
+			if item.qty >= min_qty and item.qty <= max_qty:
+				# prevent going negative on discount values
+				discount_value = discount if discount <= item.amount else item.amount
+				total_discount = total_discount + discount_value
+	
+	if total_discount > 0:
+		doc.discount_amount = doc.discount_amount + total_discount
+		doc.additional_discount_percentage = 0
+		discount_amount_total_guard(doc)
+		doc.run_method("calculate_taxes_and_totals")
+
+		ctx["#VARS"]["undo_script"].append(
+			["CALL", CMD_APPLY_DISCOUNT, 0]
+		)
+
+def add_item_group_discount(args, ctx):
+	"""Adds a discount value to the existing discount_amount field if an item
+	belonging to the provided group is found.
+
+	Parameters:
+		args[0] - The item group to match
+		args[1] - The discount value
+		args[2] - Min item qty to match
+		args[3] - Max item qty to match
+	"""
+
+	group = args[0]
+	discount = flt(args[1])
+	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
+	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
+
+	doc = ctx["#VARS"]["doc"]
+	total_discount = 0
+
+	valid_item_groups = flat_item_group_tree_list(group)
+
+	for item in doc.items:
+		item_group = frappe.get_value("Item", item.item_name, "item_group")
+
+		if item_group in valid_item_groups:
+			if item.qty >= min_qty and item.qty <= max_qty:
+				# prevent going negative on discount values
+				discount_value = discount if discount <= item.amount else item.amount
+				total_discount = total_discount + discount_value
+	
+	if total_discount > 0:
+		doc.discount_amount = doc.discount_amount + total_discount
+		doc.additional_discount_percentage = 0
+		discount_amount_total_guard(doc)
+		doc.run_method("calculate_taxes_and_totals")
+
+		ctx["#VARS"]["undo_script"].append(
+			["CALL", CMD_APPLY_DISCOUNT, 0]
+		)
+
+def add_item_discount_percent(args, ctx):
+	"""Adds a discount percentage to the existing discount_amount field per item
+	matched to the provided group is found.
+
+	Parameters:
+		args[0] - The item group to match
+		args[1] - The discount value
+		args[2] - Min item qty to match
+		args[3] - Max item qty to match
+	"""
+
+	item_name = args[0]
+	percent = flt(args[1])
+	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
+	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
+
+	total_discount = 0
+	doc = ctx["#VARS"]["doc"]
+
+	if percent < 0:
+		percent = 0
+	if percent > 100:
+		percent = 100
+
+	for item in doc.items:
+		if item.item_code == item_name and item.qty >= min_qty and item.qty <= max_qty:
+			discount_value = (item.amount * percent) / 100
+			if discount_value > 0:
+				total_discount = total_discount + discount_value
+	
+	if total_discount > 0:
+		doc.discount_amount = flt(doc.discount_amount) + total_discount
+		doc.additional_discount_percentage = 0
+		discount_amount_total_guard(doc)
+		doc.run_method("calculate_taxes_and_totals")
+
+		ctx["#VARS"]["undo_script"].append(
+			["CALL", CMD_APPLY_DISCOUNT, 0]
+		)
+
+def add_item_group_discount_percent(args, ctx):
+	"""Adds a discount percentage to the existing discount_amount field if an item
+	belonging to the provided group is found.
+
+	Parameters:
+		args[0] - The item group to match
+		args[1] - The discount value
+		args[2] - Min item qty to match
+		args[3] - Max item qty to match
+	"""
+
+	group = args[0]
+	percent = flt(args[1])
+	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
+	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
+
+	print("{}, {}, {}, {}".format(group, percent, min_qty, max_qty))
+
+	total_discount = 0
+	doc = ctx["#VARS"]["doc"]
+
+	valid_item_groups = flat_item_group_tree_list(group)
+
+	if percent < 0:
+		percent = 0
+	if percent > 100:
+		percent = 100
+
+	for item in doc.items:
+		item_group = frappe.get_value("Item", item.item_code, "item_group")
+
+		if item_group in valid_item_groups and item.qty >= min_qty and item.qty <= max_qty:
+			discount_value = (item.amount * percent) / 100
+			if discount_value > 0:
+				total_discount = total_discount + discount_value
+	
+	if total_discount > 0:
+		doc.discount_amount = doc.discount_amount + total_discount
+		doc.additional_discount_percentage = 0
+		discount_amount_total_guard(doc)
+		doc.run_method("calculate_taxes_and_totals")
+
+		ctx["#VARS"]["undo_script"].append(
+			["CALL", CMD_APPLY_DISCOUNT, 0]
+		)
+
+def apply_discount(args, ctx):
+	"""Sets the discount value of the quotation.
+
+	Parameters:
+		args[0] - The discount value
+	"""
+
+	value = flt(args[0])
+	doc = ctx["#VARS"]["doc"]
+	doc.discount_amount = value
+	doc.additional_discount_percentage = 0
+	doc.apply_discount_on = GRAND_TOTAL
+	discount_amount_total_guard(doc)
+	doc.run_method("calculate_taxes_and_totals")
+
+	# How we undo this script's data
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_APPLY_DISCOUNT, 0]
+	)
+
+def apply_discount_percent(args, ctx):
+	"""Sets the discount percent of the quotation.
+
+	Parameters:
+		args[0] - The discount percent
+	"""
+
+	percent = flt(args[0])
+	doc = ctx["#VARS"]["doc"]
+	doc.discount_amount = 0
+	doc.additional_discount_percentage = percent
+	doc.apply_discount_on = GRAND_TOTAL
+	discount_amount_total_guard(doc)
+	doc.run_method("calculate_taxes_and_totals")
+
+	# How we undo this script's data
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_APPLY_DISCOUNT, 0]
+	)
+
+def apply_net_discount(args, ctx):
+	"""Sets the discount value of the quotation and the apply_discount_on to "Net Total"
+
+	Parameters:
+		args[0] - The discount value
+	"""
+
+	value = flt(args[0])
+	doc = ctx["#VARS"]["doc"]
+	doc.discount_amount = value
+	doc.additional_discount_percentage = 0
+	doc.apply_discount_on = NET_TOTAL
+	doc.run_method("calculate_taxes_and_totals")
+
+	# How we undo this script's data
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_APPLY_DISCOUNT, 0]
+	)
+
+def apply_net_discount_percent(args, ctx):
+	"""Sets the discount percent of the quotation and the apply_discount_on to "Net Total"
+
+	Parameters:
+		args[0] - The discount percent
+	"""
+
+	percent = flt(args[0])
+	doc = ctx["#VARS"]["doc"]
+	discount = (doc.net_total * percent) / 100
+	doc.discount_amount = 0
+	doc.additional_discount_percentage = percent
+	doc.apply_discount_on = NET_TOTAL
+	doc.run_method("calculate_taxes_and_totals")
+
+	# How we undo this script's data
+	ctx["#VARS"]["undo_script"].append(
+		["CALL", CMD_APPLY_DISCOUNT, 0]
+	)
 
 def load_commands(commands, for_doctype):
-
-	def set_discount_grand_total_basis(args, ctx):
-		doc = ctx["#VARS"]["doc"]
-		doc.apply_discount_on = GRAND_TOTAL
-		doc.run_method("calculate_taxes_and_totals")
-
-	def set_discount_net_total_basis(args, ctx):
-		doc = ctx["#VARS"]["doc"]
-		doc.apply_discount_on = NET_TOTAL
-		doc.run_method("calculate_taxes_and_totals")
-
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_SET_DISCOUNT_GRAND_TOTAL_BASIS]
-		)
-
-	def add_discount(args, ctx):
-		value = flt(args[0])
-		doc = ctx["#VARS"]["doc"]
-
-		doc.discount_amount = (doc.discount_amount or 0) + value
-		discount_amount_total_guard(doc)
-
-		doc.additional_discount_percentage = 0
-		doc.run_method("calculate_taxes_and_totals")
-
-		# How we undo this script's data
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_APPLY_DISCOUNT, 0]
-		)
-
-	def add_item_discount(args, ctx):
-		doc = ctx["#VARS"]["doc"]
-		item_name = args[0]
-		discount = flt(args[1])
-		total_discount = 0
-
-		for item in doc.items:
-			if item.item_code == item_name:
-				# prevent going negative on discount values
-				discount_value = discount if discount <= item.amount else item.amount
-				total_discount = total_discount + discount_value
-		
-		if total_discount > 0:
-			doc.discount_amount = doc.discount_amount + total_discount
-			doc.additional_discount_percentage = 0
-			discount_amount_total_guard(doc)
-			doc.run_method("calculate_taxes_and_totals")
-
-			ctx["#VARS"]["undo_script"].append(
-				["CALL", CMD_APPLY_DISCOUNT, 0]
-			)
-
-	def add_item_group_discount(args, ctx):
-		doc = ctx["#VARS"]["doc"]
-		group = args[0]
-		discount = flt(args[1])
-		total_discount = 0
-
-		valid_item_groups = flat_item_group_tree_list(group)
-
-		for item in doc.items:
-			item_group = frappe.get_value("Item", item.item_name, "item_group")
-
-			if item_group in valid_item_groups:
-				# prevent going negative on discount values
-				discount_value = discount if discount <= item.amount else item.amount
-				total_discount = total_discount + discount_value
-		
-		if total_discount > 0:
-			doc.discount_amount = doc.discount_amount + total_discount
-			doc.additional_discount_percentage = 0
-			discount_amount_total_guard(doc)
-			doc.run_method("calculate_taxes_and_totals")
-
-			ctx["#VARS"]["undo_script"].append(
-				["CALL", CMD_APPLY_DISCOUNT, 0]
-			)
-
-	def add_item_discount_percent(args, ctx):
-		item_name = args[0]
-		percent = flt(args[1])
-		total_discount = 0
-		doc = ctx["#VARS"]["doc"]
-
-		if percent < 0:
-			percent = 0
-		if percent > 100:
-			percent = 100
-
-		for item in doc.items:
-			if item.item_code == item_name:
-				discount_value = (item.amount * percent) / 100
-				if discount_value > 0:
-					total_discount = total_discount + discount_value
-		
-		if total_discount > 0:
-			doc.discount_amount = flt(doc.discount_amount) + total_discount
-			doc.additional_discount_percentage = 0
-			discount_amount_total_guard(doc)
-			doc.run_method("calculate_taxes_and_totals")
-
-			ctx["#VARS"]["undo_script"].append(
-				["CALL", CMD_APPLY_DISCOUNT, 0]
-			)
-
-	def add_item_group_discount_percent(args, ctx):
-		group = args[0]
-		percent = flt(args[1])
-		total_discount = 0
-		doc = ctx["#VARS"]["doc"]
-
-		valid_item_groups = flat_item_group_tree_list(group)
-
-		if percent < 0:
-			percent = 0
-		if percent > 100:
-			percent = 100
-
-		for item in doc.items:
-			item_group = frappe.get_value("Item", item.item_code, "item_group")
-
-			if item_group in valid_item_groups:
-				discount_value = (item.amount * percent) / 100
-				if discount_value > 0:
-					total_discount = total_discount + discount_value
-		
-		if total_discount > 0:
-			doc.discount_amount = doc.discount_amount + total_discount
-			doc.additional_discount_percentage = 0
-			discount_amount_total_guard(doc)
-			doc.run_method("calculate_taxes_and_totals")
-
-			ctx["#VARS"]["undo_script"].append(
-				["CALL", CMD_APPLY_DISCOUNT, 0]
-			)
-
-	def apply_discount(args, ctx):
-		value = flt(args[0])
-		doc = ctx["#VARS"]["doc"]
-		doc.discount_amount = value
-		doc.additional_discount_percentage = 0
-		doc.apply_discount_on = GRAND_TOTAL
-		discount_amount_total_guard(doc)
-		doc.run_method("calculate_taxes_and_totals")
-
-		# How we undo this script's data
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_APPLY_DISCOUNT, 0]
-		)
-	
-	def apply_discount_percent(args, ctx):
-		percent = flt(args[0])
-		doc = ctx["#VARS"]["doc"]
-		doc.discount_amount = 0
-		doc.additional_discount_percentage = percent
-		doc.apply_discount_on = GRAND_TOTAL
-		discount_amount_total_guard(doc)
-		doc.run_method("calculate_taxes_and_totals")
-
-		# How we undo this script's data
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_APPLY_DISCOUNT, 0]
-		)
-
-	def apply_net_discount(args, ctx):
-		value = flt(args[0])
-		doc = ctx["#VARS"]["doc"]
-		doc.discount_amount = value
-		doc.additional_discount_percentage = 0
-		doc.apply_discount_on = NET_TOTAL
-		doc.run_method("calculate_taxes_and_totals")
-
-		# How we undo this script's data
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_APPLY_DISCOUNT, 0]
-		)
-	
-	def apply_net_discount_percent(args, ctx):
-		percent = flt(args[0])
-		doc = ctx["#VARS"]["doc"]
-		discount = (doc.net_total * percent) / 100
-		doc.discount_amount = 0
-		doc.additional_discount_percentage = percent
-		doc.apply_discount_on = NET_TOTAL
-		doc.run_method("calculate_taxes_and_totals")
-
-		# How we undo this script's data
-		ctx["#VARS"]["undo_script"].append(
-			["CALL", CMD_APPLY_DISCOUNT, 0]
-		)
 
 	commands.update({
 		CMD_SET_DISCOUNT_GRAND_TOTAL_BASIS: set_discount_grand_total_basis,
@@ -274,6 +375,14 @@ def load_commands_meta(meta, for_doctype):
 				"name": "discount",
 				"description": "A discount value",
 				"fieldtype": "Currency"
+			}, {
+				"name": "min_qty",
+				"description": "The minimum item qty to match",
+				"fieldtype": "int"
+			}, {
+				"name": "max_qty",
+				"description": "The maximum item qty to match",
+				"fieldtype": "int"
 			}]
 		},
 
@@ -288,6 +397,14 @@ def load_commands_meta(meta, for_doctype):
 				"name": "percent",
 				"description": "A discount percent",
 				"fieldtype": "Currency"
+			}, {
+				"name": "min_qty",
+				"description": "The minimum item qty to match",
+				"fieldtype": "int"
+			}, {
+				"name": "max_qty",
+				"description": "The maximum item qty to match",
+				"fieldtype": "int"
 			}]
 		},
 		CMD_ADD_ITEM_GROUP_DISCOUNT: {
@@ -301,6 +418,14 @@ def load_commands_meta(meta, for_doctype):
 				"name": "discount",
 				"description": "A discount value",
 				"fieldtype": "Currency"
+			}, {
+				"name": "min_qty",
+				"description": "The minimum item qty to match",
+				"fieldtype": "int"
+			}, {
+				"name": "max_qty",
+				"description": "The maximum item qty to match",
+				"fieldtype": "int"
 			}]
 		},
 
@@ -315,6 +440,14 @@ def load_commands_meta(meta, for_doctype):
 				"name": "percent",
 				"description": "A discount percent",
 				"fieldtype": "Currency"
+			}, {
+				"name": "min_qty",
+				"description": "The minimum item qty to match",
+				"fieldtype": "int"
+			}, {
+				"name": "max_qty",
+				"description": "The maximum item qty to match",
+				"fieldtype": "int"
 			}]
 		},
 
