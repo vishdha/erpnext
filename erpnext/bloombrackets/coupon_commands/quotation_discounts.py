@@ -102,15 +102,23 @@ def add_item_discount(args, ctx):
 
 	doc = ctx["#VARS"]["doc"]
 	total_discount = 0
+	qty = 0
 
 	for item in doc.items:
 		if item.item_code == item_name:
-			if item.qty >= min_qty and item.qty <= max_qty:
-				# prevent going negative on discount values
-				discount_value = discount if discount <= item.amount else item.amount
+			if qty <= max_qty - min_qty:
+				# keep item qty under qty + max_qty
+				local_qty = item.qty if item.qty + qty <= max_qty else min(max_qty - qty, item.qty)
+				# calculate amount on the available qty
+				amount = local_qty * item.rate
+				# cap discount_value under amount
+				discount_value = discount if discount <= amount else amount
+				# track discount amount and qty
 				total_discount = total_discount + discount_value
+				qty = qty + item.qty
 	
-	if total_discount > 0:
+	# add discount only on min_qty
+	if total_discount > 0 and qty >= min_qty:
 		doc.discount_amount = doc.discount_amount + total_discount
 		doc.additional_discount_percentage = 0
 		discount_amount_total_guard(doc)
@@ -138,6 +146,7 @@ def add_item_group_discount(args, ctx):
 
 	doc = ctx["#VARS"]["doc"]
 	total_discount = 0
+	qty = 0
 
 	valid_item_groups = flat_item_group_tree_list(group)
 
@@ -145,12 +154,19 @@ def add_item_group_discount(args, ctx):
 		item_group = frappe.get_value("Item", item.item_name, "item_group")
 
 		if item_group in valid_item_groups:
-			if item.qty >= min_qty and item.qty <= max_qty:
-				# prevent going negative on discount values
-				discount_value = discount if discount <= item.amount else item.amount
+			if qty <= max_qty - min_qty:
+				# keep item qty under qty + max_qty
+				local_qty = item.qty if item.qty + qty <= max_qty else min(max_qty - qty, item.qty)
+				# calculate amount on the available qty
+				amount = local_qty * item.rate
+				# cap discount_value under amount
+				discount_value = discount if discount <= amount else amount
+				# track discount amount and qty
 				total_discount = total_discount + discount_value
+				qty = qty + item.qty
 	
-	if total_discount > 0:
+	# add discount only on min_qty
+	if total_discount > 0 and qty >= min_qty:
 		doc.discount_amount = doc.discount_amount + total_discount
 		doc.additional_discount_percentage = 0
 		discount_amount_total_guard(doc)
@@ -171,13 +187,14 @@ def add_item_discount_percent(args, ctx):
 		args[3] - Max item qty to match
 	"""
 
+	doc = ctx["#VARS"]["doc"]
 	item_name = args[0]
 	percent = flt(args[1])
 	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
 	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
 
 	total_discount = 0
-	doc = ctx["#VARS"]["doc"]
+	qty = 0
 
 	if percent < 0:
 		percent = 0
@@ -185,12 +202,21 @@ def add_item_discount_percent(args, ctx):
 		percent = 100
 
 	for item in doc.items:
-		if item.item_code == item_name and item.qty >= min_qty and item.qty <= max_qty:
-			discount_value = (item.amount * percent) / 100
-			if discount_value > 0:
-				total_discount = total_discount + discount_value
-	
-	if total_discount > 0:
+
+		if item.item_code == item_name:
+			if qty <= max_qty - min_qty:
+				# keep item qty under qty + max_qty
+				local_qty = item.qty if item.qty + qty <= max_qty else min(max_qty - qty, item.qty)
+				# calculate amount on the available qty
+				amount = local_qty * item.rate
+				discount_value = (amount * percent) / 100
+				# prevent going negative
+				if discount_value > 0:
+					# track discount amount and qty
+					total_discount = total_discount + discount_value
+					qty = qty + item.qty
+
+	if total_discount > 0 and qty > min_qty:
 		doc.discount_amount = flt(doc.discount_amount) + total_discount
 		doc.additional_discount_percentage = 0
 		discount_amount_total_guard(doc)
@@ -211,13 +237,14 @@ def add_item_group_discount_percent(args, ctx):
 		args[3] - Max item qty to match
 	"""
 
+	doc = ctx["#VARS"]["doc"]
 	group = args[0]
 	percent = flt(args[1])
 	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
 	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
 
 	total_discount = 0
-	doc = ctx["#VARS"]["doc"]
+	qty = 0
 
 	valid_item_groups = flat_item_group_tree_list(group)
 
@@ -229,13 +256,21 @@ def add_item_group_discount_percent(args, ctx):
 	for item in doc.items:
 		item_group = frappe.get_value("Item", item.item_code, "item_group")
 
-		if item_group in valid_item_groups and item.qty >= min_qty and item.qty <= max_qty:
-			discount_value = (item.amount * percent) / 100
-			if discount_value > 0:
-				total_discount = total_discount + discount_value
-	
-	if total_discount > 0:
-		doc.discount_amount = doc.discount_amount + total_discount
+		if item_group in valid_item_groups:
+			if qty <= max_qty:
+				# keep item qty under qty + max_qty
+				local_qty = item.qty if item.qty + qty <= max_qty else min(max_qty - qty, item.qty)
+				# calculate amount on the available qty
+				amount = local_qty * item.rate
+				discount_value = (amount * percent) / 100
+				# prevent going negative
+				if discount_value > 0:
+					# track discount amount and qty
+					total_discount = total_discount + discount_value
+					qty = qty + item.qty
+
+	if total_discount > 0 and qty > min_qty:
+		doc.discount_amount = flt(doc.discount_amount) + total_discount
 		doc.additional_discount_percentage = 0
 		discount_amount_total_guard(doc)
 		doc.run_method("calculate_taxes_and_totals")
