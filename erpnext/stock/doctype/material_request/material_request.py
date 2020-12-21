@@ -271,8 +271,9 @@ def make_purchase_order(source_name, target_doc=None):
 			supplier_items = []
 			for d in target_doc.items:
 				default_supplier = get_item_defaults(d.item_code, target_doc.company).get('default_supplier')
-				if frappe.flags.args.default_supplier == default_supplier:
-					supplier_items.append(d)
+				d.rate = frappe.flags.args.price_list_rate
+				d.uom = frappe.flags.args.uom
+				supplier_items.append(d)
 			target_doc.items = supplier_items
 
 		set_missing_values(source, target_doc)
