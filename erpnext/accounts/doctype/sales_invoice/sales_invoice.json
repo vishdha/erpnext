@@ -100,6 +100,7 @@
   "loyalty_redemption_account",
   "loyalty_redemption_cost_center",
   "section_break_49",
+  "coupon_code",
   "apply_discount_on",
   "base_discount_amount",
   "column_break_51",
@@ -1595,13 +1596,19 @@
    "fieldname": "allocate_advances_based_on_quantities",
    "fieldtype": "Check",
    "label": "Allocate Advances Based on Quantities"
+  },
+  {
+   "fieldname": "coupon_code",
+   "fieldtype": "Link",
+   "label": "Coupon Code",
+   "options": "Coupon Code"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 181,
  "is_submittable": 1,
- "modified": "2020-12-13 22:43:56.201272",
- "modified_by": "Administrator",
+ "modified": "2020-12-18 19:12:42.440076",
+ "modified_by": "forellana@digithinkit.com",
  "module": "Accounts",
  "name": "Sales Invoice",
  "name_case": "Title Case",

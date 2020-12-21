@@ -79,9 +79,6 @@ frappe.ui.form.on("Sales Order", {
 		if (!frm.doc.transaction_date){
 			frm.set_value('transaction_date', frappe.datetime.get_today())
 		}
-		erpnext.queries.setup_queries(frm, "Warehouse", function() {
-			return erpnext.queries.warehouse(frm.doc);
-		});
 
 		frm.set_query('project', function(doc, cdt, cdn) {
 			return {
