@@ -216,8 +216,6 @@ def add_item_group_discount_percent(args, ctx):
 	min_qty = 1 if len(args) < 3 or not args[2] else cint(args[2])
 	max_qty = float('inf') if len(args) < 4 or not args[3] or args[3] == 'inf' else cint(args[3])
 
-	print("{}, {}, {}, {}".format(group, percent, min_qty, max_qty))
-
 	total_discount = 0
 	doc = ctx["#VARS"]["doc"]
 
