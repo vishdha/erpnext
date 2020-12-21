@@ -38,11 +38,6 @@ frappe.ui.form.on("Purchase Receipt", {
 		});
 		
 	},
-	onload: function(frm) {
-		erpnext.queries.setup_queries(frm, "Warehouse", function() {
-			return erpnext.queries.warehouse(frm.doc);
-		});
-	},
 
 	refresh: function(frm) {
 		if(frm.doc.company) {
