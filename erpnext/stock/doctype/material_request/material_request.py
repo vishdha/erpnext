@@ -271,8 +271,9 @@ def make_purchase_order(source_name, target_doc=None):
 			supplier_items = []
 			for d in target_doc.items:
 				default_supplier = get_item_defaults(d.item_code, target_doc.company).get('default_supplier')
-				if frappe.flags.args.default_supplier == default_supplier:
-					supplier_items.append(d)
+				d.rate = frappe.flags.args.price_list_rate
+				d.uom = frappe.flags.args.uom
+				supplier_items.append(d)
 			target_doc.items = supplier_items
 
 		set_missing_values(source, target_doc)
@@ -403,35 +404,27 @@ def get_default_supplier_query(doctype, txt, searchfield, start, page_len, filte
 
 # @frappe.whitelist()
 def get_suppliers(doctype, txt, searchfield, start, page_len, filters):
-	print("-----------------------------------------------------------------")
 	doc = frappe.get_doc("Material Request", filters.get("doc"))
-	print("++++++++++++++++++++++++++++++++++++++++++++", filters)
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-	print("-----------------------------------------", item_list)
 	data = frappe.db.sql("""select supplier
 		from `tabItem Supplier`
 		where parent in ({0})
 		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
-	print("-------------------------------------------------------------", data)
 	return data
-	# print("--------")
 
 @frappe.whitelist()
 def get_rate(doc, supplier):
 	doc = frappe.get_doc("Material Request", doc)
-	print("+++++++++++++++++++++RATE+++++++++++++++++++++++", type(supplier))
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-	print("-----------------------FORMAT------------------", tuple(item_list))
 	data = frappe.db.sql("""select item_supplier.price_list_rate, item_supplier.uom
 		from `tabItem Supplier` as item_supplier
 		where parent in %(item)s and
 		item_supplier.supplier = %(supplier)s
 		""".format(', '.join(['%s']*len(item_list))), {'item': tuple(item_list), 'supplier': supplier})
-	print("-------------------------------------------------------------", data)
 	return data
 
 @frappe.whitelist()
