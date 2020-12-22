@@ -1610,6 +1610,7 @@ def raw_material_update_on_bom():
 		"manufacturing_type" : "Process"
 	})
 	for bom in boms:
+		# fetches all the stock_entries created within past seven days against individual BOM
 		stock_entries = frappe.get_all("Stock Entry", filters={
 			"bom_no": bom.name,
 			"posting_date": ["BETWEEN", [past_seven_days, today()]]
@@ -1625,5 +1626,6 @@ def raw_material_update_on_bom():
 				elif item.t_warehouse:
 					finished_good = finished_good + item.qty
 		if finished_good and raw_material:
-			avg_manufactured_qty= finished_good / raw_material
+			# calculates average manufactured qty from finished good and raw material to be set in BOM
+			avg_manufactured_qty = finished_good / raw_material
 		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
