@@ -471,13 +471,21 @@ class AccountsController(TransactionBase):
 	def set_advances(self):
 		"""Returns list of advances against Account, Party, Reference"""
 
-		res = self.get_advance_entries()
+		if self.doctype == "Sales Invoice" and self.allocate_advances_based_on_quantities:
+			res = self.get_advance_entries(include_unallocated=False)
+		else:
+			res = self.get_advance_entries()
 
 		self.set("advances", [])
 		advance_allocated = 0
 		for d in res:
 			if d.against_order:
-				allocated_amount = flt(d.amount)
+				if self.doctype == "Sales Invoice" and self.allocate_advances_based_on_quantities:
+					# formula for calculating allocated amount = (Fullfilled qty / Order Qty) * original_advance_paid_amount
+					order_qty = frappe.db.get_value("Sales Order", filters={"name":d.against_order}, fieldname=["total_qty"])
+					allocated_amount = flt(self.total_qty / order_qty) * d.total_allocated_amount
+				else:
+					allocated_amount = flt(d.amount)
 			else:
 				amount = self.rounded_total or self.grand_total
 				allocated_amount = min(amount - advance_allocated, d.amount)
@@ -1002,7 +1010,7 @@ def get_advance_journal_entries(party_type, party, party_account, amount_field,
 		select
 			"Journal Entry" as reference_type, t1.name as reference_name,
 			t1.remark as remarks, t2.{0} as amount, t2.name as reference_row,
-			t2.reference_name as against_order
+			t2.reference_name as against_order, t1.total_amount as total_allocated_amount
 		from
 			`tabJournal Entry` t1, `tabJournal Entry Account` t2
 		where
@@ -1035,7 +1043,7 @@ def get_advance_payment_entries(party_type, party, party_account, order_doctype,
 			select
 				"Payment Entry" as reference_type, t1.name as reference_name,
 				t1.remarks, t2.allocated_amount as amount, t2.name as reference_row,
-				t2.reference_name as against_order, t1.posting_date
+				t2.reference_name as against_order, t1.posting_date, t1.total_allocated_amount
 			from `tabPayment Entry` t1, `tabPayment Entry Reference` t2
 			where
 				t1.name = t2.parent and t1.{0} = %s and t1.payment_type = %s

@@ -215,14 +215,14 @@ class ProductionPlan(Document):
 			filters = {'docstatus': 0, 'production_plan': ("=", self.name)}):
 			frappe.delete_doc('Work Order', d.name)
 
-	def set_status(self):
+	def set_status(self, update=False):
 		self.status = {
 			0: 'Draft',
 			1: 'Submitted',
 			2: 'Cancelled'
 		}.get(self.docstatus)
 
-		if self.per_received == 100:
+		if self.docstatus == 1 and self.per_received == 100:
 			self.db_set("status", "Material Received")
 
 		if self.total_produced_qty > 0:
