@@ -389,12 +389,12 @@ class ProductionPlan(Document):
 
 			conversion_factor = get_uom_conv_factor(item_doc.purchase_uom, item_doc.stock_uom)
 			if conversion_factor:
-				qty = item.quantity * conversion_factor
+				item.quantity = item.quantity * conversion_factor
 
 			# add item
 			material_request_doc.append("items", {
 				"item_code": item.item_code,
-				"qty": qty if qty else item.quantity,
+				"qty": item.quantity,
 				"schedule_date": schedule_date,
 				"warehouse": item.warehouse,
 				"sales_order": item.sales_order,
