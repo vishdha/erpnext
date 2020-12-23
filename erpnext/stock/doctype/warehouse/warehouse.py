@@ -232,6 +232,7 @@ def get_warehouses_based_on_account(account, company=None):
 	return warehouses
 
 def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
+	"""Getting list of warehouse and there items details from Warehouse and Bin doctype."""
 	user = frappe.session.user
 	customer = frappe.get_value("User", user, "full_name")
 	if customer == "Administrator":
@@ -256,6 +257,15 @@ def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20,
 		return docs
 
 def get_list_context(context=None):
+	"""
+	Passing values to the webpage.
+
+	Args:
+		context (json, optional): Defaults to None.
+
+	Returns:
+		json: returns data to the path of row_template.
+	"""	
 	return {
 		"show_sidebar": True,
 		"show_search": True,
@@ -263,5 +273,4 @@ def get_list_context(context=None):
 		"title": _("Warehouse"),
 		"get_list": get_warehouse_list,
 		"row_template": "stock/doctype/warehouse/templates/warehouse_row.html",
-		"result_heading_template": "stock/doctype/warehouse/templates/result_heading_template.html"
 	}

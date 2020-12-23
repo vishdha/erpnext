@@ -1,34 +1,20 @@
-<!-- <div>
-	<li>{{ doc.warehouse }}</li>
-</div> -->
-<!-- this is a sample default list template -->
-<html>
-<head>
-<style>
-.parent {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.child {
-  flex: 1 0 21%; /* explanation below */
-  margin: 5px;
-  height: 10px;
-}
-
-.result {
-	display: flex;
-    flex-direction: column;
-}
-</style>
-</head>
-<div class="web-list-item mb-3">
-	<div class="parent">
-		<div class="child">{{ doc.warehouse }}</div>
-		<div class="child">{{ doc.item_name }}</div>
-		<div class="child">{{ doc.stock_uom }}</div>
-		<div class="child">{{ doc.actual_qty }}</div>
+<div class="web-list-item transaction-list-item">
+	<div class="row">
+		<div class="col-sm-4">
+			<span class="indicator small {{ doc.indicator_color or ("blue" if doc.docstatus==1 else "darkgrey") }}">
+				{{ doc.warehouse }}</span>
+			<div class="small text-muted transaction-time"
+				title="{{ frappe.utils.format_datetime(doc.modified, "medium") }}">
+				{{ doc.item_name }}
+			</div>
+		</div>
+		<div class="col-sm-5">
+			<div class="small text-muted items-preview ellipsis ellipsis-width">
+				{{ doc.stock_uom }}
+			</div>
+		</div>
+		<div class="col-sm-3 text-right bold">
+			{{ doc.actual_qty }}
+		</div>
 	</div>
 </div>
-</html>
-
