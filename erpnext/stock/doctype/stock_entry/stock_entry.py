@@ -1604,15 +1604,15 @@ def validate_sample_quantity(item_code, sample_quantity, qty, batch_no = None):
 
 def raw_material_update_on_bom():
 	"""
-	Calculates Average Manufactured Qty(avg_manufactured_qty) for BOM on the Basis of Stock Entries created.
-	It fetches the Stock Entries created within past seven days against BOM.
+	Calculates Average Manufactured Qty(avg_manufactured_qty) for BOM on the Basis of Stock Entries created and
+	it fetches the Stock Entries created within past seven days against BOM.
 	"""
 	past_seven_days = get_date_str(add_days(today(), -7))
 	boms = frappe.get_all("BOM", filters= {
 		"manufacturing_type" : "Process"
 	})
 	for bom in boms:
-		# fetches all the stock_entries created within past seven days against individual BOM
+		# Fetches all the stock_entries created within past seven days against individual BOM
 		stock_entries = frappe.get_all("Stock Entry", filters={
 			"bom_no": bom.name,
 			"posting_date": ["BETWEEN", [past_seven_days, today()]]
@@ -1620,6 +1620,7 @@ def raw_material_update_on_bom():
 		raw_material = 0
 		finished_good = 0
 		avg_manufactured_qty = 0
+		# Gets raw material and finished goods from stock entry to compute avg manufactured qty
 		for stock_entry in stock_entries:
 			stock_entry = frappe.get_doc("Stock Entry", {"name": stock_entry.name, "bom_no": bom.name})
 			for item in stock_entry.items:
@@ -1628,6 +1629,6 @@ def raw_material_update_on_bom():
 				elif item.t_warehouse:
 					finished_good = finished_good + item.qty
 		if finished_good and raw_material:
-			# calculates average manufactured qty from finished good and raw material to be set in BOM
+			# Calculates average manufactured qty from finished good and raw material to be set in BOM
 			avg_manufactured_qty = finished_good / raw_material
 		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
