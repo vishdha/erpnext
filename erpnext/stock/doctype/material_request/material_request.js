@@ -324,8 +324,14 @@ frappe.ui.form.on('Material Request', {
 					'supplier': supplier
 				},
 				callback: function(r) {
-					item.on_grid_fields_dict.price_list_rate.set_value(r.message[0][0])
-					item.on_grid_fields_dict.uom.set_value(r.message[0][1])
+					if (r.message) {
+						r.message.forEach(data => {
+							if (data.supplier == supplier) {
+								item.on_grid_fields_dict.price_list_rate.set_value(data.price_list_rate)
+								item.on_grid_fields_dict.uom.set_value(data.uom)
+							}
+						})
+					}
 				}
 			})
 		})

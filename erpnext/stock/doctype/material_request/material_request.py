@@ -400,29 +400,32 @@ def get_default_supplier_query(doctype, txt, searchfield, start, page_len, filte
 		default_supplier IS NOT NULL
 		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
 
-# @frappe.whitelist()
 def get_suppliers(doctype, txt, searchfield, start, page_len, filters):
+	"""Get Suppliers from Item Master."""
 	doc = frappe.get_doc("Material Request", filters.get("doc"))
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-	data = frappe.db.sql("""select supplier
-		from `tabItem Supplier`
-		where parent in ({0})
-		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+	data = frappe.db.get_values("Item Supplier", {'parent': ['in', item_list]}, "supplier")
 	return data
 
 @frappe.whitelist()
 def get_rate(doc, supplier):
+	"""
+	Get rate and UOM from Item Supplier.
+
+	Args:
+		doc (dict): Material Request Document
+		supplier (string): Supplier name
+
+	Returns:
+		data (dict): contains rate and uom
+	"""	
 	doc = frappe.get_doc("Material Request", doc)
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-	data = frappe.db.sql("""select item_supplier.price_list_rate, item_supplier.uom
-		from `tabItem Supplier` as item_supplier
-		where parent in %(item)s and
-		item_supplier.supplier = %(supplier)s
-		""".format(', '.join(['%s']*len(item_list))), {'item': tuple(item_list), 'supplier': supplier})
+	data = frappe.db.get_values("Item Supplier", {'parent': ['in', item_list]}, ["supplier","price_list_rate", "uom"],as_dict=1)
 	return data
 
 @frappe.whitelist()
