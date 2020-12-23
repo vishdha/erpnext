@@ -13,6 +13,7 @@ from frappe.utils.csvutils import build_csv_response
 from erpnext.manufacturing.doctype.bom.bom import validate_bom_no, get_children
 from erpnext.manufacturing.doctype.work_order.work_order import get_item_details
 from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
+from erpnext.stock.doctype.item.item import get_uom_conv_factor
 
 class ProductionPlan(Document):
 	def validate(self):
@@ -383,10 +384,17 @@ class ProductionPlan(Document):
 				"customer": item_doc.customer or ''
 			})
 
+			if item_doc.min_order_qty and item.quantity < item_doc.min_order_qty:
+				frappe.throw(_("Minimum Order Qty for {0} is {1}").format(item_doc.item_code, item_doc.min_order_qty))
+
+			conversion_factor = get_uom_conv_factor(item_doc.purchase_uom, item_doc.stock_uom)
+			if conversion_factor:
+				qty = item.quantity * conversion_factor
+
 			# add item
 			material_request_doc.append("items", {
 				"item_code": item.item_code,
-				"qty": item.quantity,
+				"qty": qty if qty else item.quantity,
 				"schedule_date": schedule_date,
 				"warehouse": item.warehouse,
 				"sales_order": item.sales_order,
@@ -400,10 +408,7 @@ class ProductionPlan(Document):
 			material_request_doc.run_method("set_missing_values")
 			material_request_doc.flags.ignore_permissions = 1
 			material_request_list.append(material_request_doc)
-			if self.get('submit_material_request'):
-				material_request_doc.submit()
-			else:
-				material_request_doc.save()
+			material_request_doc.save()
 
 		frappe.flags.mute_messages = False
 
