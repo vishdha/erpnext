@@ -57,14 +57,16 @@ class SellingController(StockController):
 				coupon_customer = frappe.get_value("Coupon Code", self.coupon_code, "allowed_customer")
 				coupon_customer_group = frappe.get_value("Coupon Code", self.coupon_code, "allowed_customer_group")
 
+				party_name = self.customer_name if self.doctype != "Quotation" else self.party_name
+
 				if self.doctype == "Quotation" and self.quotation_to != "Customer":
 					if coupon_customer or coupon_customer_group:
 						frappe.throw(_("Coupon \"{}\" can only be used with \"Customer\" party types").format(self.coupon_code))
 
-				if coupon_customer and coupon_customer != self.party_name:
+				if coupon_customer and coupon_customer != party_name:
 					frappe.throw(_("Coupon \"{}\" can not be applied to this customer").format(self.coupon_code))
 				elif coupon_customer_group:
-					customer_group = frappe.get_value("Customer", self.party_name, "customer_group")
+					customer_group = frappe.get_value("Customer", party_name, "customer_group")
 					if customer_group != coupon_customer_group:
 						frappe.throw(_("Coupon \"{}\" may only be applied to {} customer groups.").format(self.coupon_code, coupon_customer_group))
 
