@@ -300,6 +300,7 @@ def make_purchase_order(source_name, target_doc=None):
 				["sales_order_item", "sales_order_item"],
 				["production_plan", "production_plan"],
 				["production_plan_item", "production_plan_item"],
+				["material_request_plan_item", "material_request_plan_item"],
 				["rate", "price_list_rate"]
 			],
 			"postprocess": update_item,

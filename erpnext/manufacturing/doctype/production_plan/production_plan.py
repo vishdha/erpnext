@@ -230,9 +230,6 @@ class ProductionPlan(Document):
 			2: 'Cancelled'
 		}.get(self.docstatus)
 
-		if self.docstatus == 1 and self.per_received == 100:
-			self.db_set("status", "Material Received")
-
 		if self.total_produced_qty > 0:
 			self.status = "In Process"
 			if self.total_produced_qty == self.total_planned_qty:
@@ -755,3 +752,41 @@ def get_sub_assembly_items(bom_no, bom_data):
 			bom_item["stock_qty"] += d.stock_qty / d.parent_bom_qty
 
 			get_sub_assembly_items(bom_item.get("bom_no"), bom_data)
+
+@frappe.whitelist()
+def update_per_received_and_status_in_production_plan(purchase_receipt):
+	"""
+	Set Percentage Received(per_received) in Material Request Plan Item and
+	update status of Production Plan from Material Request Status.
+
+	Args:
+		purchase_receipt (dict): Purchase Receipt items for which Production Plan is updated
+	"""
+	for pr_item in purchase_receipt.items:
+		if not pr_item.production_plan:
+			return
+		production_plan = frappe.get_doc("Production Plan", pr_item.production_plan)
+		frappe.db.set_value("Material Request Plan Item", pr_item.material_request_plan_item, "received_qty", pr_item.received_qty)
+		frappe.db.set_value("Material Request Plan Item", pr_item.material_request_plan_item, "stock_qty", pr_item.stock_qty)
+		production_plan.reload()
+		if purchase_receipt.docstatus == 2:
+			for item in production_plan.mr_items:
+				if item.received_qty and item.requested_qty and pr_item.material_request_plan_item == item.name:
+					frappe.db.set_value("Material Request Plan Item", item.name, "received_qty", "0")
+					frappe.db.set_value("Material Request Plan Item", item.name, "requested_qty", "0")
+					frappe.db.set_value("Material Request Plan Item", item.name, "stock_qty", "0")
+					frappe.db.set_value("Material Request Plan Item", item.name, "per_received", "0")
+					production_plan.reload()
+			production_plan.db_set("status", "Material Requested")
+		else:
+			for mr_item in production_plan.mr_items:
+				if mr_item.received_qty and mr_item.requested_qty:
+					per_received = (mr_item.received_qty / mr_item.requested_qty) * 100
+					frappe.db.set_value("Material Request Plan Item", mr_item.name, "per_received", per_received)
+					production_plan.reload()
+
+		all_received =[item.per_received for item in production_plan.mr_items]
+		if all(all_received):
+			production_plan.db_set("status", "Material Received")
+		elif any(all_received):
+			production_plan.db_set("status", "Partially Received")
