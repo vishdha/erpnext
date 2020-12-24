@@ -389,7 +389,8 @@ class ProductionPlan(Document):
 			})
 
 			if item_doc.min_order_qty and item.quantity < item_doc.min_order_qty:
-				frappe.throw(_("Minimum Order Qty for {0} is {1}").format(item_doc.item_code, item_doc.min_order_qty))
+				frappe.msgprint(_("Order Quantity is set to <b>{0}</b> as Minimum Order Qty for Item <b>{1}</b> is <b>{2}</b>").format(item_doc.min_order_qty, item_doc.item_code, item_doc.min_order_qty))
+				item.quantity = item_doc.min_order_qty
 
 			conversion_factor = get_uom_conv_factor(item_doc.purchase_uom, item_doc.stock_uom)
 			if conversion_factor:
