@@ -235,26 +235,20 @@ def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20,
 	"""Getting list of warehouse and there items details from Warehouse and Bin doctype."""
 	user = frappe.session.user
 	customer = frappe.get_value("User", user, "full_name")
-	if customer == "Administrator":
-		warehouses = frappe.db.sql('''select name from `tabWarehouse`
-		where published=1''')
-		docs = []
-		for warehouse in warehouses:
-			docs += frappe.db.sql('''select * from `tabBin`
-			where warehouse=%s''', (warehouse), as_dict = True)
-		for doc in docs:
-			item_name = frappe.get_value("Item", doc.item_code, "item_name")
-			doc = doc.update({"item_name": item_name})
-		return docs
+	flt = {"published": 1}
+	if customer != "Administrator":
+		flt.update({"customer": customer})
+	warehouses = frappe.get_all("Warehouse", flt)
 
-	elif customer :
-		docs = frappe.db.sql('''SELECT * FROM `tabBin`
-		WHERE warehouse=(SELECT name FROM `tabWarehouse`
-		WHERE customer=%s AND published=1)''', (customer), as_dict = True)
-		for doc in docs:
-			item_name = frappe.get_value("Item", doc.item_code, "item_name")
-			doc = doc.update({"item_name": item_name})
-		return docs
+	docs = []
+	for warehouse in warehouses:
+		docs += frappe.get_all("Bin",{"warehouse": warehouse.name}, "*")
+
+	for doc in docs:
+		item_name = frappe.get_value("Item", doc.item_code, "item_name")
+		doc = doc.update({"item_name": item_name})
+
+	return docs
 
 def get_list_context(context=None):
 	"""
