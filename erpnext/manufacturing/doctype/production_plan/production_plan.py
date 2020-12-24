@@ -19,16 +19,16 @@ class ProductionPlan(Document):
 	def validate(self):
 		self.calculate_total_planned_qty()
 		self.set_status()
-		items = []
-		show_default_bom_msg = False
+		item_list = []
 		for d in self.get('po_items'):
-			if not d.bom_no:
-				items.append(d.item_code+": "+d.item_name)
-			if d.sales_order:
-				show_default_bom_msg = True
-		if show_default_bom_msg:
-			items = dict.fromkeys(items)
-			frappe.throw(_("In Sales Order <b>{0}</b> Please set default <b>{1}</b> for Item: <ol><li>{2}</li></ol>".format(d.sales_order, "<a href='#List/BOM/List'>BOM</a>", '<li>'.join(items))))
+			bom = frappe.db.get_values("Item", d.item_code, ["item_code","item_name", "default_bom"], as_dict=1)
+			item_list = item_list + bom
+
+		no_default_bom = ["""<a href="#Form/Item/{0}">{1}: {2}</a>""".format(m.item_code, m.item_code, m.item_name) \
+			for m in item_list if not m.default_bom]
+
+		if len(no_default_bom) >= 1:
+			frappe.throw(_("Please Set Default <b>BOM</b> for Item(s): <ol><li>{0}</li></ol>".format('<li>'.join(no_default_bom))))
 
 	def validate_data(self):
 		for d in self.get('po_items'):
@@ -389,7 +389,8 @@ class ProductionPlan(Document):
 			})
 
 			if item_doc.min_order_qty and item.quantity < item_doc.min_order_qty:
-				frappe.throw(_("Minimum Order Qty for {0} is {1}").format(item_doc.item_code, item_doc.min_order_qty))
+				frappe.msgprint(_("Order Quantity is set to <b>{0}</b> as Minimum Order Qty for Item <b>{1}</b> is <b>{2}</b>").format(item_doc.min_order_qty, item_doc.item_code, item_doc.min_order_qty))
+				item.quantity = item_doc.min_order_qty
 
 			conversion_factor = get_uom_conv_factor(item_doc.purchase_uom, item_doc.stock_uom)
 			if conversion_factor:
