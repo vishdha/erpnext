@@ -472,7 +472,7 @@ def warehouse_query(doctype, txt, searchfield, start, page_len, filters):
 
 	fields = get_fields("Warehouse", ["name"])
 
-	query = """select {fields}
+	query = """select {fields},
 		CONCAT_WS(" : ", "Actual Qty", ifnull( ({sub_query}), 0) ) as actual_qty
 		from `tabWarehouse`
 		where
