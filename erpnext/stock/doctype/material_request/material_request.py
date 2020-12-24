@@ -267,10 +267,10 @@ def make_purchase_order(source_name, target_doc=None):
 
 	def postprocess(source, target_doc):
 		if frappe.flags.args and frappe.flags.args.default_supplier:
+			target_doc.supplier = frappe.flags.args.default_supplier
 			# items only for given default supplier
 			supplier_items = []
 			for d in target_doc.items:
-				default_supplier = get_item_defaults(d.item_code, target_doc.company).get('default_supplier')
 				d.rate = frappe.flags.args.price_list_rate
 				d.uom = frappe.flags.args.uom
 				supplier_items.append(d)
