@@ -271,8 +271,9 @@ def make_purchase_order(source_name, target_doc=None):
 			supplier_items = []
 			for d in target_doc.items:
 				default_supplier = get_item_defaults(d.item_code, target_doc.company).get('default_supplier')
-				if frappe.flags.args.default_supplier == default_supplier:
-					supplier_items.append(d)
+				d.rate = frappe.flags.args.price_list_rate
+				d.uom = frappe.flags.args.uom
+				supplier_items.append(d)
 			target_doc.items = supplier_items
 
 		set_missing_values(source, target_doc)
@@ -393,12 +394,39 @@ def get_default_supplier_query(doctype, txt, searchfield, start, page_len, filte
 	item_list = []
 	for d in doc.items:
 		item_list.append(d.item_code)
-
 	return frappe.db.sql("""select default_supplier
 		from `tabItem Default`
 		where parent in ({0}) and
 		default_supplier IS NOT NULL
 		""".format(', '.join(['%s']*len(item_list))),tuple(item_list))
+
+def get_suppliers(doctype, txt, searchfield, start, page_len, filters):
+	"""Get Suppliers from Item Master."""
+	doc = frappe.get_doc("Material Request", filters.get("doc"))
+	item_list = []
+	for d in doc.items:
+		item_list.append(d.item_code)
+	data = frappe.db.get_values("Item Supplier", {'parent': ['in', item_list]}, "supplier")
+	return data
+
+@frappe.whitelist()
+def get_rate(doc, supplier):
+	"""
+	Get rate and UOM from Item Supplier.
+
+	Args:
+		doc (dict): Material Request Document
+		supplier (string): Supplier name
+
+	Returns:
+		data (dict): contains rate and uom
+	"""	
+	doc = frappe.get_doc("Material Request", doc)
+	item_list = []
+	for d in doc.items:
+		item_list.append(d.item_code)
+	data = frappe.db.get_values("Item Supplier", {'parent': ['in', item_list]}, ["supplier","price_list_rate", "uom"],as_dict=1)
+	return data
 
 @frappe.whitelist()
 def make_supplier_quotation(source_name, target_doc=None):
