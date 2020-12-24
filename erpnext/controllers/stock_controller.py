@@ -10,6 +10,7 @@ from erpnext.compliance.doctype.compliance_info.compliance_info import validate_
 from erpnext.compliance.taxes import calculate_cannabis_tax
 from erpnext.accounts.utils import get_fiscal_year, get_stock_and_account_balance
 from erpnext.accounts.utils import get_fiscal_year
+from erpnext.accounts.utils import get_fiscal_year, check_if_stock_and_account_balance_synced
 from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries, process_gl_map
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.stock import get_warehouse_account_map
@@ -386,6 +387,14 @@ class StockController(AccountsController):
 
 		if check_if_future_sle_exists(args):
 			create_repost_item_valuation_entry(args)
+		elif not is_reposting_pending():
+			check_if_stock_and_account_balance_synced(self.posting_date,
+				self.company, self.doctype, self.name)
+
+def is_reposting_pending():
+	return frappe.db.exists("Repost Item Valuation",
+		{'docstatus': 1, 'status': ['in', ['Queued','In Progress']]})
+
 
 def check_if_future_sle_exists(args):
 	sl_entries = frappe.db.get_all("Stock Ledger Entry",
