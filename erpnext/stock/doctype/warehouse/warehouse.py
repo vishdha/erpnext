@@ -8,6 +8,7 @@ from frappe import throw, _
 from frappe.utils.nestedset import NestedSet
 from erpnext.stock import get_warehouse_account
 from frappe.contacts.address_and_contact import load_address_and_contact
+import itertools
 
 class Warehouse(NestedSet):
 	nsm_parent_field = 'parent_warehouse'
@@ -231,36 +232,40 @@ def get_warehouses_based_on_account(account, company=None):
 
 	return warehouses
 
-def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
+def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="`tabWarehouse`.modified"):
 	"""Getting list of warehouse and there items details from Warehouse and Bin doctype."""
-	user = frappe.session.user
-	customers = []
-	docs = []
-	# Checking user have 'Warehouse' permission or not.
-	if frappe.has_permission("Warehouse"):
-		for doc in frappe.get_all("Contact", {"user": user}):
-			# getting list of customers tha have user assigned through contact. 
-			customers += frappe.get_all("Dynamic Link", {
-				"parent": doc.name,
-				"link_doctype": "Customer"
-			}, "link_name")
+	customers_list = frappe.db.sql("""
+		SELECT `tabDynamic Link`.link_name
+		FROM `tabContact`
+			LEFT JOIN `tabDynamic Link`
+				ON `tabContact`.name=`tabDynamic Link`.parent
+		WHERE `tabContact`.email_id='%(email_id)s'
+			AND `tabDynamic Link`.link_doctype='Customer'
+	""" % {
+		"email_id": frappe.session.user
+	}, as_list=True)
 
-		for customer in customers:
-			# Getting user warehouse.
-			flt = {
-				"published": 1,
-				"customer": customer.link_name
-			}
-			warehouses = frappe.get_all("Warehouse", flt)
+	customers = list(itertools.chain.from_iterable(customers_list))
 
-		for warehouse in warehouses:
-			# Fetching items details.
-			docs += frappe.get_all("Bin",{"warehouse": warehouse.name}, "*")
+	warehouses_list = frappe.db.sql("""
+		SELECT `tabBin`.*, `tabItem`.item_name
+		FROM `tabBin`
+			LEFT JOIN `tabWarehouse`
+				ON `tabWarehouse`.name=`tabBin`.warehouse
+				LEFT JOIN `tabItem`
+					ON `tabBin`.item_code=`tabItem`.name
+		WHERE `tabWarehouse`.published=1
+			AND `tabWarehouse`.customer IN %(customers)s
+		ORDER BY %(order_by)s
+		LIMIT %(start)s, %(page_len)s
+	""", {
+		"customers": list(itertools.chain.from_iterable(customers_list)),
+		"order_by": order_by,
+		"start": limit_start,
+		"page_len": limit_page_length
+	}, as_dict=True)
 
-		for doc in docs:
-			item_name = frappe.get_value("Item", doc.item_code, "item_name")
-			doc = doc.update({"item_name": item_name})
-		return docs
+	return warehouses_list
 
 def get_list_context(context=None):
 	"""
@@ -271,7 +276,7 @@ def get_list_context(context=None):
 
 	Returns:
 		json: returns data to the path of row_template.
-	"""	
+	"""
 	return {
 		"show_sidebar": True,
 		"show_search": True,
