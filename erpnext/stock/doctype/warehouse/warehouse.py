@@ -234,21 +234,33 @@ def get_warehouses_based_on_account(account, company=None):
 def get_warehouse_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
 	"""Getting list of warehouse and there items details from Warehouse and Bin doctype."""
 	user = frappe.session.user
-	customer = frappe.get_value("User", user, "full_name")
-	flt = {"published": 1}
-	if customer != "Administrator":
-		flt.update({"customer": customer})
-	warehouses = frappe.get_all("Warehouse", flt)
-
+	customers = []
 	docs = []
-	for warehouse in warehouses:
-		docs += frappe.get_all("Bin",{"warehouse": warehouse.name}, "*")
+	# Checking user have 'Warehouse' permission or not.
+	if frappe.has_permission("Warehouse"):
+		for doc in frappe.get_all("Contact", {"user": user}):
+			# getting list of customers tha have user assigned through contact. 
+			customers += frappe.get_all("Dynamic Link", {
+				"parent": doc.name,
+				"link_doctype": "Customer"
+			}, "link_name")
 
-	for doc in docs:
-		item_name = frappe.get_value("Item", doc.item_code, "item_name")
-		doc = doc.update({"item_name": item_name})
+		for customer in customers:
+			# Getting user warehouse.
+			flt = {
+				"published": 1,
+				"customer": customer.link_name
+			}
+			warehouses = frappe.get_all("Warehouse", flt)
 
-	return docs
+		for warehouse in warehouses:
+			# Fetching items details.
+			docs += frappe.get_all("Bin",{"warehouse": warehouse.name}, "*")
+
+		for doc in docs:
+			item_name = frappe.get_value("Item", doc.item_code, "item_name")
+			doc = doc.update({"item_name": item_name})
+		return docs
 
 def get_list_context(context=None):
 	"""
