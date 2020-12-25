@@ -62,6 +62,10 @@ frappe.ui.form.on("Purchase Receipt", {
 		}, __('Create'));
 	},
 
+	before_save: (frm) => {
+		frm.set_value("batch_no", frm.doc.items[0].batch_no);
+	},
+
 	company: function(frm) {
 		frm.trigger("toggle_display_account_head");
 	},
