@@ -15,13 +15,13 @@ frappe.ui.form.on("Quality Inspection", {
 			};
 		});
 	},
-	refresh: function(frm) {
+	refresh: function (frm) {
 		frm.trigger("set_batch_query");
 	},
-	show_disabled_batch: function(frm) {
+	show_disabled_batch: function (frm) {
 		frm.trigger("set_batch_query");
 	},
-	set_batch_query: function(frm) {
+	set_batch_query: function (frm) {
 		frm.set_query("batch_no", function (doc) {
 			return {
 				filters: {
