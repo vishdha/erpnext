@@ -938,7 +938,35 @@ frappe.ui.form.on('Payment Entry', {
 				}
 			});
 		}
-	}
+	},
+
+	cost_center: function(frm){
+		if (frm.doc.posting_date && (frm.doc.paid_from || frm.doc.paid_to)) {
+			return frappe.call({
+				method: "erpnext.accounts.doctype.payment_entry.payment_entry.get_party_and_account_balance",
+				args: {
+					company: frm.doc.company,
+					date: frm.doc.posting_date,
+					paid_from: frm.doc.paid_from,
+					paid_to: frm.doc.paid_to,
+					ptype: frm.doc.party_type,
+					pty: frm.doc.party,
+					cost_center: frm.doc.cost_center
+				},
+				callback: function (r, rt) {
+					if (r.message) {
+						frappe.run_serially([
+							() => {
+								frm.set_value("paid_from_account_balance", r.message.paid_from_account_balance);
+								frm.set_value("paid_to_account_balance", r.message.paid_to_account_balance);
+								frm.set_value("party_balance", r.message.party_balance);
+							}
+						]);
+					}
+				}
+			});
+		}
+	},
 });
 
 
@@ -980,6 +1008,10 @@ frappe.ui.form.on('Payment Entry Reference', {
 		frm.events.set_total_allocated_amount(frm);
 	},
 
+	discounted_amount: function(frm) {
+		frm.events.set_total_allocated_amount(frm);
+	},
+
 	references_remove: function(frm) {
 		frm.events.set_total_allocated_amount(frm);
 	}
@@ -993,33 +1025,4 @@ frappe.ui.form.on('Payment Entry Deduction', {
 	deductions_remove: function(frm) {
 		frm.events.set_unallocated_amount(frm);
 	}
-})
-frappe.ui.form.on('Payment Entry', {
-	cost_center: function(frm){
-		if (frm.doc.posting_date && (frm.doc.paid_from || frm.doc.paid_to)) {
-			return frappe.call({
-				method: "erpnext.accounts.doctype.payment_entry.payment_entry.get_party_and_account_balance",
-				args: {
-					company: frm.doc.company,
-					date: frm.doc.posting_date,
-					paid_from: frm.doc.paid_from,
-					paid_to: frm.doc.paid_to,
-					ptype: frm.doc.party_type,
-					pty: frm.doc.party,
-					cost_center: frm.doc.cost_center
-				},
-				callback: function (r, rt) {
-					if (r.message) {
-						frappe.run_serially([
-							() => {
-								frm.set_value("paid_from_account_balance", r.message.paid_from_account_balance);
-								frm.set_value("paid_to_account_balance", r.message.paid_to_account_balance);
-								frm.set_value("party_balance", r.message.party_balance);
-							}
-						]);
-					}
-				}
-			});
-		}
-	},
 })
