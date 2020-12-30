@@ -8,12 +8,14 @@
   "reference_name",
   "bill_no",
   "column_break_4",
+  "posting_date",
   "due_date",
   "section_break_6",
   "total_amount",
   "outstanding_amount",
   "column_break_9",
   "allocated_amount",
+  "discounted_amount",
   "exchange_rate",
   "payment_terms_section_section",
   "payment_term",
@@ -124,10 +126,21 @@
    "fieldname": "discount",
    "fieldtype": "Read Only",
    "label": "Discount"
+  },
+  {
+   "fieldname": "discounted_amount",
+   "fieldtype": "Float",
+   "label": "Discounted Amount"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2020-12-24 02:06:36.175537",
+ "modified": "2020-12-30 00:57:37.008265",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry Reference",

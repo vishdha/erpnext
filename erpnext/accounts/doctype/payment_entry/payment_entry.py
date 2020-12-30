@@ -391,7 +391,7 @@ class PaymentEntry(AccountsController):
 			if self.payment_type == "Receive" \
 				and self.base_total_allocated_amount < self.base_received_amount + total_deductions \
 				and self.total_allocated_amount < self.paid_amount + (total_deductions / self.source_exchange_rate):
-					self.unallocated_amount = (self.base_received_amount + total_deductions -
+					self.unallocated_amount = (self.base_received_amount + total_deductions - self.base_total_discounted_amount -
 						self.base_total_allocated_amount) / self.source_exchange_rate
 			elif self.payment_type == "Pay" \
 				and self.base_total_allocated_amount < (self.base_paid_amount - total_deductions) \
@@ -414,7 +414,7 @@ class PaymentEntry(AccountsController):
 
 		total_deductions = sum([flt(d.amount) for d in self.get("deductions")])
 
-		self.difference_amount = flt(self.difference_amount - total_deductions,
+		self.difference_amount = flt(self.difference_amount - total_deductions + self.base_total_discounted_amount,
 			self.precision("difference_amount"))
 
 	# Paid amount is auto allocated in the reference document by default.
@@ -496,13 +496,15 @@ class PaymentEntry(AccountsController):
 		self.add_party_gl_entries(gl_entries)
 		self.add_bank_gl_entries(gl_entries)
 		self.add_deductions_gl_entries(gl_entries)
+		print("gleentrt+++++++++++++++++++++++++++++++++++++++++++++++++", gl_entries)
 
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def add_party_gl_entries(self, gl_entries):
 		if self.party_account:
+			print("--------------------------------------------------")
 			if self.payment_type=="Receive":
-				against_account = self.paid_to
+				against_account =  self.paid_to
 			else:
 				against_account = self.paid_from
 
@@ -518,6 +520,7 @@ class PaymentEntry(AccountsController):
 			dr_or_cr = "credit" if erpnext.get_party_account_type(self.party_type) == 'Receivable' else "debit"
 
 			for d in self.get("references"):
+
 				gle = party_gl_dict.copy()
 				gle.update({
 					"against_voucher_type": d.reference_doctype,
@@ -526,7 +529,6 @@ class PaymentEntry(AccountsController):
 
 				allocated_amount_in_company_currency = flt(flt(d.allocated_amount) * flt(d.exchange_rate),
 					self.precision("paid_amount"))
-
 				gle.update({
 					dr_or_cr + "_in_account_currency": d.allocated_amount,
 					dr_or_cr: allocated_amount_in_company_currency
@@ -543,6 +545,20 @@ class PaymentEntry(AccountsController):
 				gle.update({
 					dr_or_cr + "_in_account_currency": self.unallocated_amount,
 					dr_or_cr: base_unallocated_amount
+				})
+
+				gl_entries.append(gle)
+			
+			if self.total_discounted_amount:
+				base_total_discounted_amount = self.total_discounted_amount * \
+					(self.source_exchange_rate if self.payment_type=="Receive" else self.target_exchange_rate)
+
+				gle = party_gl_dict.copy()
+
+				gle.update({
+					"account":  frappe.get_cached_value('Company',  self.company, "discount_allowed_account"),	
+					dr_or_cr + "_in_account_currency": self.total_discounted_amount,
+					dr_or_cr: base_total_discounted_amount
 				})
 
 				gl_entries.append(gle)
@@ -943,6 +959,7 @@ def get_reference_details(reference_doctype, reference_name, party_account_curre
 
 	return frappe._dict({
 		"due_date": ref_doc.get("due_date"),
+		"posting_date": ref_doc.get("posting_date"),
 		"total_amount": total_amount,
 		"outstanding_amount": outstanding_amount,
 		"exchange_rate": exchange_rate,
