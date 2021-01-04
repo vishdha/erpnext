@@ -17,7 +17,10 @@ develop_version = '12.x.x-develop'
 
 app_include_js = "assets/js/erpnext.min.js"
 app_include_css = "assets/css/erpnext.css"
-web_include_js = "assets/js/erpnext-web.min.js"
+web_include_js = [
+	"assets/js/erpnext-web.min.js", 
+	"assets/js/order_for.js"
+]
 web_include_css = "assets/css/erpnext-web.css"
 
 doctype_js = {
@@ -49,12 +52,18 @@ on_session_creation = [
 	"erpnext.portal.utils.create_customer_or_supplier",
 	"erpnext.shopping_cart.utils.set_cart_count"
 ]
+
+on_session_start = "erpnext.selling.utils.initialise_order_for"
+
 on_logout = "erpnext.shopping_cart.utils.clear_cart_count"
 
 treeviews = ['Account', 'Cost Center', 'Warehouse', 'Item Group', 'Customer Group', 'Sales Person', 'Territory', 'Assessment Group', 'Department']
 
 # website
-update_website_context = ["erpnext.shopping_cart.utils.update_website_context", "erpnext.education.doctype.education_settings.education_settings.update_website_context"]
+update_website_context = [
+	"erpnext.shopping_cart.utils.update_website_context", 
+	"erpnext.education.doctype.education_settings.education_settings.update_website_context"
+]
 my_account_context = "erpnext.shopping_cart.utils.update_my_account_context"
 
 email_append_to = ["Job Applicant", "Lead", "Opportunity", "Issue"]
@@ -173,6 +182,7 @@ standard_portal_menu_items = [
 	{"title": _("Shipments"), "route": "/shipments", "reference_doctype": "Delivery Note", "role":"Customer"},
 	{"title": _("Issues"), "route": "/issues", "reference_doctype": "Issue", "role":"Customer"},
 	{"title": _("Addresses"), "route": "/addresses", "reference_doctype": "Address"},
+	{"title": _("Warehouse"), "route": "/warehouse", "reference_doctype": "Warehouse"},
 	{"title": _("Timesheets"), "route": "/timesheets", "reference_doctype": "Timesheet", "role":"Customer"},
 	{"title": _("Lab Test"), "route": "/lab-test", "reference_doctype": "Lab Test", "role":"Patient"},
 	{"title": _("Prescription"), "route": "/prescription", "reference_doctype": "Patient Encounter", "role":"Patient"},
