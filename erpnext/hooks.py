@@ -49,12 +49,18 @@ on_session_creation = [
 	"erpnext.portal.utils.create_customer_or_supplier",
 	"erpnext.shopping_cart.utils.set_cart_count"
 ]
+
+on_session_start = "erpnext.selling.utils.initialise_order_for"
+
 on_logout = "erpnext.shopping_cart.utils.clear_cart_count"
 
 treeviews = ['Account', 'Cost Center', 'Warehouse', 'Item Group', 'Customer Group', 'Sales Person', 'Territory', 'Assessment Group', 'Department']
 
 # website
-update_website_context = ["erpnext.shopping_cart.utils.update_website_context", "erpnext.education.doctype.education_settings.education_settings.update_website_context"]
+update_website_context = [
+	"erpnext.shopping_cart.utils.update_website_context", 
+	"erpnext.education.doctype.education_settings.education_settings.update_website_context"
+]
 my_account_context = "erpnext.shopping_cart.utils.update_my_account_context"
 
 email_append_to = ["Job Applicant", "Lead", "Opportunity", "Issue"]
