@@ -225,7 +225,6 @@ $.extend(shopping_cart, {
 });
 
 frappe.ready(function() {
-	$(".cart-icon").hide();
 	shopping_cart.bind_events();
 });
 
