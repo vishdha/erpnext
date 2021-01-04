@@ -6,6 +6,11 @@ def initialise_order_for():
 	"""Initializes the "order for" feature which allows a backend user to use the
 	shopping cart in behalf of another user"""
 
+	cart_settings = frappe.get_single("Shopping Cart Settings")
+
+	if not (cart_settings.enabled and cart_settings.allow_order_for):
+		return
+
 	# Initialize frappe.session.data.order_for
 	frappe.session.data["order_for"] = _dict(frappe.session.data.get("order_for", {}))
 	order_for = frappe.session.data.order_for
