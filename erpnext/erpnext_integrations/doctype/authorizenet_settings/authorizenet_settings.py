@@ -59,6 +59,7 @@ import re
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController
+from authorizenet.constants import constants
 from six.moves.urllib.parse import urlencode
 
 import frappe
@@ -153,6 +154,8 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 
 	# Create the controller
 	createtransactioncontroller = createTransactionController(create_transaction_request)
+	if not frappe.db.get_single_value("Authorizenet Settings", "sandbox_mode"):
+		createtransactioncontroller.setenvironment(constants.PRODUCTION)
 	createtransactioncontroller.execute()
 
 	response = createtransactioncontroller.getresponse()
