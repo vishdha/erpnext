@@ -235,6 +235,7 @@ class WorkOrder(Document):
 			produced_qty = total_qty[0][0] if total_qty else 0
 
 		production_plan.run_method("update_produced_qty", produced_qty, self.production_plan_item)
+		production_plan.run_method("update_produced_qty_in_mr_item", produced_qty, self.material_request_plan_item)
 
 	def validate_manufacturing_type(self):
 		if self.manufacturing_type == "Process":
