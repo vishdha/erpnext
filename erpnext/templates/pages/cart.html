@@ -34,8 +34,7 @@
 			{% include "templates/includes/cart/cart_items.html" %}
 		</tbody>
 		{% if cart_settings.enable_checkout or (cart_settings.sales_team_order_without_payment and order_for) %}
-		<tfoot class="cart-tax-items">
-			{% include "templates/includes/order/order_taxes.html" %}
+		<tfoot>
 			<tr>
 				<td class="text-right align-middle" colspan="2"><b>Requested Delivery Date</b></td>
 				<td>
@@ -46,6 +45,9 @@
 			</tr>
 		</tfoot>
 		{% endif %}
+		<tfoot class="cart-tax-items">
+			{% include "templates/includes/order/order_taxes.html" %}
+		</tfoot>
 	</table>
 	{% else %}
 	<p class="text-muted">{{ _('Your cart is Empty') }}</p>
