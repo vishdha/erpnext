@@ -413,8 +413,9 @@ class PaymentEntry(AccountsController):
 			self.difference_amount = self.base_paid_amount - flt(self.base_received_amount)
 
 		total_deductions = sum([flt(d.amount) for d in self.get("deductions")])
+		total_discounts = sum([flt(d.discounted_amount) for d in self.get("references")])
 
-		self.difference_amount = flt(self.difference_amount - total_deductions + self.base_total_discounted_amount,
+		self.difference_amount = flt(self.difference_amount - total_deductions + total_discounts,
 			self.precision("difference_amount"))
 
 	# Paid amount is auto allocated in the reference document by default.
@@ -496,13 +497,11 @@ class PaymentEntry(AccountsController):
 		self.add_party_gl_entries(gl_entries)
 		self.add_bank_gl_entries(gl_entries)
 		self.add_deductions_gl_entries(gl_entries)
-		print("gleentrt+++++++++++++++++++++++++++++++++++++++++++++++++", gl_entries)
 
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def add_party_gl_entries(self, gl_entries):
 		if self.party_account:
-			print("--------------------------------------------------")
 			if self.payment_type=="Receive":
 				against_account =  self.paid_to
 			else:
