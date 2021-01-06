@@ -70,7 +70,7 @@ def create_bank_entries(columns, data, bank_account):
 	return {"success": success, "errors": errors}
 
 def get_value(data, key, bank, index):
-	if not bank.is_single_column_import or key not in ["debit", "credits"]:
+	if not bank.is_single_column_import or key not in ["debit", "credit"]:
 		return data[index]
 
 	if key == "debit" and float(data[index]) >= 0:
