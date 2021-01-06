@@ -16,6 +16,7 @@ from frappe.model.mapper import get_mapped_doc
 from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.assets.doctype.asset.asset import get_asset_account, is_cwip_accounting_enabled
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
+from erpnext.manufacturing.doctype.production_plan.production_plan import update_per_received_and_status_in_production_plan
 from six import iteritems
 
 form_grid_templates = {
@@ -52,17 +53,6 @@ class PurchaseReceipt(BuyingController):
 			'target_ref_field': 'stock_qty',
 			'source_field': 'stock_qty',
 			'percent_join_field': 'material_request'
-		},
-		{
-			'source_dt': 'Purchase Receipt Item',
-			'target_dt': 'Production Plan Item',
-			'join_field': 'production_plan_item',
-			'target_field': 'received_qty',
-			'target_parent_dt': 'Production Plan',
-			'target_parent_field': 'per_received',
-			'target_ref_field': 'received_qty',
-			'source_field': 'received_qty',
-			'percent_join_field': 'production_plan'
 		}]
 		if cint(self.is_return):
 			self.status_updater.append({
@@ -180,6 +170,8 @@ class PurchaseReceipt(BuyingController):
 
 		self.make_gl_entries()
 		self.update_package_tag_batch()
+		update_per_received_and_status_in_production_plan(self)
+
 
 	def before_cancel(self):
 		self.update_package_tag_batch(reset=True)
@@ -212,6 +204,7 @@ class PurchaseReceipt(BuyingController):
 		self.update_stock_ledger()
 		self.make_gl_entries_on_cancel()
 		self.delete_auto_created_batches()
+		update_per_received_and_status_in_production_plan(self)
 
 	def get_current_stock(self):
 		for d in self.get('supplied_items'):

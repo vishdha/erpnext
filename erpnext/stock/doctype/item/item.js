@@ -6,7 +6,11 @@ frappe.provide("erpnext.item");
 frappe.ui.form.on("Item", {
 	setup: function(frm) {
 		frm.make_methods = {
-			'Purchase Order': create_purchase_order
+			'Purchase Order': create_purchase_order,
+			'Material Request': () => frappe.model.open_mapped_doc({
+				method: "erpnext.stock.doctype.item.item.create_material_request",
+				frm: frm
+			})
 		}
 		frm.add_fetch('attribute', 'numeric_values', 'numeric_values');
 		frm.add_fetch('attribute', 'from_range', 'from_range');
@@ -800,6 +804,7 @@ frappe.ui.form.on("Item Supplier", {
 					if (!r.exc && r.message) {
 						frappe.model.set_value(cdt, cdn, "price_list", r.message.price_list);
 						frappe.model.set_value(cdt, cdn, "price_list_rate", r.message.price_list_rate);
+						frappe.model.set_value(cdt, cdn, "uom", r.message.uom);
 					}
 				}
 			});
@@ -811,15 +816,9 @@ function create_purchase_order(frm) {
 	frappe.call({
 		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",
 		args: {
-			'doc': frm.doc,
 			'items': frm.doc.supplier_items,
 		},
 		callback: function(r) {
-			if (r.message.length === 0) {
-				frappe.msgprint(__("None of the supplier available for purchase order"));
-				return;
-			}
-
 			const dialog = new frappe.ui.Dialog({
 				title: __("Make Purchase Order"),
 				fields: [
@@ -827,7 +826,6 @@ function create_purchase_order(frm) {
 						label: __("Items"),
 						fieldname: "items",
 						fieldtype: "Table",
-						cannot_add_rows: true,
 						data: r.message,
 						in_place_edit: true,
 						get_data: () => {
@@ -839,22 +837,37 @@ function create_purchase_order(frm) {
 								fieldtype: 'Link',
 								fieldname: "supplier",
 								options: "Supplier",
-								read_only: 1,
+								reqd:1,
 								in_list_view: 1
 							},
 							{
 								label: __("Price List"),
-								fieldtype: 'Data',
+								fieldtype: 'Link',
 								fieldname: "price_list",
-								read_only: 1,
-								in_list_view: 1
+								options: "Price List",
+								in_list_view: 1,
+								get_query: function() {
+									return {
+										filters: {
+											Buying: 1
+										}
+									}
+								}
 							},
 							{
 								label: __("Warehouse"),
 								fieldtype: 'Link',
 								fieldname: "warehouse",
 								options: "Warehouse",
-								in_list_view: 1
+								in_list_view: 1,
+								reqd: 1,
+								get_query: function() {
+									return {
+										filters: {
+											company: frappe.defaults.get_user_default("Company")
+										}
+									}
+								}
 							},
 							{
 								label: __("qty"),
@@ -867,10 +880,14 @@ function create_purchase_order(frm) {
 				],
 				primary_action: function () {
 					const items = dialog.get_values().items;
+					if (!items) {
+						frappe.throw(__("Atleast one supplier required to create purchase order."));
+					}
+
 					items.forEach(item => {
-						if (item.sample_size > item.qty) {
-							frappe.throw(__("Row #{0}: The sample size ({1}) for {2} should be less or equal than the item quantity ({3})",
-								[item.idx, item.sample_size, item.item_code.bold(), item.qty]));
+						if (!item.supplier || !item.warehouse || !item.qty) {
+							frappe.throw(__("Row #{0}: The supplier, warehouse and item qty cannot be empty.",
+								[item.idx]));
 						}
 					})
 
@@ -878,12 +895,13 @@ function create_purchase_order(frm) {
 						method: "erpnext.stock.doctype.item.item.make_purchase_order_item",
 						freeze: true,
 						args: {
+							"doc": frm.doc,
 							"items": items
 						},
 						callback: function (r) {
-							let quality_inspections = r.message;
+							let purchase_orders = r.message;
 							frappe.msgprint(__("The following purchase orders have been created:<br><ul><li>{0}</li></ul>",
-								[quality_inspections.join("<br><li>")]));
+								[purchase_orders.join("<br><li>")]));
 						}
 					});
 

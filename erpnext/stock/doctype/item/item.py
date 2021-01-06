@@ -1140,8 +1140,12 @@ def on_doctype_update():
 	frappe.db.add_index("Item", ["route(500)"])
 
 @frappe.whitelist()
-def make_purchase_order_item(items):
+def make_purchase_order_item(doc, items):
 	items = json.loads(items)
+	doc = json.loads(doc)
+	if not items:
+		return
+
 	purchase_orders = []
 
 	for item in items:
@@ -1150,10 +1154,11 @@ def make_purchase_order_item(items):
 			"supplier": item.get("supplier"),
 			"buying_price_list": item.get("price_list"),
 			"items": [
-					{"item_code": item.get("item_code"),
+					{"item_code": doc.get("name"),
 					"qty":item.get("qty"),
+					"uom":item.get("uom"),
 					"rate":item.get("price_list_rate"),
-					"cultivation_weight_uom": item.get("uom"),
+					"cultivation_weight_uom": item.get("uom") or doc.get("stock_uom"),
 					"warehouse": item.get("warehouse"),
 					"schedule_date": getdate(nowdate())}
 			]
@@ -1165,21 +1170,17 @@ def make_purchase_order_item(items):
 
 
 @frappe.whitelist()
-def get_supplier_for_purchase_order(doc, items):
+def get_supplier_for_purchase_order(items):
 	items = json.loads(items)
-	doc = json.loads(doc)
 	data = []
 	for item in items:
 		data.append({
 			"docname": item.get("name"),
-			"item_code": doc.get("name"),
 			"supplier": item.get("supplier"),
-			"item_name": doc.get("item_name"),
 			"price_list": item.get("price_list"),
-			"uom": doc.get("stock_uom"),
+			"uom": item.get("uom"),
 			"price_list_rate": item.get("price_list_rate")
 		})
-
 	return data
 
 def custom_autoname(doc):
@@ -1192,16 +1193,21 @@ def custom_autoname(doc):
 			e = variant ID number; has to be incremented.
 	"""
 	# Get abbreviations
-	company_abbr = get_company_default(get_default_company(), "abbr")
-	brand_abbr = get_abbr(doc.brand, max_length=len(company_abbr))
-	brand_abbr = brand_abbr if company_abbr != brand_abbr else None
 	item_group_abbr = get_abbr(doc.item_group)
 	item_name_abbr = get_abbr(doc.item_name, 3)
+	default_company = get_default_company()
 
-	params = list(filter(None, [company_abbr, brand_abbr, item_group_abbr, item_name_abbr]))
+	if default_company:
+		company_abbr = get_company_default(default_company, "abbr")
+		brand_abbr = get_abbr(doc.brand, max_length=len(company_abbr))
+		brand_abbr = brand_abbr if company_abbr != brand_abbr else None
+		params = list(filter(None, [company_abbr, brand_abbr, item_group_abbr, item_name_abbr]))
+	else:
+		brand_abbr = get_abbr(doc.brand)
+		params = list(filter(None, [brand_abbr, item_group_abbr, item_name_abbr]))
+
 	item_code = "-".join(params)
-
-		# Get count
+	# Get count
 	count = len(frappe.get_all("Item", filters={"name": ["like", "%{}%".format(item_code)]}))
 
 	if count > 0:
@@ -1215,4 +1221,23 @@ def get_item_price(supplier, item_code):
 		"supplier": supplier,
 		"item_code": item_code,
 		"buying": True
-	}, ["price_list", "price_list_rate"], as_dict=True)
+	}, ["price_list", "price_list_rate", "uom"], as_dict=True)
+
+@frappe.whitelist()
+def create_material_request(source_name, target_doc=None):
+	"""
+	Creating Material Request from Item.
+
+	Args:
+		source_name (string): item name
+		target_doc (json, optional): json of new material_request doc. Defaults to None.
+
+	Returns:
+		target_doc (json): new material_request doc
+	"""
+	doc = frappe.get_doc("Item", source_name)
+	target_doc = frappe.new_doc("Material Request")
+	if doc.is_customer_provided_item:
+		target_doc.material_request_type = "Customer Provided"
+		target_doc.customer = doc.customer
+	return target_doc

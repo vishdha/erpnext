@@ -2,7 +2,8 @@
 	"css/erpnext.css": [
 		"public/less/erpnext.less",
 		"public/less/hub.less",
-		"public/less/call_popup.less"
+		"public/less/call_popup.less",
+		"public/scss/bloombrackets.scss"
 	],
 	"css/marketplace.css": [
 		"public/less/hub.less"
@@ -13,7 +14,8 @@
 		"public/js/utils/card_validator.js"
 	],
 	"css/erpnext-web.css": [
-		"public/scss/website.scss"
+		"public/scss/website.scss",
+		"public/css/cart.css"
 	],
 	"js/marketplace.min.js": [
 		"public/js/hub/marketplace.js"
@@ -54,11 +56,15 @@
 		"public/js/hub/hub_factory.js",
 		"public/js/call_popup/call_popup.js",
 		"public/js/utils/dimension_tree_filter.js",
-		"public/js/utils/card_validator.js"
+		"public/js/utils/card_validator.js",
+		"public/js/utils/bloombrackets_widget.js"
 	],
 	"js/item-dashboard.min.js": [
 		"stock/dashboard/item_dashboard.html",
 		"stock/dashboard/item_dashboard_list.html",
 		"stock/dashboard/item_dashboard.js"
+	],
+	"js/order_for.js": [
+		"public/js/order_for.js"
 	]
 }

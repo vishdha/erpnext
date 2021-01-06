@@ -108,7 +108,6 @@
   {
    "fieldname": "customer_item_code",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Customer's Item Code",
    "print_hide": 1,
    "read_only": 1
@@ -159,7 +158,8 @@
    "in_list_view": 1,
    "label": "Delivery Date",
    "no_copy": 1,
-   "print_hide": 1
+   "print_hide": 1,
+   "reqd": 1
   },
   {
    "fieldname": "image",
@@ -334,6 +334,7 @@
    "oldfieldtype": "Currency",
    "options": "currency",
    "print_width": "100px",
+   "reqd": 1,
    "width": "100px"
   },
   {
@@ -774,7 +775,7 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-10-30 01:53:04.361639",
+ "modified": "2020-12-17 03:55:21.161080",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order Item",
