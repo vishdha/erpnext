@@ -48,10 +48,10 @@ frappe.ui.form.on("Bank Clearance", {
 				frm.refresh_fields();
 
 				$(frm.fields_dict.payment_entries.wrapper).find("[data-fieldname=amount]").each(function(i,v){
-					if (i !=0){
-						$(v).addClass("text-right")
+					if (i !== 0){
+						$(v).addClass("text-right");
 					}
-				})
+				});
 			}
 		});
 	}
