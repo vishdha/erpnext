@@ -690,7 +690,7 @@ frappe.ui.form.on('Payment Entry', {
 	},
 
 	allocate_party_amount_against_ref_docs: function(frm, paid_amount) {
-		const today = frappe.datetime.get_today();
+		const within_days = frm.doc.references_date ? frm.doc.references_date : frm.doc.posting_date;
 		var total_positive_outstanding_including_order = 0;
 		var total_negative_outstanding = 0;
 		var total_deductions = frappe.utils.sum($.map(frm.doc.deductions || [],
@@ -744,7 +744,7 @@ frappe.ui.form.on('Payment Entry', {
 				if(row.outstanding_amount > 0 && allocated_positive_outstanding > 0) {
 					if(row.outstanding_amount >= allocated_positive_outstanding) {
 						if (row.posting_date && row.payment_within_days && row.discount) {
-							if (frappe.datetime.get_day_diff(row.posting_date, today) < row.payment_within_days) {
+							if (frappe.datetime.get_day_diff(row.posting_date, within_days) < row.payment_within_days) {
 								row.discounted_amount = (allocated_positive_outstanding * row.discount) / 100
 								row.allocated_amount = allocated_positive_outstanding - row.discounted_amount
 							}
@@ -753,7 +753,7 @@ frappe.ui.form.on('Payment Entry', {
 						}
 					} else {
 						if (row.posting_date && row.payment_within_days && row.discount) {
-							if (frappe.datetime.get_day_diff(row.posting_date, today) < row.payment_within_days) {
+							if (frappe.datetime.get_day_diff(row.posting_date, within_days) < row.payment_within_days) {
 								row.discounted_amount = (row.outstanding_amount * row.discount) / 100
 								row.allocated_amount = row.outstanding_amount - row.discounted_amount
 							}
@@ -766,7 +766,7 @@ frappe.ui.form.on('Payment Entry', {
 				} else if (row.outstanding_amount < 0 && allocated_negative_outstanding) {
 					if (Math.abs(row.outstanding_amount) >= allocated_negative_outstanding) {
 						if (row.posting_date && row.payment_within_days && row.discount) {
-							if (frappe.datetime.get_day_diff(row.posting_date, today) < row.payment_within_days) {
+							if (frappe.datetime.get_day_diff(row.posting_date, within_days) < row.payment_within_days) {
 								row.discounted_amount = (-1*allocated_negative_outstanding * row.discount) / 100
 								row.allocated_amount = -1*allocated_negative_outstanding - row.discounted_amount
 							}
@@ -775,7 +775,7 @@ frappe.ui.form.on('Payment Entry', {
 						}
 					} else {
 						if (row.posting_date && row.payment_within_days && row.discount) {
-							if (frappe.datetime.get_day_diff(row.posting_date, today) < row.payment_within_days) {
+							if (frappe.datetime.get_day_diff(row.posting_date, within_days) < row.payment_within_days) {
 								row.discounted_amount = (row.outstanding_amount * row.discount) / 100
 								row.allocated_amount = row.outstanding_amount - row.discounted_amount
 							}
@@ -794,12 +794,12 @@ frappe.ui.form.on('Payment Entry', {
 	},
 
 	set_total_allocated_amount: function(frm) {
-		const today = frappe.datetime.get_today();
+		const within_days = frm.doc.references_date ? frm.doc.references_date : frm.doc.posting_date;
 		var total_allocated_amount = 0.0;
 		var base_total_allocated_amount = 0.0;
 		$.each(frm.doc.references || [], function(i, row) {
 			if (row.posting_date && row.payment_within_days && row.discount) {
-				if (frappe.datetime.get_day_diff(row.posting_date, today) < row.payment_within_days) {
+				if (frappe.datetime.get_day_diff(row.posting_date, within_days) < row.payment_within_days) {
 					row.discounted_amount = (row.allocated_amount * row.discount) / 100
 					row.allocated_amount = row.allocated_amount - row.discounted_amount
 				}
@@ -817,7 +817,6 @@ frappe.ui.form.on('Payment Entry', {
 	},
 
 	set_discounted_amount: function(frm) {
-		const today = frappe.datetime.get_today();
 		var total_discounted_amount = 0.0;
 		var base_total_discounted_amount = 0.0;
 		$.each(frm.doc.references || [], function(i, row) {
@@ -841,7 +840,6 @@ frappe.ui.form.on('Payment Entry', {
 			function(d) { return flt(d.discounted_amount) }));
 
 		if(frm.doc.party) {
-			console.log("test3")
 			if(frm.doc.payment_type == "Receive"
 				&& frm.doc.base_total_allocated_amount < frm.doc.base_received_amount + total_deductions - total_discount
 				&& frm.doc.total_allocated_amount < frm.doc.paid_amount + (total_deductions / frm.doc.source_exchange_rate) - (total_discount/ frm.doc.source_exchange_rate)) {
