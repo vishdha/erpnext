@@ -549,18 +549,22 @@ class PaymentEntry(AccountsController):
 				gl_entries.append(gle)
 			
 			if self.total_discounted_amount:
-				base_total_discounted_amount = self.total_discounted_amount * \
-					(self.source_exchange_rate if self.payment_type=="Receive" else self.target_exchange_rate)
+				for d in self.get("references"):
+					gle = party_gl_dict.copy()
+					gle.update({
+						"against_voucher_type": d.reference_doctype,
+						"against_voucher": d.reference_name
+					})
 
-				gle = party_gl_dict.copy()
+					discounted_amount_in_company_currency = flt(flt(d.discounted_amount) * flt(d.exchange_rate),
+						self.precision("paid_amount"))
+					gle.update({
+						"account": frappe.get_cached_value('Company',  self.company, "discount_received_account") if self.payment_type=="Receive" else frappe.get_cached_value('Company',  self.company, "discount_allowed_account"),
+						dr_or_cr + "_in_account_currency": d.discounted_amount,
+						dr_or_cr: discounted_amount_in_company_currency
+					})
 
-				gle.update({
-					"account":  frappe.get_cached_value('Company',  self.company, "discount_allowed_account"),	
-					dr_or_cr + "_in_account_currency": self.total_discounted_amount,
-					dr_or_cr: base_total_discounted_amount
-				})
-
-				gl_entries.append(gle)
+					gl_entries.append(gle)
 
 	def add_bank_gl_entries(self, gl_entries):
 		if self.payment_type in ("Pay", "Internal Transfer"):
