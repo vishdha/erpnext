@@ -84,7 +84,7 @@ class AuthorizenetSettings(Document):
 		return get_url("./integrations/authorizenet_checkout?{0}".format(urlencode(kwargs)))
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def charge_credit_card(data, card_number, expiration_date, card_code):
 	"""
 	Charge a credit card
