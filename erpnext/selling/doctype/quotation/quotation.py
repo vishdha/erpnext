@@ -102,7 +102,7 @@ class Quotation(SellingController):
 
 	def check_items(self): 
 		if not self.items: 
-			frappe.throw(_("You cannot submit an empty quotation."))
+			frappe.throw(_("You cannot submit an empty Quotation."))
 
 	def print_other_charges(self,docname):
 		print_lst = []
