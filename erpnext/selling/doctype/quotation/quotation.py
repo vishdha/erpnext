@@ -90,6 +90,7 @@ class Quotation(SellingController):
 		#update enquiry status
 		self.update_opportunity()
 		self.update_lead()
+		self.check_items()
 
 	def on_cancel(self):
 		super(Quotation, self).on_cancel()
@@ -98,6 +99,10 @@ class Quotation(SellingController):
 		self.set_status(update=True)
 		self.update_opportunity()
 		self.update_lead()
+
+	def check_items(self): 
+		if not self.items: 
+			frappe.throw(_("You cannot submit an empty quotation."))
 
 	def print_other_charges(self,docname):
 		print_lst = []
