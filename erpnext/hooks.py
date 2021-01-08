@@ -17,7 +17,10 @@ develop_version = '12.x.x-develop'
 
 app_include_js = "assets/js/erpnext.min.js"
 app_include_css = "assets/css/erpnext.css"
-web_include_js = "assets/js/erpnext-web.min.js"
+web_include_js = [
+	"assets/js/erpnext-web.min.js", 
+	"assets/js/order_for.js"
+]
 web_include_css = "assets/css/erpnext-web.css"
 
 doctype_js = {
@@ -49,12 +52,18 @@ on_session_creation = [
 	"erpnext.portal.utils.create_customer_or_supplier",
 	"erpnext.shopping_cart.utils.set_cart_count"
 ]
+
+on_session_start = "erpnext.selling.utils.initialise_order_for"
+
 on_logout = "erpnext.shopping_cart.utils.clear_cart_count"
 
 treeviews = ['Account', 'Cost Center', 'Warehouse', 'Item Group', 'Customer Group', 'Sales Person', 'Territory', 'Assessment Group', 'Department']
 
 # website
-update_website_context = ["erpnext.shopping_cart.utils.update_website_context", "erpnext.education.doctype.education_settings.education_settings.update_website_context"]
+update_website_context = [
+	"erpnext.shopping_cart.utils.update_website_context", 
+	"erpnext.education.doctype.education_settings.education_settings.update_website_context"
+]
 my_account_context = "erpnext.shopping_cart.utils.update_my_account_context"
 
 email_append_to = ["Job Applicant", "Lead", "Opportunity", "Issue"]
@@ -173,6 +182,7 @@ standard_portal_menu_items = [
 	{"title": _("Shipments"), "route": "/shipments", "reference_doctype": "Delivery Note", "role":"Customer"},
 	{"title": _("Issues"), "route": "/issues", "reference_doctype": "Issue", "role":"Customer"},
 	{"title": _("Addresses"), "route": "/addresses", "reference_doctype": "Address"},
+	{"title": _("Warehouse"), "route": "/warehouse", "reference_doctype": "Warehouse"},
 	{"title": _("Timesheets"), "route": "/timesheets", "reference_doctype": "Timesheet", "role":"Customer"},
 	{"title": _("Lab Test"), "route": "/lab-test", "reference_doctype": "Lab Test", "role":"Patient"},
 	{"title": _("Prescription"), "route": "/prescription", "reference_doctype": "Patient Encounter", "role":"Patient"},
@@ -415,36 +425,37 @@ global_search_doctypes = {
 		{"doctype": "Stock Entry", "index": 14},
 		{"doctype": "Material Request", "index": 15},
 		{"doctype": "Delivery Trip", "index": 16},
-		{"doctype": "Pick List", "index": 17},
-		{"doctype": "Salary Slip", "index": 18},
-		{"doctype": "Leave Application", "index": 19},
-		{"doctype": "Expense Claim", "index": 20},
-		{"doctype": "Payment Entry", "index": 21},
-		{"doctype": "Lead", "index": 22},
-		{"doctype": "Opportunity", "index": 23},
-		{"doctype": "Item Price", "index": 24},
-		{"doctype": "Purchase Taxes and Charges Template", "index": 25},
-		{"doctype": "Sales Taxes and Charges", "index": 26},
-		{"doctype": "Asset", "index": 27},
-		{"doctype": "Project", "index": 28},
-		{"doctype": "Task", "index": 29},
-		{"doctype": "Timesheet", "index": 30},
-		{"doctype": "Issue", "index": 31},
-		{"doctype": "Serial No", "index": 32},
-		{"doctype": "Batch", "index": 33},
-		{"doctype": "Branch", "index": 34},
-		{"doctype": "Department", "index": 35},
-		{"doctype": "Employee Grade", "index": 36},
-		{"doctype": "Designation", "index": 37},
-		{"doctype": "Job Opening", "index": 38},
-		{"doctype": "Job Applicant", "index": 39},
-		{"doctype": "Job Offer", "index": 40},
-		{"doctype": "Salary Structure Assignment", "index": 41},
-		{"doctype": "Appraisal", "index": 42},
-		{"doctype": "Loan", "index": 43},
-		{"doctype": "Maintenance Schedule", "index": 44},
-		{"doctype": "Maintenance Visit", "index": 45},
-		{"doctype": "Warranty Claim", "index": 46},
+		{"doctype": "Package Tag", "index": 17},
+		{"doctype": "Pick List", "index": 18},
+		{"doctype": "Salary Slip", "index": 19},
+		{"doctype": "Leave Application", "index": 20},
+		{"doctype": "Expense Claim", "index": 21},
+		{"doctype": "Payment Entry", "index": 22},
+		{"doctype": "Lead", "index": 23},
+		{"doctype": "Opportunity", "index": 24},
+		{"doctype": "Item Price", "index": 25},
+		{"doctype": "Purchase Taxes and Charges Template", "index": 26},
+		{"doctype": "Sales Taxes and Charges", "index": 27},
+		{"doctype": "Asset", "index": 28},
+		{"doctype": "Project", "index": 29},
+		{"doctype": "Task", "index": 30},
+		{"doctype": "Timesheet", "index": 31},
+		{"doctype": "Issue", "index": 32},
+		{"doctype": "Serial No", "index": 33},
+		{"doctype": "Batch", "index": 34},
+		{"doctype": "Branch", "index": 35},
+		{"doctype": "Department", "index": 36},
+		{"doctype": "Employee Grade", "index": 37},
+		{"doctype": "Designation", "index": 38},
+		{"doctype": "Job Opening", "index": 39},
+		{"doctype": "Job Applicant", "index": 40},
+		{"doctype": "Job Offer", "index": 41},
+		{"doctype": "Salary Structure Assignment", "index": 42},
+		{"doctype": "Appraisal", "index": 43},
+		{"doctype": "Loan", "index": 44},
+		{"doctype": "Maintenance Schedule", "index": 45},
+		{"doctype": "Maintenance Visit", "index": 46},
+		{"doctype": "Warranty Claim", "index": 47},
 	],
 	"Healthcare": [
 		{'doctype': 'Patient', 'index': 1},
@@ -553,3 +564,18 @@ global_search_doctypes = {
 		{'doctype': 'Hotel Room Type', 'index': 4}
 	]
 }
+
+# Coupon code brackets context building
+coupon_brackets_extend_commands = [
+	"erpnext.bloombrackets.coupon_commands.item_query.load_commands",
+	"erpnext.bloombrackets.coupon_commands.quotation_discounts.load_commands",
+	"erpnext.bloombrackets.coupon_commands.tax_charges.load_commands",
+]
+coupon_brackets_extend_meta = [
+	"erpnext.bloombrackets.coupon_commands.item_query.load_commands_meta",
+	"erpnext.bloombrackets.coupon_commands.quotation_discounts.load_commands_meta",
+	"erpnext.bloombrackets.coupon_commands.tax_charges.load_commands_meta",
+]
+coupon_brackets_extend_vars_meta = [
+	"erpnext.bloombrackets.coupon_commands.variables.load_variable_meta"
+]

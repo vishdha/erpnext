@@ -84,6 +84,7 @@
   "purchase_order_item",
   "material_request_item",
   "production_plan_item",
+  "material_request_plan_item",
   "section_break_45",
   "col_break5",
   "serial_no",
@@ -851,11 +852,16 @@
    "fieldname": "production_plan_item",
    "fieldtype": "Data",
    "label": "Production Plan Item"
+  },
+  {
+   "fieldname": "material_request_plan_item",
+   "fieldtype": "Data",
+   "label": "Material Request Plan Item"
   }
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-12-02 03:07:50.009895",
+ "modified": "2020-12-09 03:11:56.000436",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt Item",

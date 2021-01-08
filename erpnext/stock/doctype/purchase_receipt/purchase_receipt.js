@@ -38,11 +38,6 @@ frappe.ui.form.on("Purchase Receipt", {
 		});
 		
 	},
-	onload: function(frm) {
-		erpnext.queries.setup_queries(frm, "Warehouse", function() {
-			return erpnext.queries.warehouse(frm.doc);
-		});
-	},
 
 	refresh: function(frm) {
 		if(frm.doc.company) {
@@ -65,6 +60,10 @@ frappe.ui.form.on("Purchase Receipt", {
 				frm: frm,
 			})
 		}, __('Create'));
+	},
+
+	before_save: (frm) => {
+		frm.set_value("batch_no", frm.doc.items[0].batch_no);
 	},
 
 	company: function(frm) {

@@ -100,6 +100,7 @@
   "loyalty_redemption_account",
   "loyalty_redemption_cost_center",
   "section_break_49",
+  "coupon_code",
   "apply_discount_on",
   "base_discount_amount",
   "column_break_51",
@@ -118,6 +119,7 @@
   "total_advance",
   "outstanding_amount",
   "advances_section",
+  "allocate_advances_based_on_quantities",
   "allocate_advances_automatically",
   "get_advances",
   "advances",
@@ -1047,7 +1049,7 @@
    "label": "Allocate Advances Automatically (FIFO)"
   },
   {
-   "depends_on": "eval:!doc.allocate_advances_automatically",
+   "depends_on": "eval:!doc.allocate_advances_automatically && !doc.allocate_advances_based_on_quantities",
    "fieldname": "get_advances",
    "fieldtype": "Button",
    "label": "Get Advances Received",
@@ -1588,13 +1590,25 @@
    "fieldname": "signature",
    "fieldtype": "Signature",
    "label": "Signature"
+  },
+  {
+   "default": "0",
+   "fieldname": "allocate_advances_based_on_quantities",
+   "fieldtype": "Check",
+   "label": "Allocate Advances Based on Quantities"
+  },
+  {
+   "fieldname": "coupon_code",
+   "fieldtype": "Link",
+   "label": "Coupon Code",
+   "options": "Coupon Code"
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 181,
  "is_submittable": 1,
- "modified": "2020-11-04 03:38:05.081515",
- "modified_by": "Administrator",
+ "modified": "2021-01-05 19:12:42.440076",
+ "modified_by": "forellana@digithinkit.com",
  "module": "Accounts",
  "name": "Sales Invoice",
  "name_case": "Title Case",
@@ -1639,7 +1653,7 @@
   }
  ],
  "quick_entry": 1,
- "search_fields": "posting_date, due_date, customer, base_grand_total, outstanding_amount",
+ "search_fields": "posting_date, due_date, base_grand_total, outstanding_amount",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

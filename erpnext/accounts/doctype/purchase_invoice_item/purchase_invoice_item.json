@@ -263,7 +263,7 @@
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Rate ",
+   "label": "Rate",
    "oldfieldname": "import_rate",
    "oldfieldtype": "Currency",
    "options": "currency",
@@ -458,6 +458,7 @@
    "options": "Account",
    "print_hide": 1,
    "print_width": "120px",
+   "reqd": 1,
    "width": "120px"
   },
   {
@@ -783,7 +784,7 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2020-08-06 04:17:43.605447",
+ "modified": "2020-12-23 00:33:59.858285",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice Item",
