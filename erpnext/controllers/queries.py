@@ -440,7 +440,7 @@ def get_expense_account(doctype, txt, searchfield, start, page_len, filters):
 
 	fields = get_fields("Account", ["name"])
 
-	return frappe.db.sql("""select {fields} tabAccount.name from `tabAccount`
+	return frappe.db.sql("""select {fields}, tabAccount.name from `tabAccount`
 		where (tabAccount.report_type = "Profit and Loss"
 				or tabAccount.account_type in ("Expense Account", "Fixed Asset", "Temporary", "Asset Received But Not Billed", "Capital Work in Progress"))
 			and tabAccount.is_group=0
