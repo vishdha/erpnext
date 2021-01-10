@@ -1608,27 +1608,43 @@ def raw_material_update_on_bom():
 	it fetches the Stock Entries created within past seven days against BOM.
 	"""
 	past_seven_days = get_date_str(add_days(today(), -7))
-	boms = frappe.get_all("BOM", filters= {
-		"manufacturing_type" : "Process"
-	})
-	for bom in boms:
-		# Fetches all the stock_entries created within past seven days against individual BOM
-		stock_entries = frappe.get_all("Stock Entry", filters={
-			"bom_no": bom.name,
-			"posting_date": ["BETWEEN", [past_seven_days, today()]]
-		})
-		raw_material = 0
-		finished_good = 0
-		avg_manufactured_qty = 0
-		# Gets raw material and finished goods from stock entry to compute avg manufactured qty
-		for stock_entry in stock_entries:
-			stock_entry = frappe.get_doc("Stock Entry", {"name": stock_entry.name, "bom_no": bom.name})
-			for item in stock_entry.items:
+	bom_count = {}
+	stock_entries = frappe.db.sql("""
+			SELECT
+				stock_entry.name, stock_entry.bom_no
+			FROM
+				`tabStock Entry` AS stock_entry
+			left JOIN
+				`tabBOM` as bom
+				on stock_entry.bom_no = bom.name
+			where
+				bom.manufacturing_type = "Process"
+				and stock_entry.posting_date between date(%s) and date(%s)
+			GROUP BY
+				stock_entry.bom_no
+		""",(past_seven_days, today()), as_dict=1)
+
+	for stock_entry in stock_entries:
+			se_items = frappe.db.sql("""
+			select
+				sed.s_warehouse, sed.t_warehouse, sed.qty
+			from
+				`tabStock Entry Detail` AS sed
+			where
+				sed.parent = (%s)
+			""",(stock_entry.name), as_dict=1)
+
+			if stock_entry.bom_no not in bom_count:
+				bom_count.setdefault(stock_entry.bom_no, {})
+				bom_count[stock_entry.bom_no]['raw_material'] = 0
+				bom_count[stock_entry.bom_no]['finished_good'] = 0
+			for item in se_items:
 				if item.s_warehouse:
-					raw_material = raw_material + item.qty
-				elif item.t_warehouse:
-					finished_good = finished_good + item.qty
-		if finished_good and raw_material:
-			# Calculates average manufactured qty from finished good and raw material to be set in BOM
-			avg_manufactured_qty = finished_good / raw_material
-		frappe.db.set_value("BOM", bom.name, "avg_manufactured_qty", avg_manufactured_qty)
+					bom_count[stock_entry.bom_no]['raw_material'] = bom_count[stock_entry.bom_no]['raw_material'] + item.qty
+				if item.t_warehouse:
+					bom_count[stock_entry.bom_no]['finished_good'] = bom_count[stock_entry.bom_no]['finished_good'] + item.qty
+
+	for bom, value in bom_count.items():
+		if value.get("raw_material") and value.get("finished_good"):
+			avg_manufactured_qty = value.get("finished_good") / value.get("raw_material")
+			frappe.db.set_value("BOM", bom, "avg_manufactured_qty", avg_manufactured_qty)
