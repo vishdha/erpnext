@@ -503,7 +503,7 @@ class PaymentEntry(AccountsController):
 	def add_party_gl_entries(self, gl_entries):
 		if self.party_account:
 			if self.payment_type=="Receive":
-				against_account =  self.paid_to
+				against_account = self.paid_to
 			else:
 				against_account = self.paid_from
 

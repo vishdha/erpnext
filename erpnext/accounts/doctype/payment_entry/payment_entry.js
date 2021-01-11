@@ -817,8 +817,8 @@ frappe.ui.form.on('Payment Entry', {
 	},
 
 	set_discounted_amount: function(frm) {
-		var total_discounted_amount = 0.0;
-		var base_total_discounted_amount = 0.0;
+		let total_discounted_amount = 0.0;
+		let base_total_discounted_amount = 0.0;
 		$.each(frm.doc.references || [], function(i, row) {
 			if (row.discounted_amount) {
 				total_discounted_amount += flt(row.discounted_amount);
