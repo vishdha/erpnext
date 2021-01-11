@@ -1608,6 +1608,7 @@ def raw_material_update_on_bom():
 	it fetches the Stock Entries created within past seven days against BOM.
 	"""
 	past_seven_days = get_date_str(add_days(today(), -7))
+	no_of_days = frappe.db.get_single_value("Stock Settings", "no_of_days")
 	bom_count = {}
 	stock_entries = frappe.db.sql("""
 			SELECT
@@ -1616,21 +1617,21 @@ def raw_material_update_on_bom():
 				`tabStock Entry` AS stock_entry
 			left JOIN
 				`tabBOM` as bom
-				on stock_entry.bom_no = bom.name
-			where
+					ON stock_entry.bom_no = bom.name
+			WHERE
 				bom.manufacturing_type = "Process"
 				and stock_entry.posting_date between date(%s) and date(%s)
 			GROUP BY
 				stock_entry.bom_no
-		""",(past_seven_days, today()), as_dict=1)
+		""",(no_of_days if no_of_days else past_seven_days, today()), as_dict=1)
 
 	for stock_entry in stock_entries:
-			se_items = frappe.db.sql("""
-			select
+			stock_entry_items = frappe.db.sql("""
+			SELECT
 				sed.s_warehouse, sed.t_warehouse, sed.qty
-			from
+			FROM
 				`tabStock Entry Detail` AS sed
-			where
+			WHERE
 				sed.parent = (%s)
 			""",(stock_entry.name), as_dict=1)
 
@@ -1638,11 +1639,11 @@ def raw_material_update_on_bom():
 				bom_count.setdefault(stock_entry.bom_no, {})
 				bom_count[stock_entry.bom_no]['raw_material'] = 0
 				bom_count[stock_entry.bom_no]['finished_good'] = 0
-			for item in se_items:
+			for item in stock_entry_items:
 				if item.s_warehouse:
-					bom_count[stock_entry.bom_no]['raw_material'] = bom_count[stock_entry.bom_no]['raw_material'] + item.qty
+					bom_count[stock_entry.bom_no]['raw_material'] += item.qty
 				if item.t_warehouse:
-					bom_count[stock_entry.bom_no]['finished_good'] = bom_count[stock_entry.bom_no]['finished_good'] + item.qty
+					bom_count[stock_entry.bom_no]['finished_good'] += item.qty
 
 	for bom, value in bom_count.items():
 		if value.get("raw_material") and value.get("finished_good"):
