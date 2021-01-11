@@ -57,10 +57,12 @@ def update_website_context(context):
 			})
 
 			if primary_contact:
-				contact = frappe.get_doc("Contact", primary_contact)
-				context.update({"session_customer_primary_contact": contact})
-
-
+				try:
+					contact = frappe.get_doc("Contact", primary_contact)
+					context.update({"session_customer_primary_contact": contact})
+				except Exception as ex:
+					print(ex)
+					
 def check_customer_or_supplier():
 	if frappe.session.user:
 		contact_name = frappe.get_value("Contact", {"email_id": frappe.session.user})
