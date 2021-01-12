@@ -14,7 +14,7 @@ def execute():
 				sle.package_tag = (%s)
 		""",(package_tag.name), as_dict=1)
 
-		if package_tag_qty[0].qty:
+		if package_tag_qty and package_tag_qty[0].qty:
 			frappe.db.sql("""
 				UPDATE
 					`tabPackage Tag`
