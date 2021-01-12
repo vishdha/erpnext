@@ -1616,7 +1616,7 @@ def raw_material_update_on_bom():
 				stock_entry.name, stock_entry.bom_no
 			FROM
 				`tabStock Entry` AS stock_entry
-			left JOIN
+			LEFT JOIN
 				`tabBOM` as bom
 					ON stock_entry.bom_no = bom.name
 			WHERE
