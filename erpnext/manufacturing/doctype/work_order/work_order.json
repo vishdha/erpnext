@@ -62,6 +62,7 @@
   "sales_order_item",
   "production_plan",
   "production_plan_item",
+  "material_request_plan_item",
   "product_bundle_item",
   "amended_from"
  ],
@@ -484,6 +485,11 @@
    "fieldname": "skip_raw_material_validation",
    "fieldtype": "Check",
    "label": "Skip Raw Material Validation"
+  },
+  {
+   "fieldname": "material_request_plan_item",
+   "fieldtype": "Data",
+   "label": "Material Request Plan Item"
   }
  ],
  "icon": "fa fa-cogs",

@@ -54,15 +54,16 @@ frappe.ui.form.on("Customer", {
 					'customer': doc.name
 				}
 			}
-		})
+		});
+
 		frm.set_query('customer_primary_address', function(doc) {
 			return {
+				query: "erpnext.selling.doctype.customer.customer.get_customer_primary_address",
 				filters: {
-					'link_doctype': 'Customer',
-					'link_name': doc.name
+					'customer': doc.name
 				}
 			}
-		})
+		});
 
 		frm.set_query('default_bank_account', function() {
 			return {
@@ -168,7 +169,7 @@ frappe.ui.form.on("Customer", {
 			// only one of these roles is allowed to use these feature
 			if ( frappe.user.has_role("Sales User") || frappe.user.has_role("Sales Manager") || frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator")) {
 				frappe.call({
-					method: "frappe.client.get", 
+					method: "frappe.client.get",
 					args: {
 						"doctype": "Shopping Cart Settings",
 						"name": "Shopping Cart Settings"
@@ -212,7 +213,7 @@ frappe.ui.form.on("Customer", {
 							})
 						});
 					}
-				});	
+				});
 			}
 
 			// indicator

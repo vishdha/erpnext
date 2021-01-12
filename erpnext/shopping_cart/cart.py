@@ -384,7 +384,7 @@ def set_price_list_and_rate(quotation, cart_settings):
 	quotation.price_list_currency = quotation.currency = \
 		quotation.plc_conversion_rate = quotation.conversion_rate = None
 	for item in quotation.get("items"):
-		item.price_list_rate = item.discount_percentage = item.rate = item.amount = None
+		item.price_list_rate = item.rate = item.amount = None
 
 	# refetch values
 	quotation.run_method("set_price_list_and_item_details")
