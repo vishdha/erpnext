@@ -1605,7 +1605,8 @@ def validate_sample_quantity(item_code, sample_quantity, qty, batch_no = None):
 def raw_material_update_on_bom():
 	"""
 	Calculates Average Manufactured Qty(avg_manufactured_qty) for BOM on the Basis of Stock Entries created and
-	it fetches the Stock Entries created within past seven days against BOM.
+	it fetches the Stock Entries created within specified number of days in Stock Settings if not
+	specified then it calculates for past seven days against BOM.
 	"""
 	past_seven_days = get_date_str(add_days(today(), -7))
 	no_of_days = frappe.db.get_single_value("Stock Settings", "no_of_days")
