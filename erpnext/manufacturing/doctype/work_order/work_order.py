@@ -620,14 +620,15 @@ def get_item_details(item, project = None):
 			res = get_item_details(item)
 			frappe.msgprint(_("Default BOM not found for Item {0} and Project {1}").format(item, project), alert=1)
 		else:
-			frappe.throw(_("Default BOM for {0} not found").format(item))
+			frappe.msgprint(_("Default BOM for {0} not found").format(item))
 
 	bom_data = frappe.db.get_value('BOM', res['bom_no'],
 		['project', 'allow_alternative_item', 'transfer_material_against', 'item_name','raw_material_cost','operating_cost'], as_dict=1)
 
-	res['project'] = project or bom_data.pop("project")
-	res.update(bom_data)
-	res.update(check_if_scrap_warehouse_mandatory(res["bom_no"]))
+	if bom_data:
+		res['project'] = project or bom_data.pop("project")
+		res.update(bom_data)
+		res.update(check_if_scrap_warehouse_mandatory(res["bom_no"]))
 
 	return res
 
