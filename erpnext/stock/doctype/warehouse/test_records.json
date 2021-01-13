@@ -6,6 +6,12 @@
   "is_group": 0
  },
  {
+    "company": "_Test Company",
+    "doctype": "Warehouse",
+    "warehouse_name": "_Test Warehouse - _TC",
+    "is_group": 0
+   },
+ {
   "company": "_Test Company",
   "doctype": "Warehouse",
   "warehouse_name": "_Test Scrap Warehouse",
@@ -62,3 +68,5 @@
   "parent_warehouse": "_Test Warehouse Group - _TC"
  }
 ]
+
+
