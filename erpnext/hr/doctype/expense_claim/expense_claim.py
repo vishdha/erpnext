@@ -15,6 +15,7 @@ from erpnext.controllers.accounts_controller import AccountsController
 from frappe.utils.csvutils import getlink
 from erpnext.accounts.utils import get_account_currency
 from erpnext.hr.doctype.department_approver.department_approver import get_approvers
+import json
 
 class InvalidExpenseApproverError(frappe.ValidationError): pass
 class ExpenseApproverIdentityError(frappe.ValidationError): pass
@@ -405,3 +406,60 @@ def create_expense_claim(user, expense_date, expense_claim_type, description, am
 			}
 		]
 	}).insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+@frappe.whitelist()
+def list_expense_claims(user,filters=None):
+	"""
+	API endpoint to get all Expense Claim list and its child table
+
+	user: email id args required to list existing data created by that perticular user (Request From Driver App).
+	filters: used to filter out the data while fetching (Optional)
+	ex:
+	{
+		"user": "admin@bloomstack.com",
+		"filters":"{\"expense_date\":[\">\",\"2020-10-1\"],\"expense_date\": [\"<\",\"2020-12-31\"]}" --> used as Between Filter for date
+	}
+	"""
+
+	employee = frappe.db.exists("Employee", {"company_email": user})
+	if not employee:
+		return _("Employee's E-mail ID Not Found, Please Add 'Company Email' Under 'Employee' Document")
+
+	if filters:
+		filters = json.loads(filters)
+		filters = {"employee": employee, **filters}
+	else:
+		filters = {"employee": employee}
+
+	expense_claims = frappe.get_all("Expense Claim",filters = filters ,
+		fields=["name", "employee_name", "approval_status","expense_approver", "`tabExpense Claim Detail`.*"])
+
+	if not expense_claims:
+		return _("No Claim Found for {0}.").format(user)
+
+	return expense_claims
+
+@frappe.whitelist()
+def update_expense_claim(expense_claim_detail, expense_date=None, expense_claim_type=None, description=None, amount=None):
+	"""
+	API endpoint to update the existing data of given Expense Claim
+	args:
+	expense_claim_detail: Expense Claim Details ID to upddate perticular child data (This Data Can be found in 'list_expense_claims' api as 'name' key)
+	expense_date: updated date, (Optional)
+	expense_claim_type: updated claim type, (Optional)
+	description: updated Description, (Optional)
+	amount: updated Amount, (Optional)
+	"""
+	# updated_values
+	expense_claim_detail = frappe.get_doc("Expense Claim Detail", expense_claim_detail)
+	if expense_date:
+		expense_claim_detail.update({"expense_date":expense_date})
+	if description:
+		expense_claim_detail.update({"description":description})
+	if expense_claim_type:
+		expense_claim_detail.update({"expense_claim_type":expense_claim_type})
+	if amount:
+		expense_claim_detail.update({"amount":amount})
+	expense_claim_detail.save()
+	return expense_claim_detail
