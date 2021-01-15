@@ -22,8 +22,9 @@ def initialise_order_for():
 		contact = frappe.get_doc("Contact", {"email_id": frappe.session.user})
 		customer_links = []
 		for link in contact.links:
-			if link.link_doctype == "Customer":
+			if link.link_doctype == "Customer" and frappe.db.exists(link.link_doctype, link.link_name):
 				customer_links.append(link)
+
 		if len(customer_links) == 1:
 			order_for["customer_name"] = customer_links[0].link_name
 			order_for["customer_primary_contact_name"] = contact.name
