@@ -8,9 +8,16 @@ def set_website_customer(customer_name, primary_contact=None):
 	if not primary_contact:
 		primary_contact = find_customer_primary_contact(customer_name)
 
+	# Avoid storing a missing contact name
+	if not frappe.db.exists("Contact", primary_contact):
+		primary_contact = None
+
 	# make sure customer has at least a contact
 	if not primary_contact:
 		return "Customer does not have a primary contact. Please set one before starting an order."
+
+	if not frappe.db.get_value("Contact", primary_contact, "email_id"):
+		return "Customer's primary contact is missing an email. Please set one before starting an order."
 
 	#flag for checking if the order_for feature is enabled
 	frappe.session.data.order_for['enabled'] = True
