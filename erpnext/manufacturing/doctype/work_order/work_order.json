@@ -14,6 +14,7 @@
   "image",
   "bom_no",
   "manufacturing_type",
+  "skip_raw_material_validation",
   "column_break1",
   "company",
   "raw_material_qty",
@@ -479,6 +480,13 @@
    "label": "Raw Material Quantity"
   },
   {
+   "default": "0",
+   "depends_on": "eval:doc.manufacturing_type==\"Process\"",
+   "fieldname": "skip_raw_material_validation",
+   "fieldtype": "Check",
+   "label": "Skip Raw Material Validation"
+  },
+  {
    "fieldname": "material_request_plan_item",
    "fieldtype": "Data",
    "label": "Material Request Plan Item"
@@ -488,7 +496,7 @@
  "idx": 1,
  "image_field": "image",
  "is_submittable": 1,
- "modified": "2021-01-04 00:51:05.154205",
+ "modified": "2021-01-11 23:04:45.676501",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Work Order",
