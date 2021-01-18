@@ -1608,11 +1608,8 @@ def raw_material_update_on_bom():
 	it fetches the Stock Entries created within specified number of days in Stock Settings if not
 	specified then it calculates for past seven days against BOM.
 	"""
-	no_of_days_to_calculate_avg_manufactured_qty = frappe.db.get_single_value("Stock Settings", "no_of_days_to_calculate_avg_manufactured_qty")
-	if no_of_days_to_calculate_avg_manufactured_qty:
-		no_of_days = get_date_str(add_days(today(), no_of_days_to_calculate_avg_manufactured_qty))
-	else:
-		no_of_days = get_date_str(add_days(today(), -7))
+	no_of_days_to_calculate_avg_manufactured_qty = frappe.db.get_single_value("Stock Settings", "no_of_days_to_calculate_avg_manufactured_qty") or -7
+	no_of_days = get_date_str(add_days(today(), no_of_days_to_calculate_avg_manufactured_qty))
 	bom_count = {}
 
 	stock_entries = frappe.db.sql("""
