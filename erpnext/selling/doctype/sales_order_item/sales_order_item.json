@@ -68,6 +68,7 @@
   "warehouse",
   "target_warehouse",
   "prevdoc_docname",
+  "batch_no",
   "col_break4",
   "blanket_order",
   "blanket_order_rate",
@@ -771,6 +772,12 @@
    "options": "Package Tag",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "COA Batch",
+   "options": "Batch"
   }
  ],
  "idx": 1,
