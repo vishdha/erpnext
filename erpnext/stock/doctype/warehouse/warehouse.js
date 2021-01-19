@@ -38,6 +38,7 @@ frappe.ui.form.on("Warehouse", {
 		}
 		
 		frm.toggle_enable(['is_group', 'company'], false);
+		frm.toggle_enable("company", frm.is_new());
 
 		frappe.dynamic_link = {doc: frm.doc, fieldname: 'name', doctype: 'Warehouse'};
 		
