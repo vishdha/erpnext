@@ -43,12 +43,12 @@ class WorkOrder(Document):
 		self.validate_production_item()
 		if self.bom_no:
 			validate_bom_no(self.production_item, self.bom_no)
-
 		self.validate_sales_order()
 		self.set_default_warehouse()
 		self.validate_warehouse_belongs_to_company()
 		self.calculate_operating_cost()
 		self.validate_manufacturing_type()
+		self.validate_raw_material_qty()
 		self.validate_qty()
 		self.validate_operation_time()
 		self.status = self.get_status()
@@ -238,7 +238,7 @@ class WorkOrder(Document):
 		production_plan.run_method("update_produced_qty_in_mr_item", produced_qty, self.material_request_plan_item)
 
 	def validate_manufacturing_type(self):
-		if self.manufacturing_type == "Process":
+		if self.manufacturing_type == "Process" and not self.skip_raw_material_validation:
 			bom = frappe.get_doc("BOM", self.bom_no)
 			self.qty = (bom.quantity / bom.items[0].qty) * self.raw_material_qty
 
@@ -429,6 +429,10 @@ class WorkOrder(Document):
 
 		if self.production_item:
 			validate_end_of_life(self.production_item)
+
+	def validate_raw_material_qty(self):
+		if self.manufacturing_type == "Process" and not self.raw_material_qty > 0 and not self.skip_raw_material_validation:
+			frappe.throw(_("Raw Material Quantity must be greater than 0."))
 
 	def validate_qty(self):
 		if not self.qty > 0:
