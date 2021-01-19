@@ -11,7 +11,8 @@ def get_data():
 			'Auto Repeat': 'reference_document',
 			'Purchase Receipt': 'return_against',
 			'Quality Inspection': 'reference_name',
-			'Production Plan': 'purchase_receipt'
+			'Production Plan': 'purchase_receipt',
+			'Work Order': 'purchase_receipt'
 		},
 		'internal_links': {
 			'Purchase Order': ['items', 'purchase_order'],
