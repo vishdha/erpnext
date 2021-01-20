@@ -411,6 +411,7 @@ class ProductionPlan(Document):
 			material_request_doc.append("items", {
 				"item_code": item.item_code,
 				"qty": item.quantity,
+				"rate": item_doc.last_purchase_rate,
 				"schedule_date": schedule_date,
 				"warehouse": item.warehouse,
 				"sales_order": item.sales_order,
