@@ -365,7 +365,7 @@ def get_expense_claim(
 	return expense_claim
 
 @frappe.whitelist()
-def create_expense_claim(user, expense_date, expense_claim_type, description, amount):
+def create_expense_claim(user, expense_date, expense_claim_type, description, amount, project = None):
 	"""
 	API endpoint for creating expense claims for employees.
 
@@ -397,6 +397,7 @@ def create_expense_claim(user, expense_date, expense_claim_type, description, am
 		"employee": employee.name,
 		"payable_account": frappe.get_value('Company', employee.company, 'default_payable_account'),
 		"expense_approver": expense_approver,
+		"project" : project,
 		"expenses": [
 			{
 				"expense_date": expense_date,
