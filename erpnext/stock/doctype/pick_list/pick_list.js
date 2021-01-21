@@ -86,8 +86,6 @@ frappe.ui.form.on('Pick List', {
 
 				if (frm.doc.purpose === 'Delivery') {
 					frm.add_custom_button(__('Delivery Note'), () => frm.trigger('create_delivery_note'), __('Create'));
-				} else {
-					frm.add_custom_button(__('Stock Entry'), () => frm.trigger('create_stock_entry'), __('Create'));
 				}
 			});
 		}
@@ -137,14 +135,6 @@ frappe.ui.form.on('Pick List', {
 			frm: frm
 		});
 
-	},
-	create_stock_entry: (frm) => {
-		frappe.xcall('erpnext.stock.doctype.pick_list.pick_list.create_stock_entry', {
-			'pick_list': frm.doc,
-		}).then(stock_entry => {
-			frappe.model.sync(stock_entry);
-			frappe.set_route("Form", 'Stock Entry', stock_entry.name);
-		});
 	},
 	update_pick_list_stock: (frm) => {
 		frm.events.set_item_locations(frm, true);
@@ -205,14 +195,14 @@ frappe.ui.form.on('Pick List Item', {
 		let row = frappe.get_doc(cdt, cdn);
 		frappe.model.set_value(cdt, cdn, 'stock_qty', row.qty * row.conversion_factor);
 	},
-	package_tag: (frm, cdt, cdn) => {
+	source_package_tag: (frm, cdt, cdn) => {
 		const row = frm.selected_doc || locals[cdt][cdn];
-		if (row.package_tag) {
-			frappe.db.get_value("Package Tag", { "name": row.package_tag }, "batch_no", (r) => {
+		if (row.source_package_tag) {
+			frappe.db.get_value("Package Tag", { "name": row.source_package_tag }, "batch_no", (r) => {
 				if (r && r.batch_no) {
 					// check if a different batch already exists
 					if (row.batch_no && row.batch_no != r.batch_no) {
-						frappe.throw(__(`The "${row.package_tag}" tag is linked to a different batch (${r.batch_no})`));
+						frappe.throw(__("The {0} tag is linked to a different batch {1}.", [row.source_package_tag, r.batch_no]));
 					} else {
 						frappe.model.set_value(cdt, cdn, "batch_no", r.batch_no);
 					}

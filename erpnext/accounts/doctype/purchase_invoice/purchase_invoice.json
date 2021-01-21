@@ -190,6 +190,7 @@
    "oldfieldtype": "Link",
    "options": "Supplier",
    "print_hide": 1,
+   "reqd": 1,
    "search_index": 1
   },
   {
@@ -254,7 +255,8 @@
    "label": "Company",
    "options": "Company",
    "print_hide": 1,
-   "remember_last_selected_value": 1
+   "remember_last_selected_value": 1,
+   "reqd": 1
   },
   {
    "fieldname": "cost_center",
