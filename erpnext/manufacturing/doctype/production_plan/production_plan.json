@@ -149,7 +149,6 @@
    "fieldname": "sales_orders",
    "fieldtype": "Table",
    "label": "Sales Orders",
-   "no_copy": 1,
    "options": "Production Plan Sales Order"
   },
   {
@@ -186,7 +185,6 @@
   {
    "fieldname": "po_items",
    "fieldtype": "Table",
-   "no_copy": 1,
    "options": "Production Plan Item",
    "reqd": 1
   },
@@ -302,7 +300,7 @@
  ],
  "icon": "fa fa-calendar",
  "is_submittable": 1,
- "modified": "2020-12-09 11:56:54.985557",
+ "modified": "2021-01-18 23:51:52.293811",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Production Plan",
