@@ -127,7 +127,7 @@ def request_for_quotation():
 	return quotation.name
 
 @frappe.whitelist()
-def update_cart(item_code, qty, row=None, additional_notes=None, with_items=False):
+def update_cart(item_code, qty, batch_no=None, row=None, additional_notes=None, with_items=False):
 	quotation = _get_cart_quotation()
 
 	empty_card = False
@@ -145,10 +145,11 @@ def update_cart(item_code, qty, row=None, additional_notes=None, with_items=Fals
 	else:
 		quotation_items = quotation.get("items", {"item_code": item_code})
 		if not quotation_items:
-			quotation.append("items", {
+			quotation.append("items", { 
 				"doctype": "Quotation Item",
 				"item_code": item_code,
 				"qty": qty,
+				"batch_no": batch_no,
 				"additional_notes": additional_notes
 			})
 		else:

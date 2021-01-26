@@ -13,7 +13,6 @@ from frappe.utils import cint, flt, get_link_to_form
 from frappe.utils.data import add_days
 from frappe.utils.jinja import render_template
 
-
 class UnableToSelectBatchError(frappe.ValidationError):
 	pass
 
@@ -414,8 +413,14 @@ def get_active_batch(item_code):
 				"certificate_of_analysis": "/files/coa.pdf"
 			}
 	"""
-
 	fields = ["name", "item", "item_name", "stock_uom", "thc", "cbd", "certificate_of_analysis", "batch_qty"]
-	active_batch = frappe.get_all("Batch", filters={"item": item_code, "display_on_website": 1}, fields=fields)
-	active_batch = active_batch[0] if active_batch else {}
+	active_batch = frappe.get_all("Batch", filters={"item": item_code, "display_on_website": 1}, fields=fields, limit=1)
+	if active_batch:
+		from erpnext.stock.stock_balance import get_reserved_qty
+		active_batch = active_batch[0]
+		warehouse = frappe.db.get_value("Stock Ledger Entry", {'batch_no': active_batch.get("name")}, ['warehouse'])
+		batch_reserved_qty = get_reserved_qty(active_batch.get("item"), warehouse, active_batch.get("name"))
+		active_batch['batch_reserved_qty'] = active_batch['batch_qty'] - batch_reserved_qty
+	else:
+		active_batch = {}
 	return active_batch
