@@ -18,7 +18,6 @@ from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.assets.doctype.asset.asset import get_asset_account, is_cwip_accounting_enabled
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
 from erpnext.manufacturing.doctype.production_plan.production_plan import update_per_received_in_production_plan
-from erpnext.selling.doctype.sales_order.sales_order import get_default_bom_item
 from six import iteritems
 
 form_grid_templates = {
@@ -515,10 +514,6 @@ class PurchaseReceipt(BuyingController):
 
 		for table in [self.items, self.supplied_items]:
 			for row in table:
-				bom = get_default_bom_item(row.item_code)
-				if not bom:
-					continue
-				
 				stock_qty = row.consumed_qty if row.doctype == 'Purchase Receipt Item Supplied' else row.stock_qty
 				pending_qty = stock_qty
 				if not for_raw_material_request:
@@ -539,7 +534,6 @@ class PurchaseReceipt(BuyingController):
 						"name": row.name,
 						"item_code": row.item_code,
 						"description": row.description,
-						"bom": bom,
 						"warehouse": row.warehouse,
 						"pending_qty": pending_qty,
 						"required_qty": pending_qty if for_raw_material_request else 0,
@@ -838,3 +832,20 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 		out.append(work_order)
 
 	return [p.name for p in out]
+
+@frappe.whitelist()
+def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
+	boms = frappe.db.sql(
+		"""
+			SELECT
+				bom.name
+			FROM
+				`tabBOM` as bom
+			INNER JOIN
+				`tabBOM Item` as bom_item
+			ON
+				bom_item.item_code = (%s)
+			WHERE
+				bom.name = bom_item.parent
+		""",filters.get("item_code"))
+	return boms

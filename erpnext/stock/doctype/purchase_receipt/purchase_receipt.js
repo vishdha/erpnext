@@ -198,7 +198,10 @@ erpnext.stock.PurchaseReceiptController = erpnext.buying.BuyingController.extend
 							label: __('Select BOM'),
 							in_list_view: 1,
 							get_query: function (doc) {
-								return { filters: { item: doc.item_code, manufacturing_type: "Process" } };
+								return {
+									query: 'erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_bom_query',
+									filters: { item_code: doc.item_code }
+								};
 							}
 						}, {
 							fieldtype: 'Float',
