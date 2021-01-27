@@ -365,7 +365,7 @@ def get_expense_claim(
 	return expense_claim
 
 @frappe.whitelist()
-def create_expense_claim(user, expense_date, expense_claim_type, description, amount):
+def create_expense_claim(user, expense_date, expense_claim_type, description, amount, project = None):
 	"""
 	API endpoint for creating expense claims for employees.
 
@@ -397,6 +397,7 @@ def create_expense_claim(user, expense_date, expense_claim_type, description, am
 		"employee": employee.name,
 		"payable_account": frappe.get_value('Company', employee.company, 'default_payable_account'),
 		"expense_approver": expense_approver,
+		"project" : project,
 		"expenses": [
 			{
 				"expense_date": expense_date,
@@ -451,8 +452,10 @@ def update_expense_claim(expense_claim_detail, expense_date=None, expense_claim_
 	description: updated Description, (Optional)
 	amount: updated Amount, (Optional)
 	"""
-	# updated_values
+
 	expense_claim_detail = frappe.get_doc("Expense Claim Detail", expense_claim_detail)
+	if expense_claim_detail.docstatus == 1:
+		return _("Expense Claim '{0}' is submitted Document, It cannot be Updated").format(expense_claim_detail.parent)
 	if expense_date:
 		expense_claim_detail.update({"expense_date":expense_date})
 	if description:
@@ -463,3 +466,23 @@ def update_expense_claim(expense_claim_detail, expense_date=None, expense_claim_
 		expense_claim_detail.update({"amount":amount})
 	expense_claim_detail.save()
 	return expense_claim_detail
+
+@frappe.whitelist()
+def delete_expense_claim(expense_claim):
+	"""
+	This API endpoint will delete the given Expense Claim
+	args:
+	expense_claim: Expense Claim unique Name to identify ex: 'HR-EXP-2021-XXXXX'
+	"""
+
+	if not frappe.db.exists("Expense Claim", expense_claim):
+		return _("'{0}' Not Found").format(expense_claim)
+
+	expense_claim_doc = frappe.get_doc("Expense Claim", expense_claim)
+
+	if expense_claim_doc.docstatus == 1:
+		return _("Expense Claim '{0}' is submitted Document, It cannot be Deleted").format(expense_claim)
+
+	expense_claim_doc.delete()
+
+	return _("Expense Claim '{0}' is deleted").format(expense_claim)
