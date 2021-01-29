@@ -37,6 +37,7 @@ def create_customer_or_supplier():
 	user_roles = frappe.get_roles()
 	portal_settings = frappe.get_single('Portal Settings')
 	default_role = portal_settings.default_role
+	doctype = None
 
 	if default_role not in ['Customer', 'Supplier']:
 		return
@@ -44,8 +45,6 @@ def create_customer_or_supplier():
 	# create customer / supplier if the user has that role
 	if portal_settings.default_role and portal_settings.default_role in user_roles:
 		doctype = portal_settings.default_role
-	else:
-		doctype = None
 
 	if not doctype:
 		return
@@ -55,6 +54,7 @@ def create_customer_or_supplier():
 
 	party = frappe.new_doc(doctype)
 	fullname = frappe.utils.get_fullname(user)
+	contact = frappe.db.get_value("Contact Email", {"email_id": user}, "parent")
 
 	if doctype == 'Customer':
 		cart_settings = get_shopping_cart_settings()
@@ -68,7 +68,8 @@ def create_customer_or_supplier():
 			"customer_name": fullname,
 			"customer_type": "Individual",
 			"customer_group": cart_settings.default_customer_group,
-			"territory": get_root_of("Territory")
+			"territory": get_root_of("Territory"),
+			"customer_primary_contact": contact
 		})
 
 		if debtors_account:
@@ -88,11 +89,21 @@ def create_customer_or_supplier():
 	party.flags.ignore_mandatory = True
 	party.insert(ignore_permissions=True)
 
-	contact = frappe.new_doc("Contact")
-	contact.update({
-		"first_name": fullname,
-		"email_id": user
-	})
+	if not contact:
+		contact = frappe.new_doc("Contact")
+		contact.update({
+			"first_name": fullname,
+			"email_id": user,
+			"email_ids": [
+				{
+					"email_id": user
+				}
+			]
+		})
+	else:
+		contact = frappe.get_doc("Contact", contact)
+
+	contact.is_primary_contact = 1
 	contact.append('links', dict(link_doctype=doctype, link_name=party.name))
 	contact.flags.ignore_mandatory = True
 	contact.insert(ignore_permissions=True)
@@ -101,7 +112,7 @@ def create_customer_or_supplier():
 
 
 def party_exists(doctype, user):
-	contact_name = frappe.db.get_value("Contact", {"email_id": user})
+	contact_name = frappe.db.get_value("Contact Email", {"email_id": user}, "parent")
 
 	if contact_name:
 		contact = frappe.get_doc('Contact', contact_name)
