@@ -200,7 +200,7 @@ erpnext.stock.PurchaseReceiptController = erpnext.buying.BuyingController.extend
 							get_query: function (doc) {
 								return {
 									query: 'erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_bom_query',
-									filters: { item_code: doc.item_code }
+									filters: { item_code: doc.item_code, manufacturing_type : "Process"}
 								};
 							}
 						}, {

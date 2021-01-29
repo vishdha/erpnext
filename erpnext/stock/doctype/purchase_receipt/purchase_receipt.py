@@ -833,7 +833,6 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 
 	return [p.name for p in out]
 
-@frappe.whitelist()
 def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
 	boms = frappe.db.sql(
 		"""
@@ -846,6 +845,7 @@ def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
 			ON
 				bom_item.item_code = (%s)
 			WHERE
-				bom.name = bom_item.parent
-		""",filters.get("item_code"))
+				bom.manufacturing_type = (%s)
+				AND bom.name = bom_item.parent
+		""",(filters.get("item_code"), filters.get("manufacturing_type")))
 	return boms
