@@ -64,7 +64,7 @@ def place_order(delivery_date=None):
 
 	Returns:
 		string: the name of the quotation or the sales order
-	"""	
+	"""
 	#get the quotation in the cart and the cart settings
 	quotation = _get_cart_quotation()
 	cart_settings = frappe.db.get_value("Shopping Cart Settings", None,
@@ -94,10 +94,10 @@ def place_order(delivery_date=None):
 
 	#if checkout without payment has been enabled, submit the quotation, and convert to sales order
 	if cart_settings.sales_team_order_without_payment:
-	
+
 		#add the requested delivery date to the quotation and submit the document
 		quotation.requested_delivery_date = getdate(delivery_date)
-		for item in quotation.items: 
+		for item in quotation.items:
 			item.requested_delivery_date = getdate(delivery_date)
 
 		quotation.save(ignore_permissions=True)
@@ -439,7 +439,7 @@ def get_party(user=None):
 	# Order For feature. Sets current customer's primary contact for this session.
 	if "order_for" in frappe.session.data:
 		customer_name = frappe.session.data.order_for.get("customer_name")
-		
+
 		if customer_name and "customer_primary_contact_name" in frappe.session.data.order_for:
 			contact_name = frappe.session.data.order_for.customer_primary_contact_name
 
@@ -477,34 +477,47 @@ def get_party(user=None):
 		if not cart_settings.enabled:
 			frappe.local.flags.redirect_location = "/contact"
 			raise frappe.Redirect
-		customer = frappe.new_doc("Customer")
-		fullname = get_fullname(user)
-		customer.update({
-			"customer_name": fullname,
-			"customer_type": "Individual",
-			"customer_group": get_shopping_cart_settings().default_customer_group,
-			"territory": get_root_of("Territory")
-		})
 
-		if debtors_account:
+		fullname = get_fullname(user)
+		contact = frappe.db.get_value("Contact Email", {"email_id": user}, "parent")
+		customer = frappe.db.get_value("Customer", {"customer_name": fullname}, "name")
+
+		if not customer:
+			customer = frappe.new_doc("Customer")
 			customer.update({
-				"accounts": [{
-					"company": cart_settings.company,
-					"account": debtors_account
-				}]
+				"customer_name": fullname,
+				"customer_type": "Individual",
+				"customer_group": get_shopping_cart_settings().default_customer_group,
+				"territory": get_root_of("Territory"),
+				"customer_primary_contact": contact
 			})
 
-		customer.flags.ignore_mandatory = True
-		customer.insert(ignore_permissions=True)
+			if debtors_account:
+				customer.update({
+					"accounts": [{
+						"company": cart_settings.company,
+						"account": debtors_account
+					}]
+				})
+		else:
+			customer = frappe.get_doc("Customer", customer)
 
-		contact = frappe.new_doc("Contact")
-		contact.update({
-			"first_name": fullname,
-			"email_ids": [{"email_id": user, "is_primary": 1}]
-		})
+		customer.customer_primary_contact = contact
+		customer.flags.ignore_mandatory = True
+		customer.save(ignore_permissions=True)
+
+		if not contact:
+			contact = frappe.new_doc("Contact")
+			contact.update({
+				"first_name": fullname,
+				"email_ids": [{"email_id": user, "is_primary": 1}]
+			})
+		else:
+			contact = frappe.get_doc("Contact", contact)
+
 		contact.append('links', dict(link_doctype='Customer', link_name=customer.name))
 		contact.flags.ignore_mandatory = True
-		contact.insert(ignore_permissions=True)
+		contact.save(ignore_permissions=True)
 
 		return customer
 
