@@ -834,18 +834,10 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 	return [p.name for p in out]
 
 def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
-	boms = frappe.db.sql(
-		"""
-			SELECT
-				bom.name
-			FROM
-				`tabBOM` as bom
-			INNER JOIN
-				`tabBOM Item` as bom_item
-			ON
-				bom_item.item_code = (%s)
-			WHERE
-				bom.manufacturing_type = (%s)
-				AND bom.name = bom_item.parent
-		""",(filters.get("item_code"), filters.get("manufacturing_type")))
+	boms = frappe.get_all("BOM", filters=[
+		["BOM Item", "item_code", "=", filters.get("item_code")],
+		["BOM", "manufacturing_type", "=", filters.get("manufacturing_type")]
+	], fields=["name"], as_list=True)
+
 	return boms
+
