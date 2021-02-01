@@ -815,7 +815,7 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 
 		work_order = frappe.get_doc(dict(
 			doctype='Work Order',
-			production_item=i['item_code'],
+			production_item=i['finished_good'],
 			bom_no=i.get('bom'),
 			manufacturing_type="Process",
 			raw_material_qty=i['pending_qty'],
@@ -840,3 +840,7 @@ def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
 
 	return boms
 
+@frappe.whitelist()
+def get_finished_good_item(bom):
+	finished_good = frappe.db.get_values("BOM", bom, ["name", "item"], as_dict=True)
+	return finished_good
