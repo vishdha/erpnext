@@ -507,7 +507,7 @@ class PurchaseReceipt(BuyingController):
 			duplicate_tags = list(set([tag for tag in package_tags if package_tags.count(tag) > 1]))
 			frappe.throw("Package Tag(s) {0} cannot be same for multiple items".format(", ".join(duplicate_tags)))
 
-	def get_work_order_items(self, for_raw_material_request=0):
+	def get_work_order_items(self):
 		'''Returns items with BOM that already do not have a linked work order'''
 
 		items = []
@@ -516,18 +516,17 @@ class PurchaseReceipt(BuyingController):
 			for row in table:
 				stock_qty = row.consumed_qty if row.doctype == 'Purchase Receipt Item Supplied' else row.stock_qty
 				pending_qty = stock_qty
-				if not for_raw_material_request:
-					total_work_order_qty = frappe.get_all("Work Order",
-						filters={
-							"production_item": row.item_code,
-							"purchase_receipt": self.name,
-							"purchase_receipt_item": row.name,
-							"docstatus": ["<", 2]
-						},
-						fields=["sum(qty) as qty"])
+				total_work_order_qty = frappe.get_all("Work Order",
+					filters={
+						"production_item": row.item_code,
+						"purchase_receipt": self.name,
+						"purchase_receipt_item": row.name,
+						"docstatus": ["<", 2]
+					},
+					fields=["sum(qty) as qty"])
 
-					if total_work_order_qty:
-						pending_qty -= flt(total_work_order_qty[0].qty)
+				if total_work_order_qty:
+					pending_qty -= flt(total_work_order_qty[0].qty)
 
 				if pending_qty and row.item_code:
 					items.append({
@@ -536,7 +535,7 @@ class PurchaseReceipt(BuyingController):
 						"description": row.description,
 						"warehouse": row.warehouse,
 						"pending_qty": pending_qty,
-						"required_qty": pending_qty if for_raw_material_request else 0,
+						"required_qty": pending_qty if pending_qty else 0,
 						"purchase_receipt_item": row.name
 					})
 
