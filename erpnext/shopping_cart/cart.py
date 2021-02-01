@@ -555,13 +555,17 @@ def get_address_docs(doctype=None, txt=None, filters=None, limit_start=0, limit_
 	if not party:
 		return []
 
-	address_names = frappe.db.get_all('Dynamic Link', fields=('parent'),
-		filters=dict(parenttype='Address', link_doctype=party.doctype, link_name=party.name))
+	address_names = frappe.get_all("Address", filters=[
+		["Address", "disabled", "=", 0],
+		["Dynamic Link", "link_doctype", "=", party.doctype],
+		["Dynamic Link", "link_name", "=", party.name],
+		["Dynamic Link", "parenttype", "=", "Address"],
+	])
 
 	out = []
 
 	for a in address_names:
-		address = frappe.get_doc('Address', a.parent)
+		address = frappe.get_doc('Address', a.name)
 		address.display = get_address_display(address.as_dict())
 		out.append(address)
 
