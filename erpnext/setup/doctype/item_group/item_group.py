@@ -73,6 +73,21 @@ class ItemGroup(NestedSet, WebsiteGenerator):
 		start = int(frappe.form_dict.start or 0)
 		if start < 0:
 			start = 0
+
+		if not field_filters:
+			field_filters = {}
+
+		# Ensure the query remains within current item group
+		field_filters['item_group'] = self.name
+
+		engine = ProductQuery()
+		context.items = engine.query(attribute_filters, field_filters, search, start)
+
+		filter_engine = ProductFiltersBuilder(self.name)
+
+		context.field_filters = filter_engine.get_field_filters()
+		context.attribute_filters = filter_engine.get_attribute_fitlers()
+
 		context.update({
 			"items": get_product_list_for_group(product_group = self.name, start=start,
 				limit=context.page_length + 1, search=frappe.form_dict.get("search")),
