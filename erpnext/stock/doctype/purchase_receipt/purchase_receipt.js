@@ -198,13 +198,24 @@ erpnext.stock.PurchaseReceiptController = erpnext.buying.BuyingController.extend
 							label: __('Select BOM'),
 							in_list_view: 1,
 							get_query: function (doc) {
-								return { filters: { item: doc.item_code, manufacturing_type: "Process" } };
+								return {
+									query: 'erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_bom_query',
+									filters: { item_code: doc.item_code, manufacturing_type : "Process"}
+								};
+							},
+							change: () => {
+								me.set_finished_good_value(d)
 							}
 						}, {
 							fieldtype: 'Float',
 							fieldname: 'pending_qty',
 							reqd: 1,
 							label: __('Qty'),
+							in_list_view: 1
+						},{
+							fieldtype: 'Read Only',
+							fieldname: 'finished_good',
+							label: __('Finished Good'),
 							in_list_view: 1
 						}, {
 							fieldtype: 'Data',
@@ -252,6 +263,27 @@ erpnext.stock.PurchaseReceiptController = erpnext.buying.BuyingController.extend
 				}
 			}
 		});
+	},
+
+	set_finished_good_value: function(d) {
+		d.fields_dict.items.grid.grid_rows.forEach(item => {
+			let bom = item.on_grid_fields_dict.bom.get_value();
+			frappe.call({
+				'method': "erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_finished_good_item",
+				'args': {
+					'bom': bom
+				},
+				callback: function(r) {
+					if(r.message) {
+						r.message.forEach(data => {
+							if (data.name == bom) {
+								item.on_grid_fields_dict.finished_good.set_value(data.item)
+							}
+						})
+					}
+				}
+			})
+		})
 	},
 
 	make_purchase_return: function() {
