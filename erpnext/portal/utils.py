@@ -90,8 +90,8 @@ def create_customer_or_supplier():
 	party.insert(ignore_permissions=True)
 
 	if not contact:
-		contact = frappe.new_doc("Contact")
-		contact.update({
+		contact = frappe.get_doc({
+			"doctype": "Contact",
 			"first_name": fullname,
 			"email_id": user,
 			"email_ids": [
@@ -106,7 +106,7 @@ def create_customer_or_supplier():
 	contact.is_primary_contact = 1
 	contact.append('links', dict(link_doctype=doctype, link_name=party.name))
 	contact.flags.ignore_mandatory = True
-	contact.insert(ignore_permissions=True)
+	contact.save(ignore_permissions=True)
 
 	return party
 
