@@ -67,7 +67,11 @@ def get_balance_qty_from_sle(item_code, warehouse):
 
 	return flt(balance_qty[0][0]) if balance_qty else 0.0
 
-def get_reserved_qty(item_code, warehouse):
+def get_reserved_qty(item_code, warehouse, batch_no=None):
+	batch_no_query = ""
+	if batch_no:
+		batch_no_query = " and batch_no = {0}".format(frappe.db.escape(batch_no))
+
 	reserved_qty = frappe.db.sql("""
 		select
 			sum(dnpi_qty * ((so_item_qty - so_item_delivered_qty) / so_item_qty))
@@ -100,15 +104,14 @@ def get_reserved_qty(item_code, warehouse):
 				(select stock_qty as dnpi_qty, qty as so_item_qty,
 					delivered_qty as so_item_delivered_qty, parent, name
 				from `tabSales Order Item` so_item
-				where item_code = %s and warehouse = %s
+				where item_code = %s and warehouse = %s {0}
 				and (so_item.delivered_by_supplier is null or so_item.delivered_by_supplier = 0)
 				and exists(select * from `tabSales Order` so
 					where so.name = so_item.parent and so.docstatus = 1
 					and so.status != 'Closed'))
 			) tab
 		where
-			so_item_qty >= so_item_delivered_qty
-	""", (item_code, warehouse, item_code, warehouse))
+			so_item_qty >= so_item_delivered_qty""".format(batch_no_query), (item_code, warehouse, item_code, warehouse))
 
 	return flt(reserved_qty[0][0]) if reserved_qty else 0
 

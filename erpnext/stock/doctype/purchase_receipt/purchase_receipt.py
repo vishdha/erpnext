@@ -18,7 +18,6 @@ from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.assets.doctype.asset.asset import get_asset_account, is_cwip_accounting_enabled
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
 from erpnext.manufacturing.doctype.production_plan.production_plan import update_per_received_in_production_plan
-from erpnext.selling.doctype.sales_order.sales_order import get_default_bom_item
 from six import iteritems
 
 form_grid_templates = {
@@ -508,41 +507,35 @@ class PurchaseReceipt(BuyingController):
 			duplicate_tags = list(set([tag for tag in package_tags if package_tags.count(tag) > 1]))
 			frappe.throw("Package Tag(s) {0} cannot be same for multiple items".format(", ".join(duplicate_tags)))
 
-	def get_work_order_items(self, for_raw_material_request=0):
+	def get_work_order_items(self):
 		'''Returns items with BOM that already do not have a linked work order'''
 
 		items = []
 
 		for table in [self.items, self.supplied_items]:
 			for row in table:
-				bom = get_default_bom_item(row.item_code)
-				if not bom:
-					continue
-				
 				stock_qty = row.consumed_qty if row.doctype == 'Purchase Receipt Item Supplied' else row.stock_qty
 				pending_qty = stock_qty
-				if not for_raw_material_request:
-					total_work_order_qty = frappe.get_all("Work Order",
-						filters={
-							"production_item": row.item_code,
-							"purchase_receipt": self.name,
-							"purchase_receipt_item": row.name,
-							"docstatus": ["<", 2]
-						},
-						fields=["sum(qty) as qty"])
+				total_work_order_qty = frappe.get_all("Work Order",
+					filters={
+						"production_item": row.item_code,
+						"purchase_receipt": self.name,
+						"purchase_receipt_item": row.name,
+						"docstatus": ["<", 2]
+					},
+					fields=["sum(qty) as qty"])
 
-					if total_work_order_qty:
-						pending_qty -= flt(total_work_order_qty[0].qty)
+				if total_work_order_qty:
+					pending_qty -= flt(total_work_order_qty[0].qty)
 
 				if pending_qty and row.item_code:
 					items.append({
 						"name": row.name,
 						"item_code": row.item_code,
 						"description": row.description,
-						"bom": bom,
 						"warehouse": row.warehouse,
 						"pending_qty": pending_qty,
-						"required_qty": pending_qty if for_raw_material_request else 0,
+						"required_qty": pending_qty if pending_qty else 0,
 						"purchase_receipt_item": row.name
 					})
 
@@ -822,7 +815,7 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 
 		work_order = frappe.get_doc(dict(
 			doctype='Work Order',
-			production_item=i['item_code'],
+			production_item=i['finished_good'],
 			bom_no=i.get('bom'),
 			manufacturing_type="Process",
 			raw_material_qty=i['pending_qty'],
@@ -838,3 +831,16 @@ def make_work_orders(items, purchase_receipt, company, project=None):
 		out.append(work_order)
 
 	return [p.name for p in out]
+
+def get_bom_query(doctype, txt, searchfield, start, page_len, filters):
+	boms = frappe.get_all("BOM", filters=[
+		["BOM Item", "item_code", "=", filters.get("item_code")],
+		["BOM", "manufacturing_type", "=", filters.get("manufacturing_type")]
+	], fields=["name"], as_list=True)
+
+	return boms
+
+@frappe.whitelist()
+def get_finished_good_item(bom):
+	finished_good = frappe.db.get_values("BOM", bom, ["name", "item"], as_dict=True)
+	return finished_good
