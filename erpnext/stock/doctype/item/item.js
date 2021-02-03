@@ -812,6 +812,15 @@ frappe.ui.form.on("Item Supplier", {
 	}
 })
 
+frappe.ui.form.on("Shipping Information", {
+	box_capacity_for_item: function(frm, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		if (row.box_capacity_for_item > row.max_box_capacity) {
+			frappe.throw(__("Box Capacity for Item cannot be greater than Maximum Box Capacity"))
+		}
+	}
+})
+
 function create_purchase_order(frm) {
 	frappe.call({
 		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",

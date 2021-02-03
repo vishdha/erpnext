@@ -9,9 +9,37 @@ frappe.ui.form.on('Packing Slip', {
 	}
 });
 
+frappe.ui.form.on('Packing Slip Item', {
+	box_type: function(frm, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		if (row.box_type && row.net_weight) {
+			frappe.call({
+				method: "erpnext.stock.doctype.packing_slip.packing_slip.fetch_no_of_boxes_required",
+				args: {
+					"box_type": row.box_type,
+					"net_weight": row.net_weight
+				},
+				callback: function(r) {
+					if (r.message) {
+						frappe.model.set_value(cdt, cdn, "no_of_boxes_required", r.message)
+					}
+				}
+			})
+		}
+	}
+});
+
 cur_frm.fields_dict['delivery_note'].get_query = function(doc, cdt, cdn) {
 	return{
 		filters:{ 'docstatus': 0}
+	}
+}
+
+cur_frm.fields_dict['items'].grid.get_field('box_type').get_query = function(doc, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	return {
+		query: "erpnext.stock.doctype.packing_slip.packing_slip.get_box_type_for_item",
+		filters:{ 'item_code': row.item_code}
 	}
 }
 

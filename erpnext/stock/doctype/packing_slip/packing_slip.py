@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.utils import cint, flt
+from math import ceil
 
 
 class PackingSlip(Document):
@@ -184,3 +185,19 @@ def item_details(doctype, txt, searchfield, start, page_len, filters):
 	 			limit  %s, %s """ % ("%s", searchfield, "%s",
 	 			get_match_cond(doctype), "%s", "%s"),
 	 			((filters or {}).get("delivery_note"), "%%%s%%" % txt, start, page_len))
+
+def get_box_type_for_item(doctype, txt, searchfield, start, page_len, filters):
+	return frappe.db.sql("""
+		SELECT
+			box
+		FROM
+			`tabShipping Information`
+		WHERE
+			parent = (%s)
+	""",filters.get("item_code"))
+
+@frappe.whitelist()
+def fetch_no_of_boxes_required(box_type, net_weight):
+	max_box_capacity = frappe.db.get_value("Box", box_type, "max_box_capacity")
+	no_of_boxes_reqd = ceil(int(net_weight) / int(max_box_capacity))
+	return no_of_boxes_reqd
