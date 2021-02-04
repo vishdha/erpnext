@@ -90,8 +90,12 @@ class Customer(TransactionBase):
 
 	def on_update(self):
 		self.validate_name_with_customer_group()
+
 		self.create_primary_contact()
+		self.set_primary_contact()
+
 		self.create_primary_address()
+		self.set_primary_address()
 
 		if self.flags.old_lead != self.lead_name:
 			self.update_lead_status()
@@ -118,6 +122,24 @@ class Customer(TransactionBase):
 	def create_primary_address(self):
 		if self.flags.is_new_doc and self.get('address_line1'):
 			make_address(self)
+
+	def set_primary_address(self):
+		if self.customer_primary_address:
+			if self._doc_before_save and self._doc_before_save.customer_primary_address and \
+				not self._doc_before_save.customer_primary_address == self.customer_primary_address:
+
+				frappe.db.set_value("Address", self._doc_before_save.customer_primary_address, "is_primary_address", 0)
+
+			frappe.db.set_value("Address", self.customer_primary_address, "is_primary_address", 1)
+
+	def set_primary_contact(self):
+		if self.customer_primary_contact:
+			if self._doc_before_save and self._doc_before_save.customer_primary_contact and \
+				not self._doc_before_save.customer_primary_contact == self.customer_primary_contact:
+
+				frappe.db.set_value("Contact", self._doc_before_save.customer_primary_contact, "is_primary_contact", 0)
+
+			frappe.db.set_value("Contact", self.customer_primary_contact, "is_primary_contact", 1)
 
 	def update_lead_status(self):
 		'''If Customer created from Lead, update lead status to "Converted"
