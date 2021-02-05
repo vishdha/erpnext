@@ -11,7 +11,7 @@ from erpnext.compliance.taxes import calculate_cannabis_tax
 from erpnext.accounts.utils import get_fiscal_year, get_stock_and_account_balance
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.accounts.utils import get_fiscal_year, check_if_stock_and_account_balance_synced
-from erpnext.accounts.general_ledger import make_gl_entries, make_reverse_gl_entries, process_gl_map
+from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.stock import get_warehouse_account_map
 from erpnext.stock.stock_ledger import get_valuation_rate

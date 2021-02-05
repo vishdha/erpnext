@@ -751,7 +751,7 @@
    "depends_on": "returned_qty",
    "fieldname": "returned_qty",
    "fieldtype": "Float",
-   "label": "Returned Qty in Stock UOM",
+   "label": "Returned Qty in Stock UOM"
    },
    {
    "fieldname": "incoming_rate",

@@ -6,7 +6,7 @@ import frappe, erpnext
 from frappe import _
 from frappe.utils import cint, flt, cstr, now, now_datetime
 from frappe.model.meta import get_field_precision
-from erpnext.stock.utils import get_valuation_method, get_incoming_outgoing_rate_for_cancel
+from erpnext.stock.utils import get_valuation_method
 from erpnext.stock.utils import get_bin
 import json
 from six import iteritems
@@ -167,8 +167,8 @@ class update_entries_after(object):
 		# includes current entry!
 		entries_to_fix = self.get_sle_after_datetime()
 
-				if sle.dependant_sle_voucher_detail_no:
-					self.get_dependent_entries_to_fix(entries_to_fix, sle)
+		if sle.dependant_sle_voucher_detail_no:
+			self.get_dependent_entries_to_fix(entries_to_fix, sle)
 
 		bin_doc.update({
 			"valuation_rate": self.valuation_rate,
@@ -595,21 +595,21 @@ class update_entries_after(object):
 	def raise_exceptions(self):
 		deficiency = min(e["diff"] for e in self.exceptions)
 
-			if ((exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]) in
-				frappe.local.flags.currently_saving):
+		if ((exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]) in
+			frappe.local.flags.currently_saving):
 
-				msg = _("{0} units of {1} needed in {2} to complete this transaction.").format(
-					abs(deficiency), frappe.get_desk_link('Item', exceptions[0]["item_code"]),
-					frappe.get_desk_link('Warehouse', warehouse))
-			else:
-				msg = _("{0} units of {1} needed in {2} on {3} {4} for {5} to complete this transaction.").format(
-					abs(deficiency), frappe.get_desk_link('Item', exceptions[0]["item_code"]),
-					frappe.get_desk_link('Warehouse', warehouse),
-					exceptions[0]["posting_date"], exceptions[0]["posting_time"],
-					frappe.get_desk_link(exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]))
+			msg = _("{0} units of {1} needed in {2} to complete this transaction.").format(
+				abs(deficiency), frappe.get_desk_link('Item', exceptions[0]["item_code"]),
+				frappe.get_desk_link('Warehouse', warehouse))
+		else:
+			msg = _("{0} units of {1} needed in {2} on {3} {4} for {5} to complete this transaction.").format(
+				abs(deficiency), frappe.get_desk_link('Item', exceptions[0]["item_code"]),
+				frappe.get_desk_link('Warehouse', warehouse),
+				exceptions[0]["posting_date"], exceptions[0]["posting_time"],
+				frappe.get_desk_link(exceptions[0]["voucher_type"], exceptions[0]["voucher_no"]))
 
-			if msg:
-				msg_list.append(msg)
+		if msg:
+			msg_list.append(msg)
 
 		if msg_list:
 			message = "\n\n".join(msg_list)
