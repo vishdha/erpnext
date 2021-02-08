@@ -111,8 +111,9 @@ def place_order(delivery_date=None):
 		sales_order.transaction_date = nowdate()
 		#expected delivery date to the sales order is mapped from the quotation
 
-		sales_order.flags.ignore_permissions = True
-		sales_order.insert()
+		sales_order.flags.ignore_mandatory = True
+		sales_order.flags.ignore_links = True
+		sales_order.insert(ignore_permissions=True)
 		sales_order.submit()
 
 		return sales_order.name
@@ -145,7 +146,7 @@ def update_cart(item_code, qty, batch_no=None, row=None, additional_notes=None, 
 	else:
 		quotation_items = quotation.get("items", {"item_code": item_code})
 		if not quotation_items:
-			quotation.append("items", { 
+			quotation.append("items", {
 				"doctype": "Quotation Item",
 				"item_code": item_code,
 				"qty": qty,
