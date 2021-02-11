@@ -12,12 +12,13 @@ frappe.ui.form.on('Packing Slip', {
 frappe.ui.form.on('Packing Slip Item', {
 	box_type: function(frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
-		if (row.box_type && row.net_weight) {
+		if (row.box_type && row.qty) {
 			frappe.call({
 				method: "erpnext.stock.doctype.packing_slip.packing_slip.fetch_no_of_boxes_required",
 				args: {
+					"item_code": row.item_code,
 					"box_type": row.box_type,
-					"net_weight": row.net_weight
+					"qty": row.qty
 				},
 				callback: function(r) {
 					if (r.message) {

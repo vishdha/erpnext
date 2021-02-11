@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "box",
-  "max_box_capacity"
+  "max_box_capacity",
+  "dimension"
  ],
  "fields": [
   {
@@ -22,9 +23,14 @@
    "fieldtype": "Data",
    "label": "Max. Box Capacity",
    "reqd": 1
+  },
+  {
+   "fieldname": "dimension",
+   "fieldtype": "Data",
+   "label": "Dimension"
   }
  ],
- "modified": "2021-02-02 21:45:09.362525",
+ "modified": "2021-02-10 08:51:44.143346",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Box",

@@ -821,6 +821,20 @@ frappe.ui.form.on("Shipping Information", {
 	}
 })
 
+cur_frm.fields_dict['shipping_information'].grid.get_field('uom').get_query = function(doc,cdt,cdn) {
+	var row = locals[cdt][cdn];
+	let uom = doc.shipping_information.map(info=> info.uom);
+	let box = doc.shipping_information.map(info=> info.box);
+	box = box.splice(0, box.length-1)
+	if(box.includes(row.box)) {
+		return {
+			filters:{
+				"uom_name": ['not in', uom]
+			}
+		}
+	}
+}
+
 function create_purchase_order(frm) {
 	frappe.call({
 		method: "erpnext.stock.doctype.item.item.get_supplier_for_purchase_order",
