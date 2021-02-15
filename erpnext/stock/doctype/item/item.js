@@ -828,7 +828,7 @@ cur_frm.set_query('uom', 'shipping_information', function(doc,cdt,cdn) {
 	box = box.splice(0, box.length-1)
 	if (box.includes(row.box)) {
 		return {
-			filters:{
+			filters : {
 				"uom_name": ['not in', uom]
 			}
 		}
