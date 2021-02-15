@@ -190,14 +190,10 @@ def get_box_type_for_item(doctype, txt, searchfield, start, page_len, filters):
 	"""
 		Fetches boxes available in child table Shipping Information from Item master.
 	"""
-	return frappe.db.sql("""
-		SELECT
-			box
-		FROM
-			`tabShipping Information`
-		WHERE
-			parent = (%s)
-	""",filters.get("item_code"))
+	return frappe.get_all("Shipping Information",
+		filters={"parent": filters.get("item_code")},
+		fields=["box"],
+		as_list=True)
 
 @frappe.whitelist()
 def fetch_no_of_boxes_required(item_code, box_type, qty):

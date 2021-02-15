@@ -814,26 +814,26 @@ frappe.ui.form.on("Item Supplier", {
 
 frappe.ui.form.on("Shipping Information", {
 	box_capacity_for_item: function(frm, cdt, cdn) {
-		var row = locals[cdt][cdn];
+		let row = locals[cdt][cdn];
 		if (row.box_capacity_for_item > row.max_box_capacity) {
 			frappe.throw(__("Box Capacity for Item cannot be greater than Maximum Box Capacity"))
 		}
 	}
 })
 
-cur_frm.fields_dict['shipping_information'].grid.get_field('uom').get_query = function(doc,cdt,cdn) {
-	var row = locals[cdt][cdn];
-	let uom = doc.shipping_information.map(info=> info.uom);
-	let box = doc.shipping_information.map(info=> info.box);
+cur_frm.set_query('uom', 'shipping_information', function(doc,cdt,cdn) {
+	let row = locals[cdt][cdn];
+	let uom = doc.shipping_information.map(info => info.uom);
+	let box = doc.shipping_information.map(info => info.box);
 	box = box.splice(0, box.length-1)
-	if(box.includes(row.box)) {
+	if (box.includes(row.box)) {
 		return {
 			filters:{
 				"uom_name": ['not in', uom]
 			}
 		}
 	}
-}
+})
 
 function create_purchase_order(frm) {
 	frappe.call({

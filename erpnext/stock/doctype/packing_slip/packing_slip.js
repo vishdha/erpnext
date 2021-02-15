@@ -21,11 +21,11 @@ frappe.ui.form.on('Packing Slip Item', {
 					"qty": row.qty
 				},
 				callback: function(r) {
-					if (r.message) {
-						frappe.model.set_value(cdt, cdn, "no_of_boxes_required", r.message)
+					if (r && r.message) {
+						frappe.model.set_value(cdt, cdn, "no_of_boxes_required", r.message);
 					}
 				}
-			})
+			});
 		}
 	}
 });
@@ -36,13 +36,13 @@ cur_frm.fields_dict['delivery_note'].get_query = function(doc, cdt, cdn) {
 	}
 }
 
-cur_frm.fields_dict['items'].grid.get_field('box_type').get_query = function(doc, cdt, cdn) {
+cur_frm.set_query('box_type', 'items', function(doc,cdt,cdn) {
 	var row = locals[cdt][cdn];
 	return {
 		query: "erpnext.stock.doctype.packing_slip.packing_slip.get_box_type_for_item",
 		filters:{ 'item_code': row.item_code}
 	}
-}
+})
 
 
 cur_frm.fields_dict['items'].grid.get_field('item_code').get_query = function(doc, cdt, cdn) {
