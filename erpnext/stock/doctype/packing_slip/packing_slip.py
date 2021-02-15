@@ -187,6 +187,9 @@ def item_details(doctype, txt, searchfield, start, page_len, filters):
 	 			((filters or {}).get("delivery_note"), "%%%s%%" % txt, start, page_len))
 
 def get_box_type_for_item(doctype, txt, searchfield, start, page_len, filters):
+	"""
+		Fetches boxes available in child table Shipping Information from Item master.
+	"""
 	return frappe.db.sql("""
 		SELECT
 			box
@@ -197,7 +200,18 @@ def get_box_type_for_item(doctype, txt, searchfield, start, page_len, filters):
 	""",filters.get("item_code"))
 
 @frappe.whitelist()
-def fetch_no_of_boxes_required(item_code,box_type, qty):
-	box_capacity_for_item = frappe.db.get_value("Shipping Information", filters={"parent": item_code}, fieldname="box_capacity_for_item")
+def fetch_no_of_boxes_required(item_code, box_type, qty):
+	"""
+	Returns number of boxes required to pack the item
+
+	Args:
+		item_code (string): item_code to fetch box capacity for item
+		box_type (string): box available to pack item
+		qty (int): qty to pack
+
+	Returns:
+		no_of_boxes_reqd: number of boxes required to pack item on basis of qty and max box capacity.
+	"""
+	box_capacity_for_item = frappe.db.get_value("Shipping Information", filters={"parent": item_code, "box": box_type}, fieldname="box_capacity_for_item")
 	no_of_boxes_reqd = ceil(int(qty) / int(box_capacity_for_item))
 	return no_of_boxes_reqd
