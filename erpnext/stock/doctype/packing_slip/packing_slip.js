@@ -11,7 +11,7 @@ frappe.ui.form.on('Packing Slip', {
 
 frappe.ui.form.on('Packing Slip Item', {
 	box_type: function(frm, cdt, cdn) {
-		var row = locals[cdt][cdn];
+		let row = locals[cdt][cdn];
 		if (row.box_type && row.qty) {
 			frappe.call({
 				method: "erpnext.stock.doctype.packing_slip.packing_slip.fetch_no_of_boxes_required",
@@ -37,7 +37,7 @@ cur_frm.fields_dict['delivery_note'].get_query = function(doc, cdt, cdn) {
 }
 
 cur_frm.set_query('box_type', 'items', function(doc,cdt,cdn) {
-	var row = locals[cdt][cdn];
+	let row = locals[cdt][cdn];
 	return {
 		query: "erpnext.stock.doctype.packing_slip.packing_slip.get_box_type_for_item",
 		filters:{ 'item_code': row.item_code}
