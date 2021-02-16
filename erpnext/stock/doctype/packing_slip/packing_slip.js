@@ -18,7 +18,8 @@ frappe.ui.form.on('Packing Slip Item', {
 				args: {
 					"item_code": row.item_code,
 					"box_type": row.box_type,
-					"qty": row.qty
+					"qty": row.qty,
+					"uom": row.stock_uom
 				},
 				callback: function(r) {
 					if (r && r.message) {

@@ -6,8 +6,7 @@
  "field_order": [
   "box",
   "uom",
-  "box_capacity_for_item",
-  "max_box_capacity"
+  "box_capacity_for_item"
  ],
  "fields": [
   {
@@ -24,13 +23,6 @@
    "label": "Box Capacity for Item"
   },
   {
-   "fetch_from": "box.max_box_capacity",
-   "fieldname": "max_box_capacity",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Max. Box Capacity"
-  },
-  {
    "fieldname": "uom",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -39,7 +31,7 @@
   }
  ],
  "istable": 1,
- "modified": "2021-02-02 22:28:12.743287",
+ "modified": "2021-02-15 23:58:17.637501",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Shipping Information",

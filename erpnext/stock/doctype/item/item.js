@@ -812,15 +812,6 @@ frappe.ui.form.on("Item Supplier", {
 	}
 })
 
-frappe.ui.form.on("Shipping Information", {
-	box_capacity_for_item: function(frm, cdt, cdn) {
-		let row = locals[cdt][cdn];
-		if (row.box_capacity_for_item > row.max_box_capacity) {
-			frappe.throw(__("Box Capacity for Item cannot be greater than Maximum Box Capacity"))
-		}
-	}
-})
-
 cur_frm.set_query('uom', 'shipping_information', function(doc,cdt,cdn) {
 	let row = locals[cdt][cdn];
 	let uom = doc.shipping_information.map(info => info.uom);
