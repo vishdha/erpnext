@@ -275,19 +275,32 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 	make_standard_filters() {
 		//
 	}
+	setup_filter_area() {
+		//
+	}
+
+	setup_sort_selector() {
+		//
+	}
 
 	freeze() {
 		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
 	}
 
 	get_args() {
-		const args = super.get_args();
+		const args = {
+			doctype: this.doctype,
+			fields: super.get_fields(),
+			filters: super.get_filters_for_args(),
+			start: this.start,
+			page_length: this.page_length,
+			view: this.view
+		};
 
 		return Object.assign({}, args, {
 			...args.filters.push(["Bank Transaction", "docstatus", "=", 1],
 				["Bank Transaction", "unallocated_amount", ">", 0])
 		});
-
 	}
 
 	update_data(r) {
