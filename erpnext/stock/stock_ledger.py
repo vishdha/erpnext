@@ -32,6 +32,7 @@ def make_sl_entries(sl_entries, is_amended=None, allow_negative_stock=False, via
 			if force_update:
 				sle_entry = frappe.db.get_value("Stock Ledger Entry", filters={"item_code":sle.get('item_code'), "voucher_no":sle.get("voucher_no")})
 				doc = frappe.get_doc("Stock Ledger Entry", sle_entry)
+				doc.flags.ignore_permissions = 1
 				doc.cancel()
 				doc.delete()
 				frappe.db.commit()
