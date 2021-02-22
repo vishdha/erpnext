@@ -20,9 +20,8 @@
   },
   {
    "fieldname": "max_box_capacity",
-   "fieldtype": "Data",
-   "label": "Max. Box Capacity",
-   "reqd": 1
+   "fieldtype": "Float",
+   "label": "Max. Box Capacity"
   },
   {
    "fieldname": "dimension",
@@ -30,7 +29,7 @@
    "label": "Dimension"
   }
  ],
- "modified": "2021-02-10 08:51:44.143346",
+ "modified": "2021-02-19 05:22:21.310459",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Box",
