@@ -188,6 +188,10 @@ class StockEntry(StockController):
 			if item.item_code not in stock_items:
 				frappe.throw(_("{0} is not a stock Item").format(item.item_code))
 
+			# Attaching BOM No. to line item sent to target warehouse
+			if item.t_warehouse and not item.bom_no:
+				item.bom_no = self.bom_no
+
 			item_details = self.get_item_details(frappe._dict(
 				{"item_code": item.item_code, "company": self.company,
 				"project": self.project, "uom": item.uom, 's_warehouse': item.s_warehouse}),
