@@ -59,15 +59,23 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 			},
 			onchange: function() {
 				if (this.value) {
+					me.filter_change();
 					me.bank_account = this.value;
 					me.add_actions();
 				} else {
 					me.bank_account = null;
 					me.page.hide_actions_menu();
 				}
-				me.clear_page_content();
 			}
 		})
+	}
+
+	filter_change() {
+		const me = this;
+		$(me.page.body).find('.frappe-list').remove();
+		const empty_state = __("Upload a bank statement, link or reconcile a bank account")
+		me.$main_section.append(`<div class="flex justify-center align-center text-muted"
+			style="height: 50vh; display: flex;"><h5 class="text-muted">${empty_state}</h5></div>`)
 	}
 
 	check_plaid_status() {
@@ -83,7 +91,6 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 
 	add_actions() {
 		const me = this;
-
 		me.page.show_menu()
 
 		me.page.add_menu_item(__("Upload a statement"), function() {
