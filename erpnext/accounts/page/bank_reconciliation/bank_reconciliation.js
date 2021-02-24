@@ -308,7 +308,8 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 
 		return Object.assign({}, args, {
 			...args.filters.push(["Bank Transaction", "docstatus", "=", 1],
-				["Bank Transaction", "unallocated_amount", ">", 0],["Bank Transaction", "bank_account", "=", this.bank_account])
+				["Bank Transaction", "unallocated_amount", ">", 0],
+				["Bank Transaction", "bank_account", "=", this.bank_account])
 		});
 	}
 
