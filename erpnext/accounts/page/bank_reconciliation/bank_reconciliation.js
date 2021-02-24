@@ -65,6 +65,7 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 					me.bank_account = null;
 					me.page.hide_actions_menu();
 				}
+				me.clear_page_content();
 			}
 		})
 	}
@@ -114,6 +115,8 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 		frappe.model.with_doctype("Bank Transaction", () => {
 			erpnext.accounts.ReconciliationList = new erpnext.accounts.ReconciliationTool({
 				parent: me.parent,
+				bank_account: me.bank_account,
+				company: me.company,
 				doctype: "Bank Transaction"
 			});
 		})
@@ -261,7 +264,6 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 		this.page_title = __("Bank Reconciliation");
 		this.doctype = 'Bank Transaction';
 		this.fields = ['date', 'description', 'debit', 'credit', 'currency']
-
 	}
 
 	setup_view() {
@@ -296,10 +298,10 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 			page_length: this.page_length,
 			view: this.view
 		};
-
+		console.log("filters", args.filters)
 		return Object.assign({}, args, {
 			...args.filters.push(["Bank Transaction", "docstatus", "=", 1],
-				["Bank Transaction", "unallocated_amount", ">", 0])
+				["Bank Transaction", "unallocated_amount", ">", 0],["Bank Transaction", "bank_account", "=", this.bank_account])
 		});
 	}
 
