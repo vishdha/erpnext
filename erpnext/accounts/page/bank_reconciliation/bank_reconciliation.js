@@ -305,7 +305,7 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 			page_length: this.page_length,
 			view: this.view
 		};
-		console.log("filters", args.filters)
+
 		return Object.assign({}, args, {
 			...args.filters.push(["Bank Transaction", "docstatus", "=", 1],
 				["Bank Transaction", "unallocated_amount", ">", 0],["Bank Transaction", "bank_account", "=", this.bank_account])
