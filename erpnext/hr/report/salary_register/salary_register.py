@@ -67,10 +67,10 @@ def get_columns(salary_slips):
 		(', '.join(['%s']*len(salary_slips))), tuple([d.name for d in salary_slips]), as_dict=1):
 		salary_components[_(component.type)].append(component.salary_component)
 
-	columns = columns + [(e + ":Currency:120") for e in salary_components[_("Earning")]] + \
+	columns = columns + [{"label": e, "fieldname": e, "fieldtype": "Currency", "options" : "Company:Company:default_currency", "width": "120"} for e in salary_components[_("Earning")]] + \
 		[
 			{"label": _("Gross Pay"), "fieldname": "gross_pay", "fieldtype": "Currency", "options" : "Company:Company:default_currency", "width": "120"}
-		] + [(d + ":Currency:120") for d in salary_components[_("Deduction")]] + \
+		] + [{"label": d, "fieldname": d, "fieldtype": "Currency", "options" : "Company:Company:default_currency", "width": "120"} for d in salary_components[_("Deduction")]] + \
 		[
 			{"label": _("Loan Repayment"), "fieldname":"loan_repayment", "fieldtype":"Currency", "options":"Company:Company:default_currency", "width":"120"},
 			{"label": _("Total Deduction"), "fieldname":"total_deduction", "fieldtype":"Currency", "options":"Company:Company:default_currency", "width":"120"},
