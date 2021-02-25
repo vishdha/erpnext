@@ -238,16 +238,17 @@ class PickList(Document):
 			stock_entry.name = self.get('name')
 			if self.get('purpose') == "Delivery":
 				stock_entry.purpose = "Repack"
-			stock_entry.set_stock_entry_type()
 			if self.get('work_order'):
 				stock_entry = update_stock_entry_based_on_work_order(self, stock_entry)
 			elif self.get('material_request'):
+				stock_entry.purpose = "Material Transfer"
 				stock_entry = update_stock_entry_based_on_material_request(self, stock_entry)
 			else:
 				if location.source_package_tag:
 					stock_entry = update_stock_entry_items_for_source(location, stock_entry)
 				if location.package_tag:
 					stock_entry = update_stock_entry_items_for_target(location, stock_entry)
+			stock_entry.set_stock_entry_type()
 			stock_entry.set_incoming_rate()
 			stock_entry.set_actual_qty()
 			stock_entry.calculate_rate_and_amount(update_finished_item_rate=False)
@@ -583,12 +584,15 @@ def update_stock_entry_based_on_work_order(pick_list, stock_entry):
 
 def update_stock_entry_based_on_material_request(pick_list, stock_entry):
 	for location in pick_list.locations:
-		target_warehouse = None
+		source_warehouse = None
 		if location.material_request_item:
+			source_warehouse = frappe.get_value('Material Request Item',
+				location.material_request_item, 'from_warehouse')
 			target_warehouse = frappe.get_value('Material Request Item',
 				location.material_request_item, 'warehouse')
 		item = frappe._dict()
 		update_common_item_properties(item, location)
+		item.s_warehouse = source_warehouse
 		item.t_warehouse = target_warehouse
 		stock_entry.append('items', item)
 
