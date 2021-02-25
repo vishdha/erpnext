@@ -746,10 +746,8 @@
    "options": "Account"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
    "fieldname": "default_indirect_expenses",
    "fieldtype": "Link",
-   "ignore_user_permissions": 1,
    "label": "Default Indirect Expenses",
    "options": "Account"
   }
@@ -758,7 +756,7 @@
  "idx": 1,
  "image_field": "company_logo",
  "is_tree": 1,
- "modified": "2021-02-11 10:39:10.746964",
+ "modified": "2021-02-15 03:01:19.487475",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Company",
