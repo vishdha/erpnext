@@ -50,15 +50,15 @@ def get_conditions(filters):
 		frappe.throw(_("'From Date' is required"))
 
 	if filters.get("to_date"):
-		conditions.append("posting_date <= %(to_date)s")
+		conditions.append("and posting_date <= %(to_date)s")
 	else:
 		frappe.throw(_("'To Date' is required"))
 
 	if filters.get("warehouse"):
 		filters.warehouse = frappe.parse_json(filters.get('warehouse'))
-		conditions.append("warehouse in %(warehouse)s")
+		conditions.append("and warehouse in %(warehouse)s")
 
-	return "and {}".format(" and ".join(conditions)) if conditions else ""
+	return "".join(conditions) if conditions else ""
 
 # get all details
 def get_stock_ledger_entries(filters):
