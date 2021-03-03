@@ -55,7 +55,7 @@ def get_conditions(filters):
 		frappe.throw(_("'To Date' is required"))
 
 	if filters.get("warehouse"):
-		filters.cost_center = frappe.parse_json(filters.get('cost_center'))
+		filters.warehouse = frappe.parse_json(filters.get('warehouse'))
 		conditions.append("warehouse in %(warehouse)s")
 
 	return "and {}".format(" and ".join(conditions)) if conditions else ""
