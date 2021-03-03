@@ -56,7 +56,7 @@ def get_conditions(filters):
 
 	if filters.get("warehouse"):
 		filters.warehouse = frappe.parse_json(filters.get('warehouse'))
-		conditions.append("and warehouse in %(warehouse)s")
+		conditions.append(" and warehouse in %(warehouse)s")
 
 	return "".join(conditions) if conditions else ""
 
