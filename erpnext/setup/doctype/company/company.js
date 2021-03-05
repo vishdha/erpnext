@@ -18,6 +18,18 @@ frappe.ui.form.on("Company", {
 			}
 		});
 
+		frm.set_query("default_direct_expenses", function() {
+			return {
+				filters: {"account_type": "Expense Account"}
+			}
+		});
+
+		frm.set_query("default_indirect_expenses", function() {
+			return {
+				filters: {"account_type": "Expense Account"}
+			}
+		});
+
 		frm.set_query("default_selling_terms", function() {
 			return { filters: { selling: 1 } };
 		});
@@ -25,6 +37,11 @@ frappe.ui.form.on("Company", {
 		frm.set_query("default_buying_terms", function() {
 			return { filters: { buying: 1 } };
 		});
+	},
+
+	refresh: function(frm) {
+		frm.toggle_reqd("default_direct_expenses", 1);
+		frm.toggle_reqd("default_indirect_expenses", 1);
 	},
 
 	company_name: function(frm) {
