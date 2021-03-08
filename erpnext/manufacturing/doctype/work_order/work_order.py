@@ -628,7 +628,7 @@ def get_item_details(item, project = None):
 			frappe.msgprint(_("Default BOM for {0} not found").format(item))
 
 	bom_data = frappe.db.get_value('BOM', res['bom_no'],
-		['project', 'allow_alternative_item', 'transfer_material_against', 'item_name','raw_material_cost','operating_cost'], as_dict=1)
+		['project', 'allow_alternative_item', 'transfer_material_against', 'item_name','raw_material_cost','operating_cost', 'manufacturing_type', 'company'], as_dict=1)
 
 	if bom_data:
 		res['project'] = project or bom_data.pop("project")
@@ -646,7 +646,6 @@ def make_work_order(bom_no, item, qty=0, project=None, finished_goods_qty=0, man
 		manufacturing_type = "Discrete"
 	
 	item_details = get_item_details(item, project)
-
 	wo_doc = frappe.new_doc("Work Order")
 	wo_doc.production_item = item
 	wo_doc.update(item_details)
@@ -695,6 +694,7 @@ def make_stock_entry(work_order_id, purpose, qty=None):
 	stock_entry.company = work_order.company
 	stock_entry.from_bom = 1
 	stock_entry.bom_no = work_order.bom_no
+	stock_entry.manufacturing_type = work_order.manufacturing_type
 	stock_entry.use_multi_level_bom = work_order.use_multi_level_bom
 	stock_entry.fg_completed_qty = qty or (flt(work_order.qty) - flt(work_order.produced_qty))
 	if work_order.bom_no:
