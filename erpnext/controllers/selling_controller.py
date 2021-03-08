@@ -40,6 +40,7 @@ class SellingController(StockController):
 		self.validate_items()
 		self.validate_coupon()
 		self.validate_marketing_expense()
+		self.validate_discount_guard()
 		self.validate_max_discount()
 		self.validate_selling_price()
 		self.set_qty_as_per_stock_uom()
@@ -443,7 +444,7 @@ class SellingController(StockController):
 					.format(d.idx, warehouse, warehouse))
 
 	def validate_items(self):
-		# validate items to see if they have is_sales_item enabled
+		"""Validate items to see if they have is_sales_item enabled"""
 		from erpnext.controllers.buying_controller import validate_item_type
 		validate_item_type(self, "is_sales_item", "sales")
 
@@ -453,6 +454,23 @@ class SellingController(StockController):
 			self.apply_discount_on = "Grand Total"
 			self.additional_discount_percentage = 100
 
+	def validate_discount_guard(self):
+		"""Guards against items going into negative amount when item rate changes as an item is replaced"""
+
+		updated_totals = False
+		for item in self.items:
+			item_amount = flt(item.get("rate")) * flt(item.get("qty"))
+
+			if flt(item.get("discount_amount")) > item_amount:
+				# Where possible keep percent discount and reapply based on actual item_amount
+				if item.get("discount_percentage"):
+					item.set("discount_amount", item_amount * (flt(item.get("discount_percentage") / 100)))
+				else: # otherwise, set discount to maximum to avoid going negative
+					item.set("discount_amount", item_amount)
+					item.set("discount_percentage", 100)
+
+				updated_totals = True
+		
 
 def set_default_income_account_for_item(obj):
 	for d in obj.get("items"):
