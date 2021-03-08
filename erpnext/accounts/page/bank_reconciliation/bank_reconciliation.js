@@ -59,6 +59,7 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 			},
 			onchange: function() {
 				if (this.value) {
+					me.filter_change();
 					me.bank_account = this.value;
 					me.add_actions();
 				} else {
@@ -67,6 +68,14 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 				}
 			}
 		})
+	}
+
+	filter_change() {
+		const me = this;
+		$(me.page.body).find('.frappe-list').remove();
+		const empty_state = __("Upload a bank statement, link or reconcile a bank account")
+		me.$main_section.append(`<div class="flex justify-center align-center text-muted"
+			style="height: 50vh; display: flex;"><h5 class="text-muted">${empty_state}</h5></div>`)
 	}
 
 	check_plaid_status() {
@@ -82,7 +91,6 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 
 	add_actions() {
 		const me = this;
-
 		me.page.show_menu()
 
 		me.page.add_menu_item(__("Upload a statement"), function() {
@@ -114,6 +122,8 @@ erpnext.accounts.bankReconciliation = class BankReconciliation {
 		frappe.model.with_doctype("Bank Transaction", () => {
 			erpnext.accounts.ReconciliationList = new erpnext.accounts.ReconciliationTool({
 				parent: me.parent,
+				bank_account: me.bank_account,
+				company: me.company,
 				doctype: "Bank Transaction"
 			});
 		})
@@ -261,7 +271,6 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 		this.page_title = __("Bank Reconciliation");
 		this.doctype = 'Bank Transaction';
 		this.fields = ['date', 'description', 'debit', 'credit', 'currency']
-
 	}
 
 	setup_view() {
@@ -275,19 +284,33 @@ erpnext.accounts.ReconciliationTool = class ReconciliationTool extends frappe.vi
 	make_standard_filters() {
 		//
 	}
+	setup_filter_area() {
+		//
+	}
+
+	setup_sort_selector() {
+		//
+	}
 
 	freeze() {
 		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
 	}
 
 	get_args() {
-		const args = super.get_args();
+		const args = {
+			doctype: this.doctype,
+			fields: super.get_fields(),
+			filters: super.get_filters_for_args(),
+			start: this.start,
+			page_length: this.page_length,
+			view: this.view
+		};
 
 		return Object.assign({}, args, {
 			...args.filters.push(["Bank Transaction", "docstatus", "=", 1],
-				["Bank Transaction", "unallocated_amount", ">", 0])
+				["Bank Transaction", "unallocated_amount", ">", 0],
+				["Bank Transaction", "bank_account", "=", this.bank_account])
 		});
-
 	}
 
 	update_data(r) {

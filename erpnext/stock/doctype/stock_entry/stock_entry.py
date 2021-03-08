@@ -188,6 +188,10 @@ class StockEntry(StockController):
 			if item.item_code not in stock_items:
 				frappe.throw(_("{0} is not a stock Item").format(item.item_code))
 
+			# Attaching BOM No. to line item sent to target warehouse
+			if item.t_warehouse and not item.bom_no:
+				item.bom_no = self.bom_no
+
 			item_details = self.get_item_details(frappe._dict(
 				{"item_code": item.item_code, "company": self.company,
 				"project": self.project, "uom": item.uom, 's_warehouse': item.s_warehouse}),
@@ -1379,7 +1383,7 @@ class StockEntry(StockController):
 			for item in self.items:
 				if item.package_tag and item.t_warehouse:
 					if frappe.db.get_value("Item", item.item_code, "requires_lab_tests"):
-						frappe.db.set_value("Package Tag", item.package_tag, "coa_batch_no", item.batch_no)
+						frappe.db.set_value("Package Tag", item.package_tag, "batch_no", item.batch_no)
 					else:
 						coa_batch_no = frappe.db.get_value("Package Tag", source_item.package_tag, "coa_batch_no")
 						frappe.db.set_value("Package Tag", item.package_tag, "coa_batch_no", coa_batch_no)
@@ -1471,7 +1475,8 @@ def get_work_order_details(work_order, company):
 		"use_multi_level_bom": work_order.use_multi_level_bom,
 		"wip_warehouse": work_order.wip_warehouse,
 		"fg_warehouse": work_order.fg_warehouse,
-		"fg_completed_qty": pending_qty_to_produce
+		"fg_completed_qty": pending_qty_to_produce,
+		"manufacturing_type": work_order.manufacturing_type
 	}
 
 def get_operating_cost_per_unit(work_order=None, bom_no=None):

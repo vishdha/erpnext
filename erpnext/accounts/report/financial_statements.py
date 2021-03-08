@@ -18,7 +18,7 @@ from frappe.utils import (flt, getdate, add_months, add_days, formatdate, get_la
 from six import itervalues
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
 
-def get_period_list(from_custom_date, to_custom_date, periodicity, accumulated_values=False, 
+def get_period_list(from_custom_date, to_custom_date, periodicity, accumulated_values=False,
 	company=None, reset_period_on_fy_change=True):
 	"""
 	Returns a list of periods for which data needs to be generated based on periodicity or customized.
@@ -33,7 +33,7 @@ def get_period_list(from_custom_date, to_custom_date, periodicity, accumulated_v
 
 	Returns:
 		list of dict: {"from_date": from_date, "to_date": to_date, "key": key, "label": label}
-	"""		
+	"""
 	#get start and end dates for the fiscal year(s) in consideration
 	from_custom_date = getdate(from_custom_date)
 	to_custom_date = getdate(to_custom_date)
@@ -46,12 +46,12 @@ def get_period_list(from_custom_date, to_custom_date, periodicity, accumulated_v
 
 	period_list = []
 	#select the time duration of our data - fix for first task likely here
-	if periodicity!="Custom": 
+	if periodicity!="Custom":
 		period_list = standard_period_lists(periodicity, from_custom_date, to_custom_date, company)
-	else: 
+	else:
 		#generate custom period lists
 		period = frappe._dict({
-			"from_date": getdate(from_custom_date), 
+			"from_date": getdate(from_custom_date),
 			"to_date": getdate(to_custom_date)
 		})
 		period.fiscal_year_start_date = get_fiscal_year(period.from_date, company=company)[1]
@@ -91,9 +91,9 @@ def standard_period_lists(periodicity, from_custom_date, to_custom_date, company
 		company (string): name of the company
 
 	Returns:
-		list of dict: {"from_date": from_date, "to_date": to_date, 
+		list of dict: {"from_date": from_date, "to_date": to_date,
 			"fiscal_year_start_date": , "fiscal_year_end_date": }
-	"""	
+	"""
 	period_list = []
 	months_to_add = {
 		"Yearly": 12,
@@ -130,11 +130,11 @@ def standard_period_lists(periodicity, from_custom_date, to_custom_date, company
 		period_list.append(period)
 
 		if period.to_date == to_custom_date:
-			break	
+			break
 	return period_list
 
 #to be merged into frappe later
-def get_period_end_date(start_date, months_in_time_frame): 
+def get_period_end_date(start_date, months_in_time_frame):
 	"""
 	Return the end date for the desired period.
 
@@ -157,15 +157,15 @@ def get_fiscal_year_data(from_fiscal_year, to_fiscal_year):
 
 	Args:
 		from_fiscal_year (int): the starting year of the period we want data for
-		to_fiscal_year (int): the ending year of the period we want data till 
+		to_fiscal_year (int): the ending year of the period we want data till
 		example: (2018, 2019)
 
 	Returns:
 		dict: the start and end dates for the period we wish to get data for or {}
 			example - {'year_start_date': datetime.date(2018, 1, 1),
   				  'year_end_date': datetime.date(2019, 12, 31)}
-	
-	"""	
+
+	"""
 	#get the start and end dates for the duration we want data for
 	fiscal_year = frappe.db.sql("""select min(year_start_date) as year_start_date,
 		max(year_end_date) as year_end_date from `tabFiscal Year` where
@@ -181,7 +181,7 @@ def validate_fiscal_year(fiscal_year):
 
 	Args:
 		fiscal_year (dict): contains the start and end date of the fiscal year
-	"""	
+	"""
 	if not fiscal_year.get('year_start_date') and not fiscal_year.get('year_end_date'):
 		frappe.throw(_("End Year cannot be before Start Year"))
 
@@ -203,7 +203,7 @@ def get_label(from_date, to_date):
 	Returns:
 		string: formatted date based on periodicity
 			Ex. for Quarterly, Jan 19-Mar 19
-	"""	
+	"""
 	return formatdate(from_date, "MMM dd, YYYY") + " - " + formatdate(to_date, "MMM dd, YYYY")
 
 
@@ -217,8 +217,8 @@ def get_data(company, root_type, balance_must_be, period_list, filters=None,
 		company (string): name of the company
 		root_type (string): Root of the account (Asset, Liability, Equity, Income, Expense)
 		balance_must_be (string): Debit or Credit
-		period_list (list of dict): durations/periods for which we want our data 
-		filters (list of dict, optional): filters provided by the user on the financial statements page (date range, periodicity, etc). 
+		period_list (list of dict): durations/periods for which we want our data
+		filters (list of dict, optional): filters provided by the user on the financial statements page (date range, periodicity, etc).
 			 Defaults to None.
 		accumulated_values (int, optional): Defaults to 1.
 		only_current_fiscal_year (bool, optional): Defaults to True.
@@ -228,7 +228,7 @@ def get_data(company, root_type, balance_must_be, period_list, filters=None,
 
 	Returns:
 		list of dicts: contains the data that is rendered to the user
-	"""				
+	"""
 	#get the list of accounts associated with a particular root (ex. Asset, Liability, etc)
 	accounts = get_accounts(company, root_type)
 	if not accounts:
@@ -238,7 +238,7 @@ def get_data(company, root_type, balance_must_be, period_list, filters=None,
 	accounts, accounts_by_name, parent_children_map = filter_accounts(accounts)
 	company_currency = get_appropriate_currency(company, filters)
 	accounts = sort_accounts_by_key(accounts)
-	
+
 	#get general ledger entries
 	gl_entries_by_account = {}
 	for root in frappe.db.sql("""select lft, rgt from tabAccount
@@ -254,15 +254,15 @@ def get_data(company, root_type, balance_must_be, period_list, filters=None,
 		)
 
 	#calculate the values for the different accounts from GL entries made against them
-	calculate_values(accounts_by_name, gl_entries_by_account, period_list, 
+	calculate_values(accounts_by_name, gl_entries_by_account, period_list,
 						accumulated_values, ignore_accumulated_values_for_fy)
-	
+
 	#clean up the data
 	out = prepare_data(accounts, balance_must_be, period_list, company_currency)
-	
+
 	#create a row for the totals of the root accounts (asset, liability, income, etc)
 	if out and total:
-		out, parent_accounts_with_nonzero_children = generate_parent_account_totals(out, root_type, 
+		out, parent_accounts_with_nonzero_children = generate_parent_account_totals(out, root_type,
 														balance_must_be, period_list, company_currency)
 
 	#remove rows with zero values and setting parent rows to none
@@ -275,7 +275,7 @@ def sort_accounts_by_key(data, key='lft'):
 	return sorted(data, key = lambda i: i[key])
 
 
-def nullify_parent_account_values(data, period_list): 
+def nullify_parent_account_values(data, period_list):
 	"""
 	Setting values of each period for a parent account to zero.
 
@@ -285,12 +285,12 @@ def nullify_parent_account_values(data, period_list):
 
 	Returns:
 		list: hashtable of the data to be output
-	"""	
-	for row in data: 
-		for period in period_list: 
-			if (row.get("is_group",0) or row.get("group_account_summary")) and period.key in row and row[period.key] == 0.0: 
+	"""
+	for row in data:
+		for period in period_list:
+			if (row.get("is_group",0) or row.get("group_account_summary")) and period.key in row and row[period.key] == 0.0:
 				row[period.key] = None
-			
+
 	return data
 
 def get_appropriate_currency(company, filters=None):
@@ -300,11 +300,11 @@ def get_appropriate_currency(company, filters=None):
 		return frappe.get_cached_value('Company',  company,  "default_currency")
 
 
-def calculate_values(accounts_by_name, gl_entries_by_account, period_list, 
+def calculate_values(accounts_by_name, gl_entries_by_account, period_list,
 							accumulated_values, ignore_accumulated_values_for_fy):
 	"""
 	Calculates the values/accumulated values of the accounts needed in the financial reports.
-	
+
 	Modifies the accounts_by_name dictionary by appending the above mentioned calculated values.
 
 	Args:
@@ -312,26 +312,26 @@ def calculate_values(accounts_by_name, gl_entries_by_account, period_list,
 		gl_entries_by_account (dict): ledger entries mapped to their account names
 		period_list (list): duration for which the data is needed
 		accumulated_values (int): flag that tells us whether the values need to be accumulated
-		ignore_accumulated_values_for_fy (bool): for distinguishing between non accumulating 
+		ignore_accumulated_values_for_fy (bool): for distinguishing between non accumulating
 			and accumulating accounts
-	"""							
+	"""
 	#iterate through all the journal entries account by account
 	for entries in itervalues(gl_entries_by_account):
 		for entry in entries:
-			
+
 			#get the account name for which we are processing ledger entries
 			d = accounts_by_name.get(entry.account)
-			
+
 			#throw error if account details not retrived
 			if not d:
 				frappe.throw(_("Could not retrieve information for {0}.".format(entry.account)))
-					
+
 			#generate accumulated data for the different periods specified by the user
 			for period in period_list:
 
 				# check if posting date is within the period
 				if entry.posting_date <= period.to_date:
-					
+
 					#we ignore accumulated values for reports like P\L and cash flow
 					if (accumulated_values or entry.posting_date >= period.from_date) and \
 						(not ignore_accumulated_values_for_fy or
@@ -353,7 +353,7 @@ def accumulate_values_into_parents(accounts, accounts_by_name, period_list, accu
 		accounts_by_name (dict): account details mapped by account_name
 		period_list (list of dict): time frames across which the data is needed
 		accumulated_values (int): whether values are accumulated or not
-	"""	
+	"""
 	for d in reversed(accounts):
 		if d.parent_account:
 			for period in period_list:
@@ -375,13 +375,13 @@ def prepare_data(accounts, balance_must_be, period_list, company_currency):
 		company_currency (string): currency
 
 	Returns:
-		list of dict: each of the rows that need to be rendered 
+		list of dict: each of the rows that need to be rendered
 	"""
 	#take the starting and ending date
 	data = []
 	year_start_date = period_list[0]["year_start_date"].strftime("%Y-%m-%d")
 	year_end_date = period_list[-1]["year_end_date"].strftime("%Y-%m-%d")
-	
+
 	#loop through all the accounts and create rows for each with neccessary data entries
 	for d in accounts:
 		has_value = False
@@ -389,7 +389,7 @@ def prepare_data(accounts, balance_must_be, period_list, company_currency):
 		row = frappe._dict({
 			"account": _(d.name),
 			"parent_account": _(d.parent_account) if d.parent_account else '',
-			"lft": d.lft, 
+			"lft": d.lft,
 			"rgt": d.rgt,
 			"indent": flt(d.indent),
 			"year_start_date": year_start_date,
@@ -402,7 +402,7 @@ def prepare_data(accounts, balance_must_be, period_list, company_currency):
 			"account_name": ('%s - %s' %(_(d.account_number), _(d.account_name))
 				if d.account_number else _(d.account_name))
 		})
-		
+
 		for period in period_list:
 
 			# change sign based on Debit or Credit, since calculation is done using (debit - credit)
@@ -448,7 +448,7 @@ def filter_out_zero_value_rows(data, parent_accounts_with_nonzero_children, show
 				data_with_value.append({})
 
 		#adding nonzero nongroup accounts
-		if not d.get("group_account_summary") and not d.get("is_group") and d.get("has_value"):
+		if not d.get("group_account_summary") and not d.get("is_group") and (d.get("has_value") or d.get("indent")==0):
 			data_with_value.append(d)
 
 	return data_with_value
@@ -481,25 +481,26 @@ def generate_parent_account_totals(out, root_type, balance_must_be, period_list,
 			})
 
 		#patch for accounts cause lft and rgt branches are inconsistent, will delete once issues is resolved
-		if parent_accounts and (parent_accounts[-1].get("rgt") < row.get("rgt")):
+		while parent_accounts and (parent_accounts[-1].get("rgt") < row.get("rgt")):
 			parent_to_append = parent_accounts.pop()
 
 			#create set of parent accounts whose children have nonzero values
-			if parent_to_append.get('has_value', None): 
+			if parent_to_append.get('has_value', None):
 					parent_accounts_with_nonzero_children.add(parent_to_append['account'])
 					new_output.append(parent_to_append)
 
 		#add parent accounts to a list
-		if row.get("is_group", 0): 
-			
+		if row.get("is_group", 0):
+
 			#patch because some Chart of Accounts don't have account numbers
 			account_name = row.get("account_name")
 			account_summary = account_name.split("-")[1] if "-" in account_name else account_name
-			
+
 			#we stack our parent accounts, pop them once all their child accounts have been totaled
-			total_parent_account = { 
-				"account_name": _("Total {0}").format(_(account_summary)),
-				"account": _("{0}").format(_(row.get("account_name"))),
+			total_parent_account = {
+				"account_name": _("Total {0}").format(account_summary),
+				"account": _("{0}").format(row.get("account_name")),
+				"_account": row.get("account", ""),
 				"lft": _(row.get('lft')),
 				"rgt": _(row.get('rgt')),
 				"has_value": False,
@@ -510,11 +511,11 @@ def generate_parent_account_totals(out, root_type, balance_must_be, period_list,
 			parent_accounts.append(total_parent_account)
 
 			row['total'] = None
-		
+
 		#sum rows if it is not the parent account
 		if not row.get("is_group", 0):
-			for parent in parent_accounts: 
-				
+			for parent in parent_accounts:
+
 				#if row is child of parent, add value to parent total
 				for period in period_list:
 					row[period.key] = row.get(period.key, 0.0)
@@ -522,23 +523,23 @@ def generate_parent_account_totals(out, root_type, balance_must_be, period_list,
 					parent[period.key] += row.get(period.key, 0.0)
 					if parent[period.key]:
 						parent['has_value'] = True
-					
+
 				#create total values for all the periods
 				parent.setdefault("total", 0.0)
 				parent["total"] += flt(row["total"])
 				row["total"] = None
 				#add the parent to a list of parents that have non zero subchildren
-				
+
 		#append the row to the final output
 		new_output.append(row)
-		
-	#removing any remaining accounts in the stack, including root account	
-	while parent_accounts: 
+
+	#removing any remaining accounts in the stack, including root account
+	while parent_accounts:
 		parent_to_append = parent_accounts.pop()
-		new_output.append(parent_to_append)				
-		if parent_to_append.get('has_value'): 
+		new_output.append(parent_to_append)
+		if parent_to_append.get('has_value'):
 			parent_accounts_with_nonzero_children.add(parent_to_append.get("account"))
-		
+
 	return new_output, parent_accounts_with_nonzero_children
 
 
@@ -551,11 +552,11 @@ def get_accounts(company, root_type):
 		root_type (string): the root account, i.e. Assets, Liabilities, etc
 
 	Returns:
-		dict: name, account_number, parent_account, lft, rgt, root_type, 
+		dict: name, account_number, parent_account, lft, rgt, root_type,
 			report_type, account_name, include_in_gross, account_type, is_group, lft, rgt
 	"""
 	return frappe.db.sql("""
-		select name, account_number, parent_account, lft, rgt, root_type, 
+		select name, account_number, parent_account, lft, rgt, root_type,
 		report_type, account_name, include_in_gross, account_type, is_group, lft, rgt
 		from `tabAccount`
 		where company=%s and root_type=%s order by lft""", (company, root_type), as_dict=True)
@@ -623,7 +624,7 @@ def sort_accounts(accounts, is_root=False, key="name"):
 
 	accounts.sort(key = functools.cmp_to_key(compare_accounts))
 
-def set_gl_entries_by_account(company, from_date, to_date, root_lft, root_rgt, 
+def set_gl_entries_by_account(company, from_date, to_date, root_lft, root_rgt,
 								filters, gl_entries_by_account, ignore_closing_entries=False):
 	"""
 	Organise the General Ledger by mapping the account name to all of its ledger entries.
@@ -640,7 +641,7 @@ def set_gl_entries_by_account(company, from_date, to_date, root_lft, root_rgt,
 
 	Returns:
 		dict: {"account": [gl entries], ... }
-	"""	
+	"""
 	additional_conditions = get_additional_conditions(from_date, ignore_closing_entries, filters)
 
 	#get a sublist of accounts/child accounts that fall within the tree branch between lft and rgt passed
@@ -668,7 +669,7 @@ def set_gl_entries_by_account(company, from_date, to_date, root_lft, root_rgt,
 					key: value
 				})
 
-		gl_entries = frappe.db.sql("""select posting_date, account, debit, credit, is_opening, fiscal_year, 
+		gl_entries = frappe.db.sql("""select posting_date, account, debit, credit, is_opening, fiscal_year,
 			debit_in_account_currency, credit_in_account_currency, account_currency from `tabGL Entry`
 			where company=%(company)s
 			{additional_conditions}

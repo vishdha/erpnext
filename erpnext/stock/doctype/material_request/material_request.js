@@ -111,6 +111,25 @@ frappe.ui.form.on('Material Request', {
 		}
 	},
 
+	source_warehouse: function(frm) {
+		if (frm.doc.material_request_type == "Material Transfer"
+			&& frm.doc.source_warehouse) {
+			frm.doc.items.forEach(d => {
+				frappe.model.set_value(d.doctype, d.name,
+					"from_warehouse", frm.doc.source_warehouse);
+			});
+		}
+	},
+
+	target_warehouse: function(frm) {
+		if (frm.doc.target_warehouse) {
+			frm.doc.items.forEach(d => {
+				frappe.model.set_value(d.doctype, d.name,
+					"warehouse", frm.doc.target_warehouse);
+			});
+		}
+	},
+
 	update_status: function (frm, stop_status) {
 		frappe.call({
 			method: 'erpnext.stock.doctype.material_request.material_request.update_status',
