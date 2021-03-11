@@ -18,18 +18,6 @@ frappe.ui.form.on("Company", {
 			}
 		});
 
-		frm.set_query("default_direct_expenses", function() {
-			return {
-				filters: {"account_type": "Expense Account"}
-			}
-		});
-
-		frm.set_query("default_indirect_expenses", function() {
-			return {
-				filters: {"account_type": "Expense Account"}
-			}
-		});
-
 		frm.set_query("default_selling_terms", function() {
 			return { filters: { selling: 1 } };
 		});
@@ -239,6 +227,8 @@ erpnext.company.setup_queries = function(frm) {
 		["default_receivable_account", {"account_type": "Receivable"}],
 		["default_payable_account", {"account_type": "Payable"}],
 		["default_expense_account", {"root_type": "Expense"}],
+		["default_direct_expenses", {"root_type": "Expense"}],
+		["default_indirect_expenses", {"root_type": "Expense"}],
 		["default_income_account", {"root_type": "Income"}],
 		["default_payroll_payable_account", {"root_type": "Liability"}],
 		["round_off_account", {"root_type": "Expense"}],
