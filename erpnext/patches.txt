@@ -714,3 +714,4 @@ execute:frappe.delete_doc_if_exists("Custom Field", "Sales Order Item-batch_no")
 erpnext.patches.v13_0.delete_package_tag_property_setter_search_fields
 erpnext.patches.v13_0.set_batch_qty_in_batch
 erpnext.patches.v13_0.set_stock_valuation_method
+erpnext.patches.v13_0.delete_bank_reconciliation_doctype

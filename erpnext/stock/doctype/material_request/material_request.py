@@ -568,6 +568,7 @@ def create_pick_list(source_name, target_doc=None):
 			'doctype': 'Pick List Item',
 			'field_map': {
 				'name': 'material_request_item',
+				'from_warehouse': 'warehouse',
 				'qty': 'stock_qty'
 			},
 		},
