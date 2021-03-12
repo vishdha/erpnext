@@ -90,7 +90,7 @@ def place_order(delivery_date=None):
 				if not cint(item_stock.in_stock):
 					throw(_("{1} Not in Stock").format(item.item_code))
 				if item.qty > item_stock.stock_qty[0][0]:
-					throw(_("Only {0} in Stock for item {1}").format(item_stock.stock_qty[0][0], item.item_code))
+					throw(_("Only {0} in Stock for item {1}: {2}").format(item_stock.stock_qty[0][0], item.item_code, item.item_name))
 
 	#if checkout without payment has been enabled, submit the quotation, and convert to sales order
 	if cart_settings.sales_team_order_without_payment:
