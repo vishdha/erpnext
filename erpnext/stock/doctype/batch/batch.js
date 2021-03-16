@@ -17,6 +17,10 @@ frappe.ui.form.on('Batch', {
 				method: "erpnext.selling.doctype.sales_order.sales_order.make_sales_order_from_batch",
 				frm: frm
 			}),
+			'Material Request': () => frappe.model.open_mapped_doc({
+				method: "erpnext.stock.doctype.material_request.material_request.make_material_request",
+				frm: frm
+			})
 		}
 	},
 	refresh: (frm) => {
@@ -31,12 +35,21 @@ frappe.ui.form.on('Batch', {
 			frm.add_custom_button(__('Material Request'), () => {
 				frm.trigger("make_material_request");
 			}, __("Create"));
+			frm.add_custom_button(__('Material Request (COA Batch)'), () => {
+				frm.trigger("make_coa_material_request");
+			}, __("Create"));
 			this.frm.page.set_inner_btn_group_as_primary(__('Create'));
 		}
 	},
 	make_material_request: function (frm) {
 		frappe.model.open_mapped_doc({
 			method: "erpnext.stock.doctype.material_request.material_request.make_material_request",
+			frm: frm
+		});
+	},
+	make_coa_material_request: function (frm) {
+		frappe.model.open_mapped_doc({
+			method: "erpnext.stock.doctype.batch.batch.create_coa_material_request",
 			frm: frm
 		});
 	},
