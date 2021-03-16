@@ -389,7 +389,7 @@ def make_payment_request(**args):
 		})
 
 		#mute emails if the order originates in a shopping cart
-		if args.order_type == "Shopping Cart" or args.mute_email:
+		if args.mute_email:
 			pr.flags.mute_email = True
 
 		if args.submit_doc:
