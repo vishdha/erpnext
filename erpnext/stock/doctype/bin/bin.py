@@ -13,7 +13,7 @@ class Bin(Document):
 			self.stock_uom = frappe.get_cached_value('Item', self.item_code, 'stock_uom')
 		self.set_projected_qty()
 
-	def update_stock(self, args, allow_negative_stock=False, via_landed_cost_voucher=False):
+	def update_stock(self, args, allow_negative_stock=False, via_landed_cost_voucher=False, force_update=False):
 		'''Called from erpnext.stock.utils.update_bin'''
 		self.update_qty(args)
 
@@ -32,7 +32,7 @@ class Bin(Document):
 				"posting_date": args.get("posting_date"),
 				"posting_time": args.get("posting_time"),
 				"voucher_no": args.get("voucher_no")
-			}, allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher)
+			}, allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher, force_update=force_update)
 
 	def update_qty(self, args):
 		# update the stock values (for current quantities)
