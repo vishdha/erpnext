@@ -1385,12 +1385,18 @@ class StockEntry(StockController):
 					if frappe.db.get_value("Item", item.item_code, "requires_lab_tests"):
 						frappe.db.set_value("Package Tag", item.package_tag, "batch_no", item.batch_no)
 					else:
+						frappe.db.set_value("Package Tag", item.package_tag, "batch_no", item.batch_no)
+						#coa batch of source and finished item is the same
 						coa_batch_no = frappe.db.get_value("Package Tag", source_item.package_tag, "coa_batch_no")
 						frappe.db.set_value("Package Tag", item.package_tag, "coa_batch_no", coa_batch_no)
 						item.update({"coa_batch_no" : coa_batch_no})
 
-					if frappe.db.exists("Package Tag", {"name": item.package_tag, "item_code": ""}):
+					#if empty - then assign. If not empty - throw an error.
+					if frappe.db.exists("Package Tag", {"name": item.package_tag}) and not frappe.get_value("Package Tag", item.package_tag, "item_code"):
 						frappe.db.set_value("Package Tag", item.package_tag, "item_code", item.item_code)
+					else:
+						frappe.throw(_("Do not assign new item code to an existing package tag."))
+
 
 @frappe.whitelist()
 def move_sample_to_retention_warehouse(company, items):
