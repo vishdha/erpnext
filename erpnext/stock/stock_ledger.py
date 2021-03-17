@@ -45,7 +45,7 @@ def make_sl_entries(sl_entries, is_amended=None, allow_negative_stock=False, via
 				"sle_id": sle_id,
 				"is_amended": is_amended
 			})
-			update_bin(args, allow_negative_stock, via_landed_cost_voucher)
+			update_bin(args, allow_negative_stock, via_landed_cost_voucher, force_update)
 
 		if cancel:
 			delete_cancelled_entry(sl_entries[0].get('voucher_type'), sl_entries[0].get('voucher_no'))
@@ -84,7 +84,7 @@ class update_entries_after(object):
 				"posting_time": "12:00"
 			}
 	"""
-	def __init__(self, args, allow_zero_rate=False, allow_negative_stock=None, via_landed_cost_voucher=False, verbose=1):
+	def __init__(self, args, allow_zero_rate=False, allow_negative_stock=None, via_landed_cost_voucher=False, verbose=1, force_update=False):
 		from frappe.model.meta import get_field_precision
 
 		self.exceptions = []
@@ -92,6 +92,7 @@ class update_entries_after(object):
 		self.allow_zero_rate = allow_zero_rate
 		self.allow_negative_stock = allow_negative_stock
 		self.via_landed_cost_voucher = via_landed_cost_voucher
+		self.force_update = force_update
 		if not self.allow_negative_stock:
 			self.allow_negative_stock = cint(frappe.db.get_single_value("Stock Settings",
 				"allow_negative_stock"))
@@ -415,9 +416,14 @@ class update_entries_after(object):
 
 	def get_sle_after_datetime(self):
 		"""get Stock Ledger Entries after a particular datetime, for reposting"""
-		return get_stock_ledger_entries(self.previous_sle or frappe._dict({
-				"item_code": self.args.get("item_code"), "warehouse": self.args.get("warehouse") }),
-			">", "asc", for_update=True, check_serial_no=False)
+		if not self.force_update:
+			return get_stock_ledger_entries(self.previous_sle or frappe._dict({
+					"item_code": self.args.get("item_code"), "warehouse": self.args.get("warehouse") }),
+				">", "asc", for_update=True, check_serial_no=False)
+		else:
+			return get_stock_ledger_entries(self.previous_sle or frappe._dict({
+					"item_code": self.args.get("item_code") }),
+				">", "asc", for_update=True, check_serial_no=False)
 
 	def raise_exceptions(self):
 		deficiency = min(e["diff"] for e in self.exceptions)
