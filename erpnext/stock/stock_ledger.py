@@ -131,16 +131,27 @@ class update_entries_after(object):
 
 	def update_bin(self):
 		# update bin
-		bin_name = frappe.db.get_value("Bin", {
-			"item_code": self.item_code,
-			"warehouse": self.warehouse
-		})
+		if not self.force_update:
+			bin_name = frappe.db.get_value("Bin", {
+				"item_code": self.item_code,
+				"warehouse": self.warehouse
+			})
+		else:
+			bin_name = frappe.db.get_value("Bin", {
+				"item_code": self.item_code
+			})
 
-		if not bin_name:
+		if not bin_name and not self.force_update:
 			bin_doc = frappe.get_doc({
 				"doctype": "Bin",
 				"item_code": self.item_code,
 				"warehouse": self.warehouse
+			})
+			bin_doc.insert(ignore_permissions=True)
+		elif not bin_name and self.force_update:
+			bin_doc = frappe.get_doc({
+				"doctype": "Bin",
+				"item_code": self.item_code
 			})
 			bin_doc.insert(ignore_permissions=True)
 		else:
@@ -423,7 +434,7 @@ class update_entries_after(object):
 		else:
 			return get_stock_ledger_entries(self.previous_sle or frappe._dict({
 					"item_code": self.args.get("item_code") }),
-				">", "asc", for_update=True, check_serial_no=False)
+				">", "asc", for_update=True, check_serial_no=False, force_update=True)
 
 	def raise_exceptions(self):
 		deficiency = min(e["diff"] for e in self.exceptions)
@@ -465,13 +476,14 @@ def get_previous_sle(args, for_update=False):
 	return sle and sle[0] or {}
 
 def get_stock_ledger_entries(previous_sle, operator=None,
-	order="desc", limit=None, for_update=False, debug=False, check_serial_no=True):
+	order="desc", limit=None, for_update=False, debug=False, check_serial_no=True, force_update=False):
 	"""get stock ledger entries filtered by specific posting datetime conditions"""
 	conditions = " and timestamp(posting_date, posting_time) {0} timestamp(%(posting_date)s, %(posting_time)s)".format(operator)
-	if previous_sle.get("warehouse"):
-		conditions += " and warehouse = %(warehouse)s"
-	elif previous_sle.get("warehouse_condition"):
-		conditions += " and " + previous_sle.get("warehouse_condition")
+	if not force_update:
+		if previous_sle.get("warehouse"):
+			conditions += " and warehouse = %(warehouse)s"
+		elif previous_sle.get("warehouse_condition"):
+			conditions += " and " + previous_sle.get("warehouse_condition")
 
 	if check_serial_no and previous_sle.get("serial_no"):
 		conditions += " and serial_no like {}".format(frappe.db.escape('%{0}%'.format(previous_sle.get("serial_no"))))
