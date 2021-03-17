@@ -11,6 +11,12 @@ frappe.ui.form.on('Batch', {
 					'has_batch_no': 1
 				}
 			};
+		},
+		frm.make_methods = {
+			'Sales Order': () => frappe.model.open_mapped_doc({
+				method: "erpnext.selling.doctype.sales_order.sales_order.make_sales_order_from_batch",
+				frm: frm
+			}),
 		}
 	},
 	refresh: (frm) => {
@@ -163,6 +169,12 @@ frappe.ui.form.on('Batch', {
 				}
 			});
 		}
+	},
+	make_sales_order: function (frm) {
+		frappe.model.open_mapped_doc({
+			method: "erpnext.selling.doctype.sales_order.sales_order.make_sales_order",
+			frm: frm
+		});
 	}
 })
 

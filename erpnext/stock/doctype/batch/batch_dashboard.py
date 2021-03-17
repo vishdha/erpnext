@@ -13,7 +13,7 @@ def get_data():
 			},
 			{
 				'label': _('Sell'),
-				'items': ['Sales Invoice', 'Delivery Note']
+				'items': ['Sales Order', 'Sales Invoice', 'Delivery Note']
 			},
 			{
 				'label': _('Move'),
