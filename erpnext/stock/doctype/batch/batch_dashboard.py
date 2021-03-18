@@ -22,6 +22,10 @@ def get_data():
 			{
 				'label': _('Quality'),
 				'items': ['Quality Inspection']
+			},
+			{
+				'label': _('Package Tag'),
+				'items': ['Package Tag']
 			}
 		]
 	}

@@ -17,6 +17,10 @@ frappe.ui.form.on('Batch', {
 				method: "erpnext.selling.doctype.sales_order.sales_order.make_sales_order_from_batch",
 				frm: frm
 			}),
+			'Package Tag': () => frappe.model.open_mapped_doc({
+				method: "erpnext.compliance.doctype.package_tag.package_tag.make_package_tag_from_batch",
+				frm: frm
+			}),
 			'Material Request': () => frappe.model.open_mapped_doc({
 				method: "erpnext.stock.doctype.material_request.material_request.make_material_request",
 				frm: frm
