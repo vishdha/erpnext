@@ -150,7 +150,7 @@ erpnext.SerialNoBatchSelector = Class.extend({
 			
 			if (this.has_batch && !this.has_serial_no && d.batch_no) {
 				this.frm.doc.items.forEach(data => {
-					if(data.item_code == d.item_code) {
+					if(data.item_code && data.batch_no == d.batch_no) {
 						this.dialog.fields_dict.batches.df.data.push({
 							'batch_no': data.batch_no,
 							'actual_qty': data.actual_qty,
@@ -334,6 +334,7 @@ erpnext.SerialNoBatchSelector = Class.extend({
 							};
 						},
 						change: function () {
+							console.log("this.get_value", this.get_value)
 							let val = this.get_value();
 							if (val.length === 0) {
 								this.grid_row.on_grid_fields_dict

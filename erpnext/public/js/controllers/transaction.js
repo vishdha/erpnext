@@ -347,6 +347,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 		let scan_barcode_field = this.frm.fields_dict["scan_barcode"];
 
 		let show_description = function(idx, exist = null) {
+			console.log("iiiiiiiii:m ", idx, exist)
 			if (exist) {
 				scan_barcode_field.set_new_description(__('Row #{0}: Qty increased by 1', [idx]));
 			} else {
@@ -368,9 +369,16 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 				let cur_grid = this.frm.fields_dict.items.grid;
 
 				let row_to_modify = null;
-				const existing_item_row = this.frm.doc.items.find(d => d.item_code === data.item_code);
-				const blank_item_row = this.frm.doc.items.find(d => !d.item_code);
+				let existing_item_row = ""
+				let blank_item_row = ""
 
+				if (data.item_code && data.batch_no){
+					existing_item_row = this.frm.doc.items.find(d => d.batch_no === data.batch_no);
+					blank_item_row = this.frm.doc.items.find(d => !d.batch_no);
+				} else {
+					existing_item_row = this.frm.doc.items.find(d => d.item_code === data.item_code);
+					blank_item_row = this.frm.doc.items.find(d => !d.item_code);
+				}
 				if (existing_item_row) {
 					row_to_modify = existing_item_row;
 				} else if (blank_item_row) {
