@@ -347,7 +347,6 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 		let scan_barcode_field = this.frm.fields_dict["scan_barcode"];
 
 		let show_description = function(idx, exist = null) {
-			console.log("iiiiiiiii:m ", idx, exist)
 			if (exist) {
 				scan_barcode_field.set_new_description(__('Row #{0}: Qty increased by 1', [idx]));
 			} else {
