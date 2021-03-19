@@ -334,7 +334,6 @@ erpnext.SerialNoBatchSelector = Class.extend({
 							};
 						},
 						change: function () {
-							console.log("this.get_value", this.get_value)
 							let val = this.get_value();
 							if (val.length === 0) {
 								this.grid_row.on_grid_fields_dict
