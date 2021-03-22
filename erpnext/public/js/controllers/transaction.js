@@ -368,8 +368,8 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 				let cur_grid = this.frm.fields_dict.items.grid;
 
 				let row_to_modify = null;
-				let existing_item_row = ""
-				let blank_item_row = ""
+				let existing_item_row = null;
+				let blank_item_row = null;
 
 				if (data.item_code && data.batch_no){
 					existing_item_row = this.frm.doc.items.find(d => d.batch_no === data.batch_no);
