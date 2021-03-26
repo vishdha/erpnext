@@ -115,8 +115,8 @@
   "delivery_end_time",
   "lr_no",
   "lr_date",
-  "estimated_arrival",
   "departure_time",
+  "estimated_arrival",
   "more_info",
   "project",
   "campaign",
@@ -899,7 +899,7 @@
   {
    "fieldname": "transporter",
    "fieldtype": "Link",
-   "label": "Transporter",
+   "label": "Supplier",
    "options": "Supplier",
    "print_hide": 1,
    "print_width": "150px",
@@ -915,7 +915,7 @@
   {
    "fieldname": "lr_no",
    "fieldtype": "Link",
-   "label": "Transport Receipt No",
+   "label": "Delivery Trip",
    "oldfieldname": "lr_no",
    "oldfieldtype": "Data",
    "options": "Delivery Trip",
@@ -940,7 +940,7 @@
    "fetch_from": "transporter.name",
    "fieldname": "transporter_name",
    "fieldtype": "Data",
-   "label": "Transporter Name",
+   "label": "Supplier Name",
    "print_hide": 1,
    "read_only": 1
   },
@@ -956,7 +956,7 @@
    "fieldname": "lr_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Transport Receipt Date",
+   "label": "Delivery Trip Date",
    "oldfieldname": "lr_date",
    "oldfieldtype": "Date",
    "print_hide": 1,
@@ -1284,7 +1284,7 @@
   {
    "fieldname": "estimated_arrival",
    "fieldtype": "Datetime",
-   "label": "Estimated Arrival"
+   "label": "Estimated Arrival Time"
   },
   {
    "fieldname": "departure_time",
@@ -1295,7 +1295,7 @@
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
- "modified": "2021-03-24 00:13:23.847586",
+ "modified": "2021-03-25 22:21:03.089841",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",
