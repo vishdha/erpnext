@@ -636,7 +636,7 @@ class StockEntry(StockController):
 			self.work_order, ["production_item", "qty"])
 
 		for d in self.get('items'):
-			if (self.purpose != "Send to Subcontractor" and d.bom_no
+			if (self.purpose not in ["Send to Subcontractor", "Material Transfer for Manufacture"] and d.bom_no
 				and flt(d.transfer_qty) > flt(self.fg_completed_qty) and d.item_code == production_item):
 				frappe.throw(_("Quantity in row {0} ({1}) must be same as manufactured quantity {2}"). \
 					format(d.idx, d.transfer_qty, self.fg_completed_qty))
