@@ -636,7 +636,7 @@ class StockEntry(StockController):
 			self.work_order, ["production_item", "qty"])
 
 		for d in self.get('items'):
-			if (self.purpose != "Send to Subcontractor" and d.bom_no
+			if (self.purpose not in ["Send to Subcontractor", "Material Transfer for Manufacture"] and d.bom_no
 				and flt(d.transfer_qty) > flt(self.fg_completed_qty) and d.item_code == production_item):
 				frappe.throw(_("Quantity in row {0} ({1}) must be same as manufactured quantity {2}"). \
 					format(d.idx, d.transfer_qty, self.fg_completed_qty))
@@ -1406,7 +1406,7 @@ class StockEntry(StockController):
 	def update_package_tag_is_used(self):
 		for item in self.items:
 			if item.package_tag:
-				exists = 1 if frappe.db.exists("Stock Ledger Entry", {"package_tag": item.package_tag}) else 0
+				exists = 1 if len(frappe.get_all("Stock Ledger Entry", {"package_tag": item.package_tag, "voucher_no": ["!=", self.name]})) else 0
 
 				if not cint(frappe.db.get_value("Package Tag", item.package_tag, "is_used")) == exists:
 					frappe.db.set_value("Package Tag", item.package_tag, "is_used", exists)
