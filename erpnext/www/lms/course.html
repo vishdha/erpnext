@@ -32,6 +32,21 @@
 		section {
 			padding: 5rem 0 5rem 0;
 		}
+
+		.course-progress {
+			width: 20%;
+			margin-top: 2.5rem;
+			margin-right: 3rem;
+		}
+		.course-progress .progress {
+			border-radius: 1rem;
+			border: 1px solid #7ec45e;
+			height: 0.5rem;
+		}
+
+		.course-progress .progress-bar {
+			background-color: #7ec45e;
+		}
 	</style>
 {% endblock %}
 
@@ -89,7 +104,17 @@
 
 {% block content %}
 <section class="section">
-	{{ hero(course.course_name, course.description, has_access, {'name': 'Program', 'url': '/lms/program?program=' + program }) }}
+	<div class="d-flex flex-row justify-content-between px-5">
+		<div class="p-2 course-title">
+			{{ hero(course.course_name, course.description, has_access, {'name': 'Program', 'url': '/lms/program?program=' + program }) }}
+		</div>
+		<div class="p-2 course-progress">
+			<p class="text-right mb-0">{{total_progress}}% Completed </p>
+			<div class="progress">
+				<div class="progress-bar" role="progressbar" style="width: {{total_progress}}%;" aria-valuenow="{{total_progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+			</div>
+		</div>
+	</div>
 	<div class='container'>
 		<div class="row mt-5">
 			{% for topic in topics %}
