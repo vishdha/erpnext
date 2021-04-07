@@ -484,14 +484,14 @@ def get_exploded_items(item_details, company, bom_no, include_non_stock_items, p
 	return item_details
 
 def get_exploded_items_with_subassembly(item_details, company, bom_no, include_non_stock_items, planned_qty=1):
-	explosion_items = get_items_for_explod_and_subassembly("BOM Explosion Item", company, bom_no, include_non_stock_items, planned_qty)
-	bom_items = get_items_for_explod_and_subassembly("BOM Item", company, bom_no, include_non_stock_items, planned_qty)
+	explosion_items = get_items_for_explode_and_subassembly("BOM Explosion Item", company, bom_no, include_non_stock_items, planned_qty)
+	bom_items = get_items_for_explode_and_subassembly("BOM Item", company, bom_no, include_non_stock_items, planned_qty)
 
 	for d in explosion_items + bom_items:
 		item_details.setdefault(d.get('item_code'), d)
 	return item_details
 
-def get_items_for_explod_and_subassembly(item, company, bom_no, include_non_stock_items, planned_qty=1):
+def get_items_for_explode_and_subassembly(item, company, bom_no, include_non_stock_items, planned_qty=1):
 	items = frappe.db.sql("""select bei.item_code, item.default_bom as bom,
 			ifnull(sum(bei.stock_qty/ifnull(bom.quantity, 1)), 0)*%s as qty, item.item_name,
 			bei.description, bei.stock_uom, item.min_order_qty, bei.source_warehouse,
