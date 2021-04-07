@@ -484,47 +484,33 @@ def get_exploded_items(item_details, company, bom_no, include_non_stock_items, p
 	return item_details
 
 def get_exploded_items_with_subassembly(item_details, company, bom_no, include_non_stock_items, planned_qty=1):
-	explosion_items = frappe.db.sql("""select bei.item_code, item.default_bom as bom,
-			ifnull(sum(bei.stock_qty/ifnull(bom.quantity, 1)), 0)*%s as qty, item.item_name,
-			bei.description, bei.stock_uom, item.min_order_qty, bei.source_warehouse,
-			item.default_material_request_type, item.min_order_qty, item_default.default_warehouse,
-			item.purchase_uom, item_uom.conversion_factor
-		from
-			`tabBOM Explosion Item` bei
-			JOIN `tabBOM` bom ON bom.name = bei.parent
-			JOIN `tabItem` item ON item.name = bei.item_code
-			LEFT JOIN `tabItem Default` item_default
-				ON item_default.parent = item.name and item_default.company=%s
-			LEFT JOIN `tabUOM Conversion Detail` item_uom
-				ON item.name = item_uom.parent and item_uom.uom = item.purchase_uom
-		where
-			bei.docstatus < 2
-			and bom.name=%s and item.is_stock_item in (1, {0})
-		group by bei.item_code, bei.stock_uom""".format(0 if include_non_stock_items else 1),
-		(planned_qty, company, bom_no), as_dict=1)
-
-	bom_items = frappe.db.sql("""select bei.item_code, item.default_bom as bom,
-			ifnull(sum(bei.stock_qty/ifnull(bom.quantity, 1)), 0)*%s as qty, item.item_name,
-			bei.description, bei.stock_uom, item.min_order_qty, bei.source_warehouse,
-			item.default_material_request_type, item.min_order_qty, item_default.default_warehouse,
-			item.purchase_uom, item_uom.conversion_factor
-		from
-			`tabBOM Item` bei
-			JOIN `tabBOM` bom ON bom.name = bei.parent
-			JOIN `tabItem` item ON item.name = bei.item_code
-			LEFT JOIN `tabItem Default` item_default
-				ON item_default.parent = item.name and item_default.company=%s
-			LEFT JOIN `tabUOM Conversion Detail` item_uom
-				ON item.name = item_uom.parent and item_uom.uom = item.purchase_uom
-		where
-			bei.docstatus < 2
-			and bom.name=%s and item.is_stock_item in (1, {0})
-		group by bei.item_code, bei.stock_uom""".format(0 if include_non_stock_items else 1),
-		(planned_qty, company, bom_no), as_dict=1)
+	explosion_items = get_items_for_explod_and_subassembly("BOM Explosion Item", company, bom_no, include_non_stock_items, planned_qty)
+	bom_items = get_items_for_explod_and_subassembly("BOM Item", company, bom_no, include_non_stock_items, planned_qty)
 
 	for d in explosion_items + bom_items:
 		item_details.setdefault(d.get('item_code'), d)
 	return item_details
+
+def get_items_for_explod_and_subassembly(item, company, bom_no, include_non_stock_items, planned_qty=1):
+	items = frappe.db.sql("""select bei.item_code, item.default_bom as bom,
+			ifnull(sum(bei.stock_qty/ifnull(bom.quantity, 1)), 0)*%s as qty, item.item_name,
+			bei.description, bei.stock_uom, item.min_order_qty, bei.source_warehouse,
+			item.default_material_request_type, item.min_order_qty, item_default.default_warehouse,
+			item.purchase_uom, item_uom.conversion_factor
+		from
+			`tab{0}` bei
+			JOIN `tabBOM` bom ON bom.name = bei.parent
+			JOIN `tabItem` item ON item.name = bei.item_code
+			LEFT JOIN `tabItem Default` item_default
+				ON item_default.parent = item.name and item_default.company=%s
+			LEFT JOIN `tabUOM Conversion Detail` item_uom
+				ON item.name = item_uom.parent and item_uom.uom = item.purchase_uom
+		where
+			bei.docstatus < 2
+			and bom.name=%s and item.is_stock_item in (1, {1})
+		group by bei.item_code, bei.stock_uom""".format(item, 0 if include_non_stock_items else 1),
+		(planned_qty, company, bom_no), as_dict=1)
+	return items
 
 def get_subitems(doc, data, item_details, bom_no, company, include_non_stock_items,
 	include_subcontracted_items, parent_qty, planned_qty=1):
