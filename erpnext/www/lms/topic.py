@@ -19,6 +19,7 @@ def get_context(context):
 	context.contents = get_contents(context.topic, course, program)
 	context.has_access =  utils.allowed_program_access(program)
 	context.total_progress = calculate_contents_progress(context.contents)
+	context.ongoing_topic = get_ongoing_topic(context.contents)
 
 def get_contents(topic, course, program):
 	student = utils.get_current_student()
@@ -42,7 +43,6 @@ def get_contents(topic, course, program):
 					score = None
 					result = None
 				progress.append({'content': content, 'content_type': content.doctype, 'completed': status, 'score': score, 'result': result})
-
 	return progress
 
 def calculate_contents_progress(contents):
@@ -62,3 +62,10 @@ def calculate_contents_progress(contents):
 			completed_content = completed_content + 1
 	total_progress = int((completed_content * 100) / total_content)
 	return total_progress
+
+def get_ongoing_topic(contents):
+	ongoing_content = None
+	ongoing_topics = [content for content in contents if not content.get("completed")]
+	if len(contents) != len(ongoing_topics) and len(ongoing_topics) > 0:
+		ongoing_content = ongoing_topics[0].get('content')
+	return ongoing_content

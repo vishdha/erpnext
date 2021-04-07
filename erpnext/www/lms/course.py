@@ -21,6 +21,7 @@ def get_context(context):
 	context.has_access =  utils.allowed_program_access(context.program)
 	context.progress = get_topic_progress(context.topics, course, context.program)
 	context.total_progress = calculate_topic_progress(context.topics, context.progress)
+	context.ongoing_topic = get_ongoing_topic(context.topics,context.progress)
 
 
 def get_topic_progress(topics, course, program):
@@ -45,3 +46,10 @@ def calculate_topic_progress(topics, topic_progress):
 			completed_topic = completed_topic + 1
 	total_progress = int((completed_topic * 100) / total_topics)
 	return total_progress
+
+def get_ongoing_topic(topics, progress):
+	ongoing_topic = None
+	for topic in progress:
+		if progress.get(topic).get("started") == True and progress.get(topic).get("completed") == False:
+			ongoing_topic = topic
+	return ongoing_topic

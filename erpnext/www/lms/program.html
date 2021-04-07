@@ -35,9 +35,7 @@
 		}
 
 		.course-progress {
-			width: 20%;
 			margin-top: 2.5rem;
-			margin-right: 3rem;
 		}
 		.course-progress .progress {
 			border-radius: 1rem;
@@ -85,18 +83,20 @@
 
 {% block content %}
 <section class="section">
-	<div class="d-flex flex-row justify-content-between px-5">
-		<div class="p-2 course-title">
+	<div class="container">
+	<div class="d-flex flex-row justify-content-between">
+		<div class="course-title col-md-9">
 			{{ hero(program.program_name, program.description, has_access, {'name': 'Home', 'url': '/lms'}) }}
 		</div>
-		<div class="p-2 course-progress">
+		<div class="course-progress col-md-3">
 			<p class="text-right mb-0">{{total_progress}}% Completed </p>
 			<div class="progress">
 				<div class="progress-bar" role="progressbar" style="width:{{total_progress}}%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
 			</div>
 		</div>
 	</div>
-	<div class='container'>
+	</div>
+	<div class="container">
 		<div class="row mt-5">
 			{% for course in courses %}
 				{{ card(course) }}
