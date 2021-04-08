@@ -502,7 +502,7 @@ def get_items(warehouse, posting_date, posting_time, company):
 						"current_qty": stock_bal[0],
 						"current_valuation_rate": stock_bal[1]
 					})
-			else:
+			elif not package_tags and not batch_nos:
 				res.append({
 					"item_code": d[0],
 					"warehouse": d[2],
