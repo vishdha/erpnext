@@ -11,12 +11,42 @@ class Quiz {
 	}
 
 	get_quiz() {
+		let quiz_time;
 		frappe.call('erpnext.education.utils.get_quiz', {
 			quiz_name: this.name,
 			course: this.course
 		}).then(res => {
-			this.make(res.message)
+			this.make(res.message);
+			if (res.message.activity.is_complete != true) {
+				quiz_time = res.message.quiz_time;
+				this.timer(quiz_time);
+			}
+			else {
+				$('#timer').html("")
+			}
 		});
+	}
+
+	timer(quiz_time) {
+		let me = this;
+		let minutes = parseInt(quiz_time / 60) % 60;
+		let seconds = quiz_time % 60;
+		let result = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+		if (quiz_time > 0) {
+			$('#timer').html(result + '<span class="timer_text">Time Remaining</span>');
+		}
+
+		if (quiz_time == 0 || quiz_time < 0) {
+			$('#timer').html("Time's Up");
+			this.submit();
+		}
+		else {
+			quiz_time = quiz_time - 1;
+			setTimeout(function () {
+				me.timer(quiz_time);
+			}, 1000);
+		}
+
 	}
 
 	make(data) {
@@ -157,7 +187,7 @@ class Question {
 			return input;
 		}
 
-		let make_label = function(name, value) {
+		let make_label = function (name, value) {
 			let label = document.createElement('label');
 			label.classList.add('form-check-label');
 			label.htmlFor = name;
@@ -173,7 +203,7 @@ class Question {
 			option_div.appendChild(input)
 			option_div.appendChild(label)
 			wrapper.appendChild(option_div)
-			return {input: input, ...option}
+			return { input: input, ...option }
 		}
 
 		let options_wrapper = document.createElement('div')

@@ -14,6 +14,7 @@
   "max_attempts",
   "grading_basis",
   "column_break_7",
+  "total_time_for_quiz",
   "assessment_questions"
  ],
  "fields": [
@@ -70,9 +71,15 @@
    "fieldname": "assessment_questions",
    "fieldtype": "Int",
    "label": "Assessment Questions"
+  },
+  {
+   "description": "Enter time in Seconds",
+   "fieldname": "total_time_for_quiz",
+   "fieldtype": "Int",
+   "label": "Total time for Quiz"
   }
  ],
- "modified": "2021-03-30 00:56:19.464852",
+ "modified": "2021-04-08 12:37:37.429033",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Quiz",
