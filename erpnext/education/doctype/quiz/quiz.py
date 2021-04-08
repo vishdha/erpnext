@@ -12,6 +12,11 @@ class Quiz(Document):
 	def validate(self):
 		if self.passing_score > 100:
 			frappe.throw(_("Passing Score value should be between 0 and 100"))
+		self.validate_assessment_questions()
+
+	def validate_assessment_questions(self):
+		if self.assessment_questions > len(self.question):
+			frappe.throw(_("Assessment Questions cannot be greater than the number of questions in Quiz"))
 
 	def allowed_attempt(self, enrollment, quiz_name):
 		if self.max_attempts ==  0:
