@@ -213,6 +213,15 @@ class update_entries_after(object):
 		sle.stock_value_difference = stock_value_difference
 		sle.doctype="Stock Ledger Entry"
 		frappe.get_doc(sle).db_update()
+		if sle.voucher_type == "Stock Entry" and self.force_update:
+			self.update_stock_entry(sle.voucher_type, sle.voucher_no,  sle.voucher_detail_no, sle.valuation_rate)
+
+	def update_stock_entry(self, voucher_type, voucher_no, voucher_detail_no, valuation_rate):
+		doc = frappe.get_doc(voucher_type, voucher_no)
+		for item in doc.get("items"):
+			if item.name == voucher_detail_no:
+				item.valuation_rate = valuation_rate
+		doc.save(ignore_permissions=True)
 
 	def validate_negative_stock(self, sle):
 		"""
