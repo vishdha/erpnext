@@ -4,7 +4,9 @@ class Quiz {
 		Object.assign(this, options);
 		this.questions = []
 		this.refresh();
+		let timer;
 	}
+
 
 	refresh() {
 		this.get_quiz();
@@ -19,7 +21,7 @@ class Quiz {
 			this.make(res.message);
 			if (res.message.activity.is_complete != true) {
 				quiz_time = res.message.quiz_time;
-				this.timer(quiz_time);
+				this.startTimer(quiz_time);
 			}
 			else {
 				$('#timer').html("")
@@ -27,7 +29,7 @@ class Quiz {
 		});
 	}
 
-	timer(quiz_time) {
+	startTimer(quiz_time) {
 		let me = this;
 		let minutes = parseInt(quiz_time / 60) % 60;
 		let seconds = quiz_time % 60;
@@ -35,18 +37,21 @@ class Quiz {
 		if (quiz_time > 0) {
 			$('#timer').html(result + '<span class="timer_text">Time Remaining</span>');
 		}
-
 		if (quiz_time == 0 || quiz_time < 0) {
 			$('#timer').html("Time's Up");
 			this.submit();
 		}
 		else {
 			quiz_time = quiz_time - 1;
-			setTimeout(function () {
-				me.timer(quiz_time);
+			Quiz.timer = setTimeout(function () {
+				me.startTimer(quiz_time);
 			}, 1000);
 		}
 
+	}
+
+	stopTimer() {
+		clearTimeout(Quiz.timer);
 	}
 
 	make(data) {
@@ -90,6 +95,7 @@ class Quiz {
 		this.submit_btn.innerText = 'Evaluating..'
 		this.submit_btn.disabled = true
 		this.disable()
+		this.stopTimer();
 		frappe.call('erpnext.education.utils.evaluate_quiz', {
 			quiz_name: this.name,
 			quiz_response: this.get_selected(),

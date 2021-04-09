@@ -2,6 +2,7 @@ import frappe
 
 
 def execute():
+	frappe.reload_doc("core", "doctype", "role", force=1)
 	roles = ["Expense Module", "Driver Module"]
 	for role in roles:
 		if frappe.db.exists("Role", role):
