@@ -18,6 +18,7 @@ def get_context(context):
 	context.topic = frappe.get_doc("Topic", topic)
 	context.contents = get_contents(context.topic, course, program)
 	context.has_access =  utils.allowed_program_access(program)
+	context.has_super_access = utils.has_super_access()
 	context.total_progress = calculate_contents_progress(context.contents)
 	context.ongoing_topic = get_ongoing_topic(context.contents)
 
