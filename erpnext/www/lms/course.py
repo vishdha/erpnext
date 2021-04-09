@@ -19,6 +19,7 @@ def get_context(context):
 
 	context.topics = course.get_topics()
 	context.has_access =  utils.allowed_program_access(context.program)
+	context.has_super_access = utils.has_super_access()
 	context.progress = get_topic_progress(context.topics, course, context.program)
 	context.total_progress = calculate_topic_progress(context.topics, context.progress)
 	context.ongoing_topic = get_ongoing_topic(context.topics,context.progress)

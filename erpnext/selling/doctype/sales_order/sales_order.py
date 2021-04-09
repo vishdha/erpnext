@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 import calendar
+import requests
 import frappe.utils
 from frappe.utils import cstr, flt, getdate, cint, nowdate, add_days, get_link_to_form, comma_and
 from frappe import _
@@ -14,10 +15,12 @@ from frappe.model.mapper import get_mapped_doc
 from erpnext.stock.stock_balance import update_bin_qty, get_reserved_qty
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.contacts.doctype.address.address import get_company_address
+from frappe.integrations.utils import create_payment_gateway, create_request_log
 from erpnext.controllers.selling_controller import SellingController
 from frappe.automation.doctype.auto_repeat.auto_repeat import get_next_schedule_date
 from erpnext.selling.doctype.customer.customer import check_credit_limit
 from erpnext.stock.doctype.item.item import get_item_defaults
+from erpnext.erpnext_integrations.doctype.flowkana_settings.flowkana_settings import send_delivery_request_to_flowkana
 from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
 from erpnext.manufacturing.doctype.production_plan.production_plan import get_items_for_material_requests
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import validate_inter_company_party, update_linked_doc,\
@@ -188,6 +191,13 @@ class SalesOrder(SellingController):
 		if self.coupon_code:
 			from erpnext.accounts.doctype.pricing_rule.utils import update_coupon_code_count
 			update_coupon_code_count(self.coupon_code,'used')
+
+		flowkana_settings = frappe.get_cached_doc("Flowkana Settings")
+
+		#send delivery request to flowkana if enabled by user
+		if flowkana_settings.enable_flowkana and self.fulfillment_partner == "Flowkana":
+			send_delivery_request_to_flowkana(self)
+
 
 	def on_cancel(self):
 		super(SalesOrder, self).on_cancel()
