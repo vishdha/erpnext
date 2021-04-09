@@ -173,7 +173,7 @@ class DeliveryNote(SellingController):
 			if  auto_assign_batch_during_delivery and item.coa_batch and not item.batch_no:
 				#fetch batch with same coa_batch and map quantity
 				valid_batches = frappe.get_all("Batch",
-							filters = {"batch_qty":[">", item.qty], "coa_batch": item.coa_batch}
+							filters = {"batch_qty":[">", item.qty], "coa_batch": item.coa_batch},
 							limit=1
 				)
 				if valid_batches:
