@@ -16,9 +16,10 @@
   "parent_batch",
   "manufacturing_date",
   "display_on_website",
-  "column_break_3",
   "batch_qty",
   "stock_uom",
+  "column_break_3",
+  "coa_batch",
   "expiry_date",
   "harvest_date",
   "packaged_date",
@@ -220,13 +221,18 @@
    "label": "Customer",
    "options": "Customer",
    "read_only": 1
+  },
+  {
+   "fieldname": "coa_batch",
+   "fieldtype": "Data",
+   "label": "COA Batch"
   }
  ],
  "icon": "fa fa-archive",
  "idx": 1,
  "image_field": "image",
  "max_attachments": 5,
- "modified": "2021-03-18 00:20:52.920465",
+ "modified": "2021-03-23 18:06:00.946525",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Batch",
