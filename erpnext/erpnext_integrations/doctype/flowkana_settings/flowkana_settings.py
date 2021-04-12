@@ -17,7 +17,7 @@ class FlowkanaSettings(Document):
 		self.toggle_status()
 
 	def toggle_status(self):
-		frappe.db.set_value("Fulfillment Partner", "Flowkana", "enable_flowkana", self.enable_flowkana)
+		frappe.db.set_value("Fulfillment Partner", "Flowkana", "enable", self.enable_flowkana)
 
 	def check_fulfillment_partner(self):
 		"""
