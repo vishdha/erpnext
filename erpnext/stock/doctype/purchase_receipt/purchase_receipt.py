@@ -488,13 +488,15 @@ class PurchaseReceipt(BuyingController):
 					"item_name": None,
 					"item_group": None,
 					"batch_no": None,
-					"coa_batch_no": None
+					"coa_batch_no": None,
+					"is_used" : 0
 				})
 			else:
 				package_tag.update({
 					"item_code": item.item_code,
 					"item_name": item.item_name,
-					"item_group": frappe.db.get_value("Item", item.item_code, "item_group")
+					"item_group": frappe.db.get_value("Item", item.item_code, "item_group"),
+					"is_used" : 1
 				})
 				if item.batch_no:
 					package_tag.update({
