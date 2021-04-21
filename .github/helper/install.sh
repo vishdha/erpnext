@@ -8,7 +8,7 @@ nvm install 10
 
 pip install frappe-bench
 
-git clone https://github.com/frappe/frappe --branch "${GITHUB_BASE_REF}" --depth 1
+git clone https://github.com/bloomstack/frappe --branch "${GITHUB_BASE_REF}" --depth 1
 bench init --skip-assets --frappe-path ~/frappe --python "$(which python)" frappe-bench
 
 mkdir ~/frappe-bench/sites/test_site
