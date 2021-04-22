@@ -1605,6 +1605,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 
 	tax_category: function() {
 		var me = this;
+		if(!me.frm.doc.tax_category) return;
 		if(me.frm.updating_party_details) return;
 
 		frappe.run_serially([
