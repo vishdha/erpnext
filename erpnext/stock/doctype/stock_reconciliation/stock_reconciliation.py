@@ -470,48 +470,30 @@ def get_items(warehouse, posting_date, posting_time, company):
 			with_valuation_rate=True)
 
 		if frappe.db.get_value("Item", d[0], "disabled") == 0:
-			package_tags = frappe.get_all("Stock Ledger Entry",
-				filters={"item_code": d[0], "warehouse": d[2], "package_tag": ["is", "set"]},
-				fields=["distinct(package_tag)", "actual_qty", "valuation_rate"])
+			# get package_tags and batch_nos from Stock Ledger Entry
+			package_tags_and_batch_nos = frappe.get_all("Stock Ledger Entry",
+				filters={"item_code": d[0], "warehouse": d[2]},
+				or_filters = [
+					{"package_tag": ["is", "set"]},
+					{"batch_no": ["is", "set"]}
+				],
+				group_by = "item_code, warehouse, batch_no, package_tag",
+				fields=["item_code", "warehouse", "batch_no", "package_tag", "sum(actual_qty) as actual_qty", "valuation_rate"],
+				distinct=True)
 
-			batch_nos = frappe.get_all("Stock Ledger Entry",
-				filters={"item_code": d[0], "warehouse": d[2], "batch_no": ["is", "set"]},
-				fields=["distinct(batch_no)", "actual_qty", "valuation_rate"])
-
-			if package_tags:
-				for package_tag in package_tags:
+			if package_tags_and_batch_nos:
+				for package_tag_and_batch in package_tags_and_batch_nos:
+					# append to response to be added in child table
 					res.append({
-						"item_code": d[0],
-						"warehouse": d[2],
-						"package_tag": package_tag.package_tag,
-						"qty": package_tag.actual_qty,
-						"item_name": d[1],
-						"valuation_rate": package_tag.valuation_rate,
+						"item_code": package_tag_and_batch.item_code,
+						"warehouse": package_tag_and_batch.warehouse,
+						"package_tag": package_tag_and_batch.package_tag,
+						"batch_no": package_tag_and_batch.batch_no,
+						"qty": package_tag_and_batch.actual_qty,
+						"valuation_rate": package_tag_and_batch.valuation_rate,
 						"current_qty": stock_bal[0],
 						"current_valuation_rate": stock_bal[1]
 					})
-			if batch_nos:
-				for batch_no in batch_nos:
-					res.append({
-						"item_code": d[0],
-						"warehouse": d[2],
-						"batch_no": batch_no.batch_no,
-						"qty": batch_no.actual_qty,
-						"item_name": d[1],
-						"valuation_rate": batch_no.valuation_rate,
-						"current_qty": stock_bal[0],
-						"current_valuation_rate": stock_bal[1]
-					})
-			if not package_tags and not batch_nos:
-				res.append({
-					"item_code": d[0],
-					"warehouse": d[2],
-					"qty": stock_bal[0],
-					"item_name": d[1],
-					"valuation_rate": stock_bal[1],
-					"current_qty": stock_bal[0],
-					"current_valuation_rate": stock_bal[1]
-				})
 
 	return res
 
