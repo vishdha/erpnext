@@ -8,6 +8,20 @@ frappe.ui.form.on("Waste Disposal", {
 		erpnext.queries.setup_queries(frm, "Warehouse", function() {
 			return erpnext.queries.warehouse(frm.doc);
 		});
+
+		frm.set_query('batch_no', 'items', (frm, cdt, cdn) => {
+			const row = locals[cdt][cdn];
+			if (!row.warehouse) {
+				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
+			}
+			return {
+				query: 'erpnext.controllers.queries.get_batch_no',
+				filters: {
+					item_code: row.item_code,
+					warehouse: row.warehouse
+				},
+			};
+		});
 	},
 
 	refresh: function(frm) {
@@ -41,6 +55,10 @@ frappe.ui.form.on("Waste Disposal", {
 
 			if (!row.item_code) {
 				frappe.throw(__("Please select an Item."));
+			}
+
+      if (!row.warehouse) {
+				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
 			}
 
 			return {
