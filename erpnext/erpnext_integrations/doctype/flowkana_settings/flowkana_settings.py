@@ -44,10 +44,12 @@ def send_delivery_request_to_flowkana(sales_order):
 		line_item = {
 			"attributes": {
 			"ivt_id": ivt_id,
+			"external_line_item_id": item.name,
 			"test_batch_id": item.batch_no,
 			"external_item_code": item.item_code,
 			"unit_quantity": item.qty,
-			"unit_price": item.rate
+			"unit_price": item.rate,
+			"warehouse": item.warehouse
 			}
 		}
 		item_list.append(line_item)
