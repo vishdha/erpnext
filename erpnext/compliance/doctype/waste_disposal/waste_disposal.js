@@ -43,7 +43,7 @@ frappe.ui.form.on("Waste Disposal", {
 				frappe.throw(__("Row #{0}: Please select an Item.", [row.idx]));
 			}
 
-      			if (!row.warehouse) {
+      		if (!row.warehouse) {
 				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
 			}
 
