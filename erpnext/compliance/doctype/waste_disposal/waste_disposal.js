@@ -54,10 +54,10 @@ frappe.ui.form.on("Waste Disposal", {
 			let row = locals[cdt][cdn];
 
 			if (!row.item_code) {
-				frappe.throw(__("Please select an Item."));
+				frappe.throw(__("Row #{0}: Please select an Item.", [row.idx]));
 			}
 
-      if (!row.warehouse) {
+      			if (!row.warehouse) {
 				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
 			}
 
