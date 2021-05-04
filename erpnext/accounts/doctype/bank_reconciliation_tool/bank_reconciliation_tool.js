@@ -54,6 +54,7 @@ frappe.ui.form.on("Bank Reconciliation Tool", {
 			frm.bank_account,
 			"account",
 			(r) => {
+				console.log("r,,,,,", r)
 				frappe.db.get_value(
 					"Account",
 					r.account,

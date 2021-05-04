@@ -1,3 +1,4 @@
+import DataTable from 'frappe-datatable';
 frappe.provide("erpnext.accounts.bank_reconciliation");
 
 erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
@@ -132,10 +133,14 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			checkboxColumn: false,
 			inlineFilters: true,
 		};
-		this.datatable = new frappe.DataTable(
-			this.$reconciliation_tool_dt.get(0),
+		// this.datatable = new frappe.DataTable(
+		// 	this.$reconciliation_tool_dt.get(0),
+		// 	datatable_options
+		// );
+		this.datatable = new DataTable(this.$reconciliation_tool_dt.get(0),
 			datatable_options
 		);
+
 		$(`.${this.datatable.style.scopeClass} .dt-scrollable`).css(
 			"max-height",
 			"calc(100vh - 400px)"

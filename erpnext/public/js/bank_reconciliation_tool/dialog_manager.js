@@ -1,4 +1,6 @@
+import DataTable from 'frappe-datatable';
 frappe.provide("erpnext.accounts.bank_reconciliation");
+
 
 erpnext.accounts.bank_reconciliation.DialogManager = class DialogManager {
 	constructor(company, bank_account) {
@@ -129,10 +131,14 @@ erpnext.accounts.bank_reconciliation.DialogManager = class DialogManager {
 				checkboxColumn: true,
 				inlineFilters: true,
 			};
-			this.datatable = new frappe.DataTable(
-				proposals_wrapper.get(0),
-				datatable_options
+			// this.datatable = new frappe.DataTable(
+			// 	proposals_wrapper.get(0),
+			// 	datatable_options
+			// );
+			this.datatable = new DataTable(proposals_wrapper.get(0),
+			datatable_options
 			);
+			
 		} else {
 			this.datatable.refresh(this.data, this.columns);
 			this.datatable.rowmanager.checkMap = [];
