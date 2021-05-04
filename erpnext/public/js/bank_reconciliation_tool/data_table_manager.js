@@ -39,22 +39,22 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Party Type",
 				editable: false,
-				width: 95,
+				width: 150,
 			},
 			{
 				name: "Party",
 				editable: false,
-				width: 100,
+				width: 150,
 			},
 			{
 				name: "Description",
 				editable: false,
-				width: 350,
+				width: 360,
 			},
 			{
 				name: "Deposit",
 				editable: false,
-				width: 100,
+				width: 150,
 				format: (value) =>
 					"<span style='color:green;'>" +
 					format_currency(value, this.currency) +
@@ -63,7 +63,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Withdrawal",
 				editable: false,
-				width: 100,
+				width: 150,
 				format: (value) =>
 					"<span style='color:red;'>" +
 					format_currency(value, this.currency) +
@@ -72,7 +72,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Unallocated Amount",
 				editable: false,
-				width: 100,
+				width: 150,
 				format: (value) =>
 					"<span style='color:blue;'>" +
 					format_currency(value, this.currency) +
@@ -81,7 +81,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Reference Number",
 				editable: false,
-				width: 140,
+				width: 200,
 			},
 			{
 				name: "Actions",
@@ -89,7 +89,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 				sortable: false,
 				focusable: false,
 				dropdown: false,
-				width: 80,
+				width: 100,
 			},
 		];
 	}
@@ -131,7 +131,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			data: this.transactions,
 			dynamicRowHeight: true,
 			checkboxColumn: false,
-			inlineFilters: true,
+			inlineFilters: true
 		};
 		// this.datatable = new frappe.DataTable(
 		// 	this.$reconciliation_tool_dt.get(0),
