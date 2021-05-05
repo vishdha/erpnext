@@ -233,7 +233,7 @@ def get_quiz(quiz_name, course):
 	course_enrollment = get_enrollment("course", course, student.name)
 	status, score, result = check_quiz_completion(quiz, course_enrollment)
 	return {
-		'questions': questions,
+		'questions': questions if not status else [],
 		'activity': {
 			'is_complete': status,
 			'score': score,
