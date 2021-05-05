@@ -19,8 +19,10 @@ def get_context(context):
 	context.contents = get_contents(context.topic, course, program)
 	context.has_access =  utils.allowed_program_access(program)
 	context.has_super_access = utils.has_super_access()
-	context.total_progress = calculate_contents_progress(context.contents)
 	context.ongoing_topic = get_ongoing_topic(context.contents)
+	course_details = frappe.get_doc('Course',course)
+	course_topics = course_details.get_topics()
+	context.total_progress = utils.get_total_program_progress(course_topics,course)
 
 def get_contents(topic, course, program):
 	student = utils.get_current_student()
@@ -45,24 +47,6 @@ def get_contents(topic, course, program):
 					result = None
 				progress.append({'content': content, 'content_type': content.doctype, 'completed': status, 'score': score, 'result': result})
 	return progress
-
-def calculate_contents_progress(contents):
-	""" Fetch topic's content running status from Course Activity
-
-	Arg:
-		contents: It gives how many topic's contents are completed and how many of them are in start state
-
-	Return:
-		total_progress: Returns topic's content progress based on total contents of topic and how many topic's contents are completed among them.
-	"""
-
-	total_content = len(contents)
-	completed_content = 0
-	for content in contents:
-		if content.get("completed"):
-			completed_content = completed_content + 1
-	total_progress = int((completed_content * 100) / total_content)
-	return total_progress
 
 def get_ongoing_topic(contents):
 	ongoing_content = None

@@ -75,10 +75,11 @@
 		</div>
 		<div class="course-progress col-md-3">
 			{% if has_access and not has_super_access and not frappe.session.user == 'Administrator' %}
-			<p class="text-right mb-0">{{total_progress}}% Completed </p>
+			<p class="text-right mb-0">{{program}} </p>
 			<div class="progress">
 				<div class="progress-bar" role="progressbar" style="width: {{total_progress}}%;" aria-valuenow="{{total_progress}}" aria-valuemin="0" aria-valuemax="100"></div>
 			</div>
+			<p class="text-right mb-0">{{total_progress}}% Completed </p>
 			{% endif %}
 		</div>
 	</div>
