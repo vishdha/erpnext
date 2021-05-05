@@ -51,17 +51,19 @@ frappe.ui.form.on("Bank Reconciliation Tool", {
 	bank_account: function (frm) {
 		frappe.db.get_value(
 			"Bank Account",
-			frm.bank_account,
+			frm.doc.bank_account,
 			"account",
 			(r) => {
-				frappe.db.get_value(
-					"Account",
-					r.account,
-					"account_currency",
-					(r) => {
-						frm.currency = r.account_currency;
-					}
-				);
+				if(r && r.account) {
+					frappe.db.get_value(
+						"Account",
+						r.account,
+						"account_currency",
+						(r) => {
+							frm.doc.currency = r.account_currency;
+						}
+					);
+				}
 			}
 		);
 		frm.trigger("get_account_opening_balance");
