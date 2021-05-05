@@ -100,6 +100,7 @@ class StockEntry(StockController):
 			self.update_so_in_serial_number()
 		self.update_package_tag()
 		self.update_package_tag_is_used()
+		self.update_batch_with_customer_provided_item()
 
 	def on_cancel(self):
 
@@ -688,6 +689,16 @@ class StockEntry(StockController):
 			sl_entries.reverse()
 
 		self.make_sl_entries(sl_entries, self.amended_from and 'Yes' or 'No')
+
+	def update_batch_with_customer_provided_item(self):
+		if self.stock_entry_type == "Material Receipt":
+			for item in self.items:
+				item_data = frappe.db.get_values("Item", item.item_code, ["is_customer_provided_item", "has_batch_no"], as_dict=1)
+				if item_data[0].is_customer_provided_item and item_data[0].has_batch_no and item.batch_no and item.material_request:
+					batch_provided_by_customer = frappe.db.get_value("Batch", item.batch_no, "provided_by_customer")
+					if not batch_provided_by_customer:
+						customer = frappe.db.get_value("Material Request", item.material_request, "customer")
+						frappe.db.set_value("Batch", item.batch_no, "provided_by_customer", customer)
 
 	def get_gl_entries(self, warehouse_account):
 		gl_entries = super(StockEntry, self).get_gl_entries(warehouse_account)
@@ -1377,40 +1388,71 @@ class StockEntry(StockController):
 	def update_package_tag(self):
 		stock_entry_purpose = frappe.db.get_value("Stock Entry Type", self.stock_entry_type, "purpose")
 		if stock_entry_purpose == "Material Receipt":
-			for item in self.items:
+			for idx, item in enumerate(self.items):
 				if item.package_tag:
 					check_if_destroyed(item.package_tag)
+					set_details_in_package_tag(idx, item.package_tag, item.item_code, item.batch_no, item.batch_no)
 
-					frappe.db.set_value("Package Tag", item.package_tag, "coa_batch_no", item.batch_no)
 		elif stock_entry_purpose in ["Manufacture", "Repack"]:
 			source_item = next((item for item in self.items if item.s_warehouse), None)
-			for item in self.items:
+			for idx, item in enumerate(self.items):
 				if item.package_tag and item.t_warehouse:
 					check_if_destroyed(item.package_tag)
+					batch_no, coa_batch_no = None, None
 
 					if frappe.db.get_value("Item", item.item_code, "requires_lab_tests"):
-						frappe.db.set_value("Package Tag", item.package_tag, "batch_no", item.batch_no)
+						batch_no = item.batch_no
+						coa_batch_no = item.batch_no
 					else:
-						frappe.db.set_value("Package Tag", item.package_tag, "batch_no", item.batch_no)
+						check_for_source_item(idx, source_item, stock_entry_purpose)
+						batch_no = item.batch_no
+
 						#coa batch of source and finished item is the same
 						coa_batch_no = frappe.db.get_value("Package Tag", source_item.package_tag, "coa_batch_no")
-						frappe.db.set_value("Package Tag", item.package_tag, "coa_batch_no", coa_batch_no)
 						item.update({"coa_batch_no" : coa_batch_no})
 
-					#if empty - then assign. If not empty - throw an error.
-					if frappe.db.exists("Package Tag", {"name": item.package_tag}) and not frappe.get_value("Package Tag", item.package_tag, "item_code"):
-						frappe.db.set_value("Package Tag", item.package_tag, "item_code", item.item_code)
-					else:
-						frappe.throw(_("Do not assign new item code to an existing package tag."))
+					set_details_in_package_tag(idx, item.package_tag, item.item_code, batch_no, coa_batch_no)
 
 	def update_package_tag_is_used(self, reset=False):
+		"""
+			Updates the following in Package Tag
+
+			is_used: denotes whether there are any transactions associated with the Package Tag
+			item_code, item_name: if there are no transctions associated, Package Tag is marked as empty
+		"""
 		for item in self.items:
 			if item.package_tag:
 				if not reset:
 					frappe.db.set_value("Package Tag", item.package_tag, "is_used", 1)
 				else:
 					exists = 1 if len(frappe.get_all("Stock Ledger Entry", {"package_tag": item.package_tag, "voucher_no": ["!=", self.name]})) else 0
-					frappe.db.set_value("Package Tag", item.package_tag, "is_used", exists)
+					package_tag = frappe.get_doc("Package Tag", item.package_tag)
+					package_tag.is_used = exists
+
+					if not exists:
+						package_tag.item_code = ""
+						package_tag.item_name = ""
+						package_tag.item_group = ""
+						package_tag.package_tag_quantity = ""
+
+					package_tag.save()
+
+def check_for_source_item(row, source_item, stock_entry_purpose):
+	if not source_item:
+		frappe.throw(_("Row #{0}: Source Item is mandatory for Stock Entry Type {1}.").format(frappe.bold(row), frappe.bold(stock_entry_purpose)))
+
+def set_details_in_package_tag(row, package_tag, item_code, batch_no=None, coa_batch_no=None):
+	#if empty - then assign. If not empty - throw an error.
+	package_tag = frappe.get_doc("Package Tag", package_tag)
+
+	if not package_tag.item_code:
+		package_tag.item_code = item_code
+		package_tag.batch_no = batch_no
+		package_tag.coa_batch_no = coa_batch_no
+		package_tag.save()
+	else:
+		frappe.throw(_("Row #{0}: Package Tag {1} is already linked to an Item {2}.").format(frappe.bold(row), frappe.bold(package_tag.name),
+			frappe.bold(package_tag.item_code)))
 
 def check_if_destroyed(package_tag):
 	if cint(frappe.db.get_value("Package Tag", package_tag, "lost_or_destroyed")):
