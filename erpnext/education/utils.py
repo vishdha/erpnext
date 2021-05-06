@@ -232,7 +232,15 @@ def get_quiz(quiz_name, course):
 	student = get_current_student()
 	course_enrollment = get_enrollment("course", course, student.name)
 	status, score, result = check_quiz_completion(quiz, course_enrollment)
-	return {'questions': questions, 'activity': {'is_complete': status, 'score': score, 'result': result}}
+	return {
+		'questions': questions if not status else [],
+		'activity': {
+			'is_complete': status,
+			'score': score,
+			'result': result
+			},
+		'quiz_time': quiz.total_time_for_quiz
+	}
 
 def get_topic_progress(topic, course_name, program):
 	"""
@@ -381,3 +389,11 @@ def get_previous_content(content_list, current_index):
 		return None
 	else:
 		return content_list[current_index - 1]
+
+def get_total_program_progress(topics,course_name):
+	total_article = 0
+	for topic in topics:
+		total_article = total_article + len(topic.topic_content)
+	completed_article = frappe.db.count("Course Activity",{"course": course_name },"content")
+	total_progress = int((completed_article * 100) / total_article)
+	return total_progress

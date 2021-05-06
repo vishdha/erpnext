@@ -18,6 +18,11 @@ def get_context(context):
 	context.topic = frappe.get_doc("Topic", topic)
 	context.contents = get_contents(context.topic, course, program)
 	context.has_access =  utils.allowed_program_access(program)
+	context.has_super_access = utils.has_super_access()
+	context.ongoing_topic = get_ongoing_topic(context.contents)
+	course_details = frappe.get_doc('Course',course)
+	course_topics = course_details.get_topics()
+	context.total_progress = utils.get_total_program_progress(course_topics,course)
 
 def get_contents(topic, course, program):
 	student = utils.get_current_student()
@@ -41,5 +46,11 @@ def get_contents(topic, course, program):
 					score = None
 					result = None
 				progress.append({'content': content, 'content_type': content.doctype, 'completed': status, 'score': score, 'result': result})
-
 	return progress
+
+def get_ongoing_topic(contents):
+	ongoing_content = None
+	ongoing_topics = [content for content in contents if not content.get("completed")]
+	if len(contents) != len(ongoing_topics) and len(ongoing_topics) > 0:
+		ongoing_content = ongoing_topics[0].get('content')
+	return ongoing_content

@@ -8,20 +8,6 @@ frappe.ui.form.on("Waste Disposal", {
 		erpnext.queries.setup_queries(frm, "Warehouse", function() {
 			return erpnext.queries.warehouse(frm.doc);
 		});
-
-		frm.set_query('batch_no', 'items', (frm, cdt, cdn) => {
-			const row = locals[cdt][cdn];
-			if (!row.warehouse) {
-				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
-			}
-			return {
-				query: 'erpnext.controllers.queries.get_batch_no',
-				filters: {
-					item_code: row.item_code,
-					warehouse: row.warehouse
-				},
-			};
-		});
 	},
 
 	refresh: function(frm) {
@@ -32,26 +18,42 @@ frappe.ui.form.on("Waste Disposal", {
 			});
 		}
 
-		frm.fields_dict.items.grid.get_field("item_code").get_query = function () {
+		frm.set_query("item_code", "items", (frm, cdt, cdn) => {
 			return erpnext.queries.item({ is_stock_item: 1 });
-		};
-	},
+		});
 
-	before_submit: (frm) => {
-		frappe.call({
-			method: "erpnext.compliance.doctype.waste_disposal.waste_disposal.create_stock_entry_for_waste_disposal",
-			args: {
-				doc: frm.doc
-			},
-			callback: (r) => {
-				if (!r.exc) {
-					frm.set_value("stock_entry", r.message);
+		frm.set_query("package_tag", "items", (frm, cdt, cdn) => {
+			let row = locals[cdt][cdn];
 
-					let stock_entry_link = frappe.utils.get_form_link("Stock Entry", r.message);
-					frappe.msgprint(__(`Stock Entry <a href="${stock_entry_link}">${r.message}</a> was created`));
-					frm.refresh();
-				}
+			if (!row.item_code) {
+				frappe.throw(__("Please select an Item."));
 			}
+
+			return {
+				filters: {
+					item_code: row.item_code
+				}
+			};
+		});
+
+		frm.set_query("batch_no", "items", (frm, cdt, cdn) => {
+			let row = locals[cdt][cdn];
+
+			if (!row.item_code) {
+				frappe.throw(__("Row #{0}: Please select an Item.", [row.idx]));
+			}
+
+      		if (!row.warehouse) {
+				frappe.throw(__("Row #{0}: Please select a warehouse.", [row.idx]));
+			}
+
+			return {
+				query : "erpnext.controllers.queries.get_batch_no",
+				filters: {
+					warehouse: row.warehouse,
+					item_code: row.item_code
+				}
+			};
 		});
 	},
 
@@ -82,5 +84,25 @@ frappe.ui.form.on("Waste Disposal", {
 				}
 			});
 		}, __("Get Items from Warehouse"), __("Update"));
+	}
+});
+
+
+frappe.ui.form.on("Waste Disposal Item", {
+	items_add: function(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+
+		if (!row.warehouse) {
+			row.warehouse = frm.doc.s_warehouse;
+		}
 	},
+	batch_no: function(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+
+		if (row.batch_no && !row.coa_batch_no) {
+			frappe.model.get_value("Batch", {"name": row.batch_no}, "coa_batch", (r) => {
+				frappe.model.set_value(cdt, cdn, "coa_batch_no", r.coa_batch);
+			});
+		}
+	}
 });
