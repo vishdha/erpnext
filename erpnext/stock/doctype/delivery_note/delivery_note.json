@@ -1267,7 +1267,7 @@
    "depends_on": "eval:doc.docstatus==1",
    "fieldname": "delivered",
    "fieldtype": "Check",
-   "label": "Delivered?"
+   "label": "Fulfilled"
   },
   {
    "fieldname": "license",

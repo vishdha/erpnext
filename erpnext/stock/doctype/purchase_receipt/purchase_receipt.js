@@ -37,7 +37,6 @@ frappe.ui.form.on("Purchase Receipt", {
 				filters: {'company': frm.doc.company }
 			}
 		});
-		
 	},
 
 	refresh: function(frm) {
@@ -61,6 +60,15 @@ frappe.ui.form.on("Purchase Receipt", {
 				frm: frm,
 			})
 		}, __('Create'));
+
+		frm.set_query("package_tag", "items", (doc, cdt, cdn) => {
+			return {
+				filters: {
+					is_used: 0,
+					company: doc.company
+				}
+			}
+		});
 	},
 
 	before_save: (frm) => {

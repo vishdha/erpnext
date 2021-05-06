@@ -324,6 +324,7 @@ class StockReconciliation(StockController):
 			"is_cancelled": "No" if self.docstatus != 2 else "Yes",
 			"serial_no": '\n'.join(serial_nos) if serial_nos else '',
 			"batch_no": row.batch_no,
+			"package_tag": row.package_tag,
 			"valuation_rate": flt(row.valuation_rate, row.precision("valuation_rate"))
 		})
 
@@ -464,20 +465,35 @@ def get_items(warehouse, posting_date, posting_time, company):
 	""", (lft, rgt, company))
 
 	res = []
-	for d in set(items):
+	for d in items:
 		stock_bal = get_stock_balance(d[0], d[2], posting_date, posting_time,
 			with_valuation_rate=True)
 
-		if frappe.db.get_value("Item", d[0], "disabled") == 0 and stock_bal[0]:
-			res.append({
-				"item_code": d[0],
-				"warehouse": d[2],
-				"qty": stock_bal[0],
-				"item_name": d[1],
-				"valuation_rate": stock_bal[1],
-				"current_qty": stock_bal[0],
-				"current_valuation_rate": stock_bal[1]
-			})
+		if frappe.db.get_value("Item", d[0], "disabled") == 0:
+			# get package_tags and batch_nos from Stock Ledger Entry
+			package_tags_and_batch_nos = frappe.get_all("Stock Ledger Entry",
+				filters={"item_code": d[0], "warehouse": d[2]},
+				or_filters = [
+					{"package_tag": ["is", "set"]},
+					{"batch_no": ["is", "set"]}
+				],
+				group_by = "item_code, warehouse, batch_no, package_tag",
+				fields=["item_code", "warehouse", "batch_no", "package_tag", "sum(actual_qty) as actual_qty", "valuation_rate"],
+				distinct=True)
+
+			if package_tags_and_batch_nos:
+				for package_tag_and_batch in package_tags_and_batch_nos:
+					# append to response to be added in child table
+					res.append({
+						"item_code": package_tag_and_batch.item_code,
+						"warehouse": package_tag_and_batch.warehouse,
+						"package_tag": package_tag_and_batch.package_tag,
+						"batch_no": package_tag_and_batch.batch_no,
+						"qty": package_tag_and_batch.actual_qty,
+						"valuation_rate": package_tag_and_batch.valuation_rate,
+						"current_qty": stock_bal[0],
+						"current_valuation_rate": stock_bal[1]
+					})
 
 	return res
 

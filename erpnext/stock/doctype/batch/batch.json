@@ -17,9 +17,10 @@
   "parent_batch",
   "manufacturing_date",
   "display_on_website",
-  "column_break_3",
   "batch_qty",
   "stock_uom",
+  "column_break_3",
+  "coa_batch",
   "expiry_date",
   "harvest_date",
   "packaged_date",
@@ -28,6 +29,7 @@
   "source",
   "supplier",
   "customer",
+  "provided_by_customer",
   "column_break_9",
   "reference_doctype",
   "reference_name",
@@ -219,6 +221,18 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coa_batch",
+   "fieldtype": "Data",
+   "label": "COA Batch"
+  },
+  {
+   "fieldname": "provided_by_customer",
+   "fieldtype": "Link",
+   "label": "Provided by Customer",
    "options": "Customer",
    "read_only": 1
   }
