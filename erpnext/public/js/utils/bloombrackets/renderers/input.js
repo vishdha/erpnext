@@ -27,11 +27,11 @@ export const Input = Component("bb-control", (ui, $container, {
   });
 
   const value = Array.isArray(exp)?exp[1]:exp;
-
+  let link_input = null;
   if ( exp_meta ) {
     if ( exp_meta.fieldtype == "Link" ) {
       $container.empty();
-      let link_input = frappe.ui.form.make_control({
+      link_input = frappe.ui.form.make_control({
         df: Object.assign({
           "fieldname": exp_meta.name,
           get_status: () => 'Write'
@@ -52,7 +52,11 @@ export const Input = Component("bb-control", (ui, $container, {
   $input.on('blur', handleValueChange);
 
   if ( value ) {
-    $input.val(value);
+    if ( link_input ) {
+      link_input.set_data_value(value, value);
+    } else {
+      $input.val(value);
+    }
   }    
 
   if ( autofocus ) {
