@@ -1488,6 +1488,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 		var me = this;
 		var args = this._get_args(item);
 		if (!((args.items && args.items.length) || args.price_list)) {
+			this.applying_price_list = false;
 			return Promise.resolve();
 		}
 
