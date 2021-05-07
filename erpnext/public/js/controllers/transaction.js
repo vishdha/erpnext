@@ -1395,7 +1395,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 		var price_list_rate_changed = false;
 		var items_rule_dict = {};
 
-		let _promises = [];
+		let _promise = Promise.resolve();
 		for(var i=0, l=children.length; i<l; i++) {
 			var d = children[i];
 			var existing_pricing_rule = frappe.model.get_value(d.doctype, d.name, "pricing_rules");
@@ -1413,7 +1413,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 			if (!d.pricing_rules) {
 				const child = frappe.get_doc(d.doctype, d.name);
 				if (!d.item_ignore_pricing_rule && existing_pricing_rule) {
-					_promises.push(me.apply_price_list(child));
+					_promise = _promise.then(() => {me.apply_price_list(child)});
 				} else {
 					me.remove_pricing_rule(child);
 				}
@@ -1428,7 +1428,7 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 			}
 		}
 
-		await Promise.all(_promises);
+		await _promise;
 
 		me.apply_rule_on_other_items(items_rule_dict);
 
@@ -1473,10 +1473,16 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 	},
 
 	apply_price_list: async function(item, reset_plc_conversion) {
+		if ( this.applying_price_list ) {
+			// avoid recursive calls
+			return Promise.resolve();
+		}
+		this.applying_price_list = true;
+
 		// We need to reset plc_conversion_rate sometimes because the call to
 		// `erpnext.stock.get_item_details.apply_price_list` is sensitive to its value
 		if (!reset_plc_conversion) {
-			this.frm.set_value("plc_conversion_rate", "");
+			await this.frm.set_value("plc_conversion_rate", "");
 		}
 
 		var me = this;
@@ -1485,17 +1491,20 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 			return Promise.resolve();
 		}
 
-		const r = await frappe.xcall("erpnext.stock.get_item_details.apply_price_list", {args: args});
-		if (!r.exc) {
-			await frappe.run_serially([
-				() => me.frm.set_value("price_list_currency", r.parent.price_list_currency),
-				() => me.frm.set_value("plc_conversion_rate", r.parent.plc_conversion_rate),
-				() => {
-					if(args.items.length) {
-						return me._set_values_for_item_list(r.children);
-					}
+		try {
+			const r = await frappe.xcall("erpnext.stock.get_item_details.apply_price_list", {args: args});
+			if (!r.exc) {
+				await me.frm.set_value("price_list_currency", r.parent.price_list_currency);
+				await me.frm.set_value("plc_conversion_rate", r.parent.plc_conversion_rate);
+				if(args.items.length) {
+					await me._set_values_for_item_list(r.children);
 				}
-			]);
+			}
+		}
+		catch(err) {
+			console.error(err);
+		} finally {
+			this.applying_price_list = false;
 		}
 	},
 
