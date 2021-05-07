@@ -39,6 +39,7 @@ export const Input = Component("bb-control", (ui, $container, {
         parent: $container,
         horizontal: true
       });
+      link_input.make_wrapper();
       link_input.make_input();
       link_input.toggle_description(false);
       $input = link_input.$input;
