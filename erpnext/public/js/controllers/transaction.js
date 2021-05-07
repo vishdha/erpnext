@@ -1485,17 +1485,21 @@ erpnext.TransactionController = erpnext.taxes_and_totals.extend({
 			return Promise.resolve();
 		}
 
-		const r = await frappe.xcall("erpnext.stock.get_item_details.apply_price_list", {args: args});
-		if (!r.exc) {
-			await frappe.run_serially([
-				() => me.frm.set_value("price_list_currency", r.parent.price_list_currency),
-				() => me.frm.set_value("plc_conversion_rate", r.parent.plc_conversion_rate),
-				() => {
-					if(args.items.length) {
-						return me._set_values_for_item_list(r.children);
+		try {
+			const r = await frappe.xcall("erpnext.stock.get_item_details.apply_price_list", {args: args});
+			if (!r.exc) {
+				await frappe.run_serially([
+					() => me.frm.set_value("price_list_currency", r.parent.price_list_currency),
+					() => me.frm.set_value("plc_conversion_rate", r.parent.plc_conversion_rate),
+					() => {
+						if(args.items.length) {
+							return me._set_values_for_item_list(r.children);
+						}
 					}
-				}
-			]);
+				]);
+			}
+		} catch(err) {
+			console.error(err);
 		}
 	},
 
