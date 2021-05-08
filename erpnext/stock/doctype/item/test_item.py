@@ -81,8 +81,6 @@ class TestItem(unittest.TestCase):
 			"conversion_factor": 1.0,
 		}
 
-		make_test_objects("Item Price")
-
 		details = get_item_details({
 			"item_code": "_Test Item",
 			"company": "_Test Company",
