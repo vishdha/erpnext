@@ -6,10 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  curl:
+  deployment:
     runs-on: ubuntu-latest
     steps:
-    - name: curl
-      uses: wei/curl@v1
+    - name: Deploy on SIT Servers
+      uses: fjogeleit/http-request-action@master
       with:
-        args: -f -k -H 'Content-Type: application/json' -X POST --user $AWX_USERNAME:$AWX_PASSWORD https://awx.bloomstack.org/api/v2/job_templates/9/launch/
+        url: 'https://awx.bloomstack.org/api/v2/job_templates/9/launch/'
+        method: 'POST'
+        username: ${{ secrets.AWX_USERNAME }}
+        password: ${{ secrets.AWX_PASSWORD }}
