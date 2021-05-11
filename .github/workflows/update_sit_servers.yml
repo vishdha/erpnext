@@ -1,0 +1,15 @@
+name: Deploy SIT Servers
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch:
+
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@v1
+      with:
+        args: -f -k -H 'Content-Type: application/json' -X POST --user $AWX_USERNAME:$AWX_PASSWORD https://awx.bloomstack.org/api/v2/job_templates/9/launch/
