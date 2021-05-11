@@ -14,6 +14,7 @@ import base64
 import hashlib
 import hmac
 from frappe import _
+from six import text_type
 
 class LeafLinkSettings(Document):
 	pass
@@ -49,7 +50,7 @@ def sync_customer_with_leaflink(customer_name):
 
 		#post request to create customer in leaflink
 		try:
-			post_response = requests.post(customers_url, headers=header, data=new_customer)
+			post_response = requests.post(leaflink_settings.get("customers_url"), headers=header, data=new_customer)
 			if post_response.status_code == 201:
 				frappe.msgprint(_("Customer successfully created on LeafLink!"))
 		except Exception as e:
@@ -69,11 +70,6 @@ def authenticate_leaflink_request(leaflink_settings):
 	"""
 	#ensure leaflink is enabled before proceeding further.
 	if not leaflink_settings.get("enable_leaflink"):
-		integration_request.update({
-			"status": "Failed",
-			"error": "Leaflink is not enabled."
-		})
-		integration_request.save(ignore_permissions=True)
 		return
 
 	#validate incoming keys
