@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 import pprint
-from frappe.utils import add_days, cint
+from frappe.utils import add_days, cint, cstr
 import datetime
 import requests
 from frappe.model.document import Document
@@ -175,7 +175,7 @@ def sales_order_from_leaflink(**args):
 		except Exception as e:
 			integration_request.update({
 				"status": "Failed",
-				"error": e
+				"error": cstr(e)
 			})
 			integration_request.save(ignore_permissions=True)
 			return
