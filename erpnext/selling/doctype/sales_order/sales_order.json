@@ -217,6 +217,22 @@
    "reqd": 1
   },
   {
+   "default": "0",
+   "fieldname": "skip_delivery_note",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Skip Delivery Note",
+   "print_hide": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "advance_received",
+   "fieldtype": "Check",
+   "label": "Advance Received",
+   "read_only": 1
+  },
+  {
    "fieldname": "column_break1",
    "fieldtype": "Column Break",
    "oldfieldtype": "Column Break",
@@ -271,6 +287,12 @@
    "label": "Expected Delivery Date",
    "no_copy": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "fulfillment_partner",
+   "fieldtype": "Link",
+   "label": "Fulfillment Partner",
+   "options": "Fulfillment Partner"
   },
   {
    "allow_on_submit": 1,
@@ -337,6 +359,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "contact_phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "read_only": 1
+  },
+  {
    "fieldname": "contact_mobile",
    "fieldtype": "Small Text",
    "label": "Mobile No",
@@ -352,16 +380,16 @@
    "read_only": 1
   },
   {
-   "fieldname": "company_address_display",
-   "fieldtype": "Small Text",
-   "label": "Company Address",
-   "read_only": 1
-  },
-  {
    "fieldname": "company_address",
    "fieldtype": "Link",
    "label": "Company Address Name",
    "options": "Address"
+  },
+  {
+   "fieldname": "company_address_display",
+   "fieldtype": "Small Text",
+   "label": "Company Address",
+   "read_only": 1
   },
   {
    "fieldname": "col_break46",
@@ -532,6 +560,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "per_picked",
+   "fieldtype": "Percent",
+   "label": "% Picked",
+   "read_only": 1
+  },
+  {
    "fieldname": "base_total",
    "fieldtype": "Currency",
    "label": "Total (Company Currency)",
@@ -555,6 +589,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "total_net_weight",
+   "fieldtype": "Float",
+   "label": "Total Net Weight",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
@@ -566,13 +607,6 @@
    "fieldtype": "Currency",
    "label": "Net Total",
    "options": "currency",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "label": "Total Net Weight",
    "print_hide": 1,
    "read_only": 1
   },
@@ -858,6 +892,27 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
+   "depends_on": "customer",
+   "fieldname": "delivery_window",
+   "fieldtype": "Section Break",
+   "label": "Delivery Window"
+  },
+  {
+   "fieldname": "delivery_start_time",
+   "fieldtype": "Time",
+   "label": "Delivery Start Time"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "delivery_end_time",
+   "fieldtype": "Time",
+   "label": "Delivery End time"
+  },
+  {
    "fieldname": "payment_schedule_section",
    "fieldtype": "Section Break",
    "label": "Payment Terms"
@@ -1087,6 +1142,19 @@
    "print_hide": 1
   },
   {
+   "allow_on_submit": 1,
+   "collapsible": 1,
+   "fieldname": "signature_section_section",
+   "fieldtype": "Section Break",
+   "label": "Signature Section"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
    "collapsible": 1,
    "collapsible_depends_on": "commission_rate",
    "fieldname": "sales_team_section_break",
@@ -1189,20 +1257,6 @@
    "label": "Update Auto Repeat Reference"
   },
   {
-   "fieldname": "contact_phone",
-   "fieldtype": "Data",
-   "label": "Phone",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "skip_delivery_note",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Skip Delivery Note",
-   "print_hide": 1
-  },
-  {
    "allow_on_submit": 1,
    "default": "0",
    "fieldname": "is_completed",
@@ -1210,66 +1264,13 @@
    "hidden": 1,
    "label": "Is Completed",
    "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "depends_on": "customer",
-   "fieldname": "delivery_window",
-   "fieldtype": "Section Break",
-   "label": "Delivery Window"
-  },
-  {
-   "fieldname": "delivery_start_time",
-   "fieldtype": "Time",
-   "label": "Delivery Start Time"
-  },
-  {
-   "fieldname": "column_break_19",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "delivery_end_time",
-   "fieldtype": "Time",
-   "label": "Delivery End time"
-  },
-  {
-   "fieldname": "per_picked",
-   "fieldtype": "Percent",
-   "label": "% Picked",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "collapsible": 1,
-   "fieldname": "signature_section_section",
-   "fieldtype": "Section Break",
-   "label": "Signature Section"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "signature",
-   "fieldtype": "Signature",
-   "label": "Signature"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "0",
-   "fieldname": "advance_received",
-   "fieldtype": "Check",
-   "label": "Advance Received",
-   "read_only": 1
-  },
-  {
-   "fieldname": "fulfillment_partner",
-   "fieldtype": "Link",
-   "label": "Fulfillment Partner",
-   "options": "Fulfillment Partner"
   }
  ],
+ "file_auto_name": "format:{name}-{customer_name}",
  "icon": "fa fa-file-text",
  "idx": 105,
  "is_submittable": 1,
- "modified": "2021-03-19 04:08:31.995032",
+ "modified": "2021-05-12 03:47:28.037361",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",
