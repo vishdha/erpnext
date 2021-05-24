@@ -183,6 +183,7 @@ def get_data(filters):
 		procurement_record += procurement_record_against_mr
 	for po in purchase_order_entry:
 		# get batch and package tag related information form purchase receipt.
+		posting_date, batch_no, package_tag = None, None, None
 		if pr_records.get(po.name):
 			posting_date = pr_records.get(po.name).get('posting_date')
 			batch_no = pr_records.get(po.name).get('batch_no')
