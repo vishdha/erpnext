@@ -46,12 +46,12 @@ class ItemAlternative(Document):
 def get_alternative_items(doctype, txt, searchfield, start, page_len, filters):
 	fields = get_fields("Item Alternative", ["alternative_item_code", "item_code", "alternative_item_name"])
 	return frappe.db.sql("""
-		(select
+		select
 			{fields}
 		from
 			`tabItem Alternative`
 		where
-			item_code = %(item_code)s and alternative_item_code like %(txt)s)
+			item_code = %(item_code)s and alternative_item_code like %(txt)s
 		limit %(start)s, %(page_len)s""".format(**{
 			'fields': ", ".join(fields),
 			'key': searchfield
