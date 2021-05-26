@@ -53,7 +53,7 @@ frappe.ui.form.on("Contract", {
 				],
 				function (data) {
 					frappe.call({
-						method: "bloomstack_core.utils.create_authorization_request",
+						method: "erpnext.utils.create_authorization_request",
 						args: {
 							dt: frm.doc.doctype,
 							dn: frm.doc.name,
