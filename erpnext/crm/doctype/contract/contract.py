@@ -244,23 +244,6 @@ def update_status_for_contracts():
 
 		frappe.db.set_value("Contract", contract.get("name"), "status", status)
 
-def get_data(data):
-	return frappe._dict({
-		'fieldname': 'contract',
-		'internal_links': {
-			'Project': 'project'
-		},
-		'transactions': [
-			{
-				'label': _('Sales'),
-				'items': ['Sales Order']
-			},
-			{
-				'label': _('Projects'),
-				'items': ['Project']
-			}
-		]
-	})
 
 @frappe.whitelist()
 def get_party_users(doctype, txt, searchfield, start, page_len, filters):
