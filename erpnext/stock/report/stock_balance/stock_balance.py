@@ -85,7 +85,7 @@ def execute(filters=None):
 				report_data.update(stock_ageing_data)
 			# Update report if stock balance item has a package tag and coa batch no
 			if item in package_tags:
-			report_data.update({
+				report_data.update({
 					"package_tag": package_tags[item]["package_tag"],
 					"coa_batch_no": package_tags[item]["coa_batch_no"],
 				})
