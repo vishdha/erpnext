@@ -125,7 +125,8 @@ def get_salary_slips(payroll_entries):
 
 	# appending company debit accounts
 	for slip in salary_slips:
-		slip["debit_acc_no"] = payroll_entry_map[slip.payroll_entry]['company_account']
+		if slip.payroll_entry:
+			slip["debit_acc_no"] = payroll_entry_map[slip.payroll_entry]['company_account']
 
 	return salary_slips
 
