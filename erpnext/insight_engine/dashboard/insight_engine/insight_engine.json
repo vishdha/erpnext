@@ -1,0 +1,64 @@
+{
+ "cards": [
+  {
+   "card": "Monthly Revenue"
+  },
+  {
+   "card": "Weekly Revenue"
+  },
+  {
+   "card": "Book to Bill ratio"
+  },
+  {
+   "card": "Products Sold"
+  },
+  {
+   "card": "TOTAL INVOICES"
+  },
+  {
+   "card": "TOTAL PRODUCTS"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "TOTAL REVENUE",
+   "width": "Half"
+  },
+  {
+   "chart": "TOP CUSTOMERS by Revenue",
+   "width": "Half"
+  },
+  {
+   "chart": "TOP CUSTOMERS GROUPS by Revenue",
+   "width": "Half"
+  },
+  {
+   "chart": "TOP SALES PARTNERS by Revenue",
+   "width": "Half"
+  },
+  {
+   "chart": "INVOICE BREAKDOWN by Status",
+   "width": "Half"
+  },
+  {
+   "chart": "TOP PRODUCTS by Revenue",
+   "width": "Half"
+  },
+  {
+   "chart": "TOTAL SALES by Week",
+   "width": "Full"
+  }
+ ],
+ "creation": "2021-04-19 23:30:55.332580",
+ "dashboard_name": "Insight Engine",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2021-04-21 01:40:45.066473",
+ "modified_by": "Administrator",
+ "module": "Insight Engine",
+ "name": "Insight Engine",
+ "owner": "Administrator"
+}
