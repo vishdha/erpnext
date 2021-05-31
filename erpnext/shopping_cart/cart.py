@@ -298,10 +298,11 @@ def _get_cart_quotation(party=None):
 			"party_name": party.name
 		})
 
-		contacts = frappe.db.get_value("Contact", {"email_id": frappe.session.user}, ["name", "first_name", "last_name"], as_dict=True)
+		contact_email_parent = frappe.db.get_value("Contact Email", {"email_id": frappe.session.user}, ["parent"])
+		contacts = frappe.db.get_value("Contact", contact_email_parent, ["name", "title"], as_dict=True)
 		if contacts:
 			qdoc.contact_person = contacts.name
-			qdoc.contact_display =  "%s %s" % (contacts.first_name, contacts.last_name)
+			qdoc.contact_display = contacts.title
 			qdoc.contact_email = frappe.session.user
 
 		qdoc.flags.ignore_permissions = True
@@ -485,27 +486,23 @@ def get_party(user=None):
 
 		fullname = get_fullname(user)
 		contact = frappe.db.get_value("Contact Email", {"email_id": user}, "parent")
-		customer = frappe.db.get_value("Customer", {"customer_name": fullname}, "name")
 
-		if not customer:
-			customer = frappe.new_doc("Customer")
+		customer = frappe.new_doc("Customer")
+		customer.update({
+			"customer_name": fullname,
+			"customer_type": "Individual",
+			"customer_group": get_shopping_cart_settings().default_customer_group,
+			"territory": get_root_of("Territory"),
+			"customer_primary_contact": contact
+		})
+
+		if debtors_account:
 			customer.update({
-				"customer_name": fullname,
-				"customer_type": "Individual",
-				"customer_group": get_shopping_cart_settings().default_customer_group,
-				"territory": get_root_of("Territory"),
-				"customer_primary_contact": contact
+				"accounts": [{
+					"company": cart_settings.company,
+					"account": debtors_account
+				}]
 			})
-
-			if debtors_account:
-				customer.update({
-					"accounts": [{
-						"company": cart_settings.company,
-						"account": debtors_account
-					}]
-				})
-		else:
-			customer = frappe.get_doc("Customer", customer)
 
 		customer.customer_primary_contact = contact
 		customer.flags.ignore_mandatory = True
@@ -523,6 +520,9 @@ def get_party(user=None):
 		contact.append('links', dict(link_doctype='Customer', link_name=customer.name))
 		contact.flags.ignore_mandatory = True
 		contact.save(ignore_permissions=True)
+
+		if not customer.customer_primary_contact:
+			customer.customer_primary_contact = contact.name
 
 		return customer
 
