@@ -200,8 +200,8 @@ class Contract(Document):
 
 		event.save()
 	
-	def cancel_event_against_contract(contract, method):
-		event_name = frappe.db.exists('Event', {'subject': contract.name})
+	def cancel_event_against_contract(self):
+		event_name = frappe.db.exists('Event', {'subject': self.name})
 		if event_name:
 			frappe.delete_doc('Event', event_name)
 
