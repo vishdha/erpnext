@@ -330,6 +330,7 @@ def set_more_defaults():
 	selling_settings.save()
 
 	add_uom_data()
+	add_status_data()
 
 	# set no copy fields of an item doctype to item variant settings
 	doc = frappe.get_doc('Item Variant Settings')
@@ -378,6 +379,15 @@ def add_uom_data():
 				"from_uom": _(d.get("from_uom")),
 				"to_uom": _(d.get("to_uom")),
 				"value": d.get("value")
+			}).insert(ignore_permissions=True)
+
+def add_status_data():
+	status = json.loads(open(frappe.get_app_path("erpnext", "setup", "setup_wizard", "data", "status.json")).read())
+	for d in status:
+		if not frappe.db.exists('Status', _(d.get("status"))):
+			status_doc = frappe.get_doc({
+				"doctype": "Status",
+				"status": _(d.get("status"))
 			}).insert(ignore_permissions=True)
 
 def add_market_segments():
