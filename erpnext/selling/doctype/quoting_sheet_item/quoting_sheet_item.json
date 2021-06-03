@@ -1,5 +1,5 @@
 {
- "creation": "2013-02-22 01:27:49",
+ "creation": "2021-06-02 23:02:08.899460",
  "doctype": "DocType",
  "document_type": "Setup",
  "editable_grid": 1,
@@ -38,6 +38,13 @@
   "original_item"
  ],
  "fields": [
+  {
+   "default": "0",
+   "fieldname": "customer_provided_item",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Customer Provided Item"
+  },
   {
    "columns": 3,
    "fieldname": "item_code",
@@ -85,6 +92,12 @@
    "fieldtype": "Link",
    "label": "Source Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_alternative_item",
+   "fieldtype": "Check",
+   "label": "Allow Alternative Item"
   },
   {
    "collapsible": 1,
@@ -235,12 +248,6 @@
   },
   {
    "default": "0",
-   "fieldname": "allow_alternative_item",
-   "fieldtype": "Check",
-   "label": "Allow Alternative Item"
-  },
-  {
-   "default": "0",
    "fetch_from": "item_code.include_item_in_manufacturing",
    "fieldname": "include_item_in_manufacturing",
    "fieldtype": "Check",
@@ -253,21 +260,13 @@
    "label": "Original Item",
    "options": "Item",
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "customer_provided_item",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Customer Provided Item"
   }
  ],
- "idx": 1,
  "istable": 1,
- "modified": "2021-05-30 23:22:10.711145",
+ "modified": "2021-06-02 23:02:08.899460",
  "modified_by": "Administrator",
- "module": "Manufacturing",
- "name": "BOM Item",
+ "module": "Selling",
+ "name": "Quoting Sheet Item",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
