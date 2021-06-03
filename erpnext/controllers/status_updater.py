@@ -40,10 +40,10 @@ class StatusUpdater(Document):
 			return
 
 		# try to make doctype key with status and condition as list of list. be careful before modifying this structure...
-		status_maps= frappe.get_all("Status Workflow", filters={"document_type":self.doctype}, fields=["*"])
+		status_map= frappe.get_all("Status Workflow", filters={"document_type":self.doctype}, fields=["*"])
 		records = {}
-		records = {item['document_type']:[] for item in status_maps}
-		for item in status_maps:
+		records = {item['document_type']:[] for item in status_map}
+		for item in status_map:
 			records[item['document_type']].append([item.status, item.condition])
 
 		if self.doctype in records:

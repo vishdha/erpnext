@@ -384,7 +384,7 @@ def add_uom_data():
 def add_status_data():
 	status = json.loads(open(frappe.get_app_path("erpnext", "setup", "setup_wizard", "data", "status.json")).read())
 	for d in status:
-		if not frappe.db.exists('Status', _(d.get("status"))):
+		if not frappe.db.exists('Status', d.get("status")):
 			status_doc = frappe.get_doc({
 				"doctype": "Status",
 				"status": _(d.get("status"))
