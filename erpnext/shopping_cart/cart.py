@@ -316,6 +316,7 @@ def _get_cart_quotation(party=None):
 				primary_contact = frappe.session.data.order_for.get("customer_primary_contact_name")
 
 				qdoc.contact_person = primary_contact
+				qdoc.contact_display = frappe.get_value("Contact", primary_contact, "title")
 				qdoc.contact_email = frappe.get_value("Contact", primary_contact, "email_id")
 
 				# override customer
