@@ -331,6 +331,7 @@ def set_more_defaults():
 
 	add_uom_data()
 	add_status_data()
+	add_status_workflow_data()
 
 	# set no copy fields of an item doctype to item variant settings
 	doc = frappe.get_doc('Item Variant Settings')
@@ -388,6 +389,19 @@ def add_status_data():
 			status_doc = frappe.get_doc({
 				"doctype": "Status",
 				"status": _(d.get("status"))
+			}).insert(ignore_permissions=True)
+
+def add_status_workflow_data():
+	status_workflow = json.loads(open(frappe.get_app_path("erpnext", "setup", "setup_wizard", "data", "status_workflow.json")).read())
+	for d in status_workflow:
+		if not frappe.db.exists('Status Workflow', d.get("name")):
+			status_doc = frappe.get_doc({
+				"doctype": "Status Workflow",
+				"name": d.get("name"),
+				"document_type": d.get("document_type"),
+				"status": d.get("status"),
+				"condition": d.get("condition"),
+				"enabled": d.get("enabled")
 			}).insert(ignore_permissions=True)
 
 def add_market_segments():
