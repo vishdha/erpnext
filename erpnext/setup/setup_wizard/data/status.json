@@ -1,9 +1,9 @@
 [
     {
-        "status": "Reconcilied"
+        "status": "Reconciled"
     },
     {
-        "status": "Unreconcilied"
+        "status": "Unreconciled"
     },
     {
         "status": "Manufactured"
@@ -54,7 +54,7 @@
         "status": "Opportunity"
     },
     {
-        "status": "List Quotation"
+        "status": "Lost Quotation"
     },
     {
         "status": "In Transit"
