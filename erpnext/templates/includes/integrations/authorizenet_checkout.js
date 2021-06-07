@@ -191,9 +191,7 @@ frappe.ready(function () {
 				method: "erpnext.erpnext_integrations.doctype.authorizenet_settings.authorizenet_settings.charge_credit_card",
 				freeze: true,
 				args: {
-					"card_number": card.cardNumber,
-					"expiration_date": card.expirationDate,
-					"card_code": card.cardCode,
+					"card": card,
 					"data": data
 				}
 			});
@@ -219,9 +217,11 @@ frappe.ready(function () {
 		let cardCode = document.getElementById('card-code').value;
 		let isValidCard = frappe.cardValidator.number(cardNumber);
 		const card = {
-			cardNumber,
-			expirationDate,
-			cardCode
+			holder_name: cardHolderName,
+			holder_email: cardHolderEmail,
+			number: cardNumber,
+			expiration_date: expirationDate,
+			code: cardCode
 		}
 
 		if (!cardHolderName) {
