@@ -1,4 +1,10 @@
-[
+[   
+    {
+        "status": "Setteled",
+    },
+    {
+        "status": "Pending",
+    },
     {
         "status": "Reconciled"
     },
