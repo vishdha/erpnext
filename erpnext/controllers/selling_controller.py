@@ -63,13 +63,13 @@ class SellingController(StockController):
 				if not coupon.enabled:
 					frappe.throw(_("Coupon \"{}\" is not a valid coupon").format(self.coupon_code))
 
-				if coupon.valid_from:
-					if coupon.valid_from > getdate(today()):
-						frappe.throw(_("Sorry, this coupon code's validity has not started"), title=_("Coupon Error"))
-				elif coupon.valid_upto:
-					if coupon.valid_upto < getdate(today()):
-						frappe.throw(_("Sorry, this coupon code's validity has expired"), title=_("Coupon Error"))
-				elif coupon.used >= coupon.maximum_use:
+				if coupon.valid_from and getdate(today()) < coupon.valid_from:
+					frappe.throw(_("Sorry, this coupon code's validity has not started"), title=_("Coupon Error"))
+
+				if coupon.valid_upto and getdate(today()) > coupon.valid_upto:
+					frappe.throw(_("Sorry, this coupon code's validity has expired"), title=_("Coupon Error"))
+
+				if coupon.maximum_use > 0 and coupon.used >= coupon.maximum_use:
 					frappe.throw(_("Sorry, this coupon code is no longer valid"), title=_("Coupon Error"))
 
 				party_name = self.customer_name if self.doctype != "Quotation" else self.party_name
