@@ -76,12 +76,18 @@ frappe.ready(function () {
 							maxTimeouts
 						);
 						return; // only early exit when queuing up a delayed check_status.
-					} else if (on_fail) {
-						on_fail({
+					} else {
+						const errorStatus = {
 							"status": "Failed",
 							"type": "HardError",
 							"description": "Network problem! Unfortunately we could not connect to our server. If your internet is down please try again later. Otherwise, contact support to help with your transaction."
-						});
+						};
+
+						$('#please-wait').text(__(errorStatus.description));
+		
+						if (on_fail) {
+							on_fail(status);
+						}
 						return;
 					}
 				}
