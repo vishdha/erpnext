@@ -23,7 +23,7 @@
 */
 
 frappe.ready(function () {
-	const data = context.replace(/'/g, '"');
+	const data = context;
 
 	/**
 	 * Fetches payment request status information
@@ -210,7 +210,6 @@ frappe.ready(function () {
 
 	// Handles credit card submit behaviour
 	$('#submit').on("click", async function (e) {
-		let data = context.replace(/'/g, '"');
 		e.preventDefault();
 
 		let cardHolderName = document.getElementById('cardholder-name').value;
