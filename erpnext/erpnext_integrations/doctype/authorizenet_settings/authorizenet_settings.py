@@ -161,7 +161,7 @@ def query_successful_authnet_transaction(request):
 						return transaction
 	return False
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_status(data):
 	if isinstance(data, str):
 		data = json.loads(data)
@@ -231,7 +231,7 @@ def get_status(data):
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def charge_credit_card(card, data):
 	"""
 	Charge a credit card
