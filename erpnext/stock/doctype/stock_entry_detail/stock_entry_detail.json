@@ -57,6 +57,8 @@
   "col_break6",
   "material_request",
   "material_request_item",
+  "product_recall_notice",
+  "product_recall_notice_item",
   "original_item",
   "subcontracted_item",
   "reference_section",
@@ -72,8 +74,8 @@
   {
    "fieldname": "barcode",
    "fieldtype": "Data",
-   "label": "Barcode",
-   "hidden": 1
+   "hidden": 1,
+   "label": "Barcode"
   },
   {
    "fieldname": "section_break_2",
@@ -473,7 +475,6 @@
    "fetch_from": "item_code.item_group",
    "fieldname": "item_group",
    "fieldtype": "Data",
-   "in_list_view": 0,
    "label": "Item Group"
   },
   {
@@ -519,11 +520,25 @@
    "label": "COA Batch",
    "options": "Batch",
    "read_only": 1
+  },
+  {
+   "fieldname": "product_recall_notice",
+   "fieldtype": "Link",
+   "label": "Product Recall Notice",
+   "options": "Product Recall Notice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "product_recall_notice_item",
+   "fieldtype": "Link",
+   "label": "Product Recall Notice Item",
+   "options": "Product Recall Notice Item",
+   "read_only": 1
   }
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2021-01-14 04:34:36.907887",
+ "modified": "2021-06-14 21:38:57.459134",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Entry Detail",
