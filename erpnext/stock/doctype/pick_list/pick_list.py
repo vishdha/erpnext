@@ -249,6 +249,8 @@ class PickList(Document):
 					stock_entry = update_stock_entry_items_for_source(location, stock_entry)
 				if location.package_tag:
 					stock_entry = update_stock_entry_items_for_target(location, stock_entry)
+				else:
+					stock_entry = update_stock_entry_items(location, stock_entry)
 			stock_entry.set_stock_entry_type()
 			stock_entry.set_incoming_rate()
 			stock_entry.set_actual_qty()
@@ -635,3 +637,13 @@ def update_common_item_properties(item, location):
 	item.serial_no = location.serial_no
 	item.batch_no = location.batch_no
 	item.material_request_item = location.material_request_item
+
+
+def update_stock_entry_items(location, stock_entry):
+	"""Append Item Row in Stock Entry !"""
+	item = frappe._dict()
+	update_common_item_properties(item, location)
+	if location.warehouse:
+		item.s_warehouse = location.warehouse
+	stock_entry.append('items', item)
+	return stock_entry
