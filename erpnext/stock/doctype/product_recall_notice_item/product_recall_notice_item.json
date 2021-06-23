@@ -8,6 +8,7 @@
   "item_name",
   "batch_no",
   "qty",
+  "received_qty",
   "package_tag",
   "customer",
   "warehouse",
@@ -73,10 +74,16 @@
    "fieldtype": "Link",
    "label": "Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "received_qty",
+   "fieldtype": "Float",
+   "label": "Received Quantity",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2021-05-28 02:40:22.841238",
+ "modified": "2021-06-08 01:13:30.328300",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Product Recall Notice Item",
