@@ -192,7 +192,7 @@ erpnext.accounts.bankTransactionSync = class bankTransactionSync {
 	}
 	sync_transactions() {
 		const me = this;
-		frappe.db.get_value("Bank Account", cur_frm.doc.bank_account, "bank", (r) => {
+		frappe.db.get_value("Bank Account", me.frm.doc.bank_account, "bank", (r) => {
 			frappe.xcall('erpnext.erpnext_integrations.doctype.plaid_settings.plaid_settings.sync_transactions', {
 				bank: r.bank,
 				bank_account: me.frm.doc.bank_account,
