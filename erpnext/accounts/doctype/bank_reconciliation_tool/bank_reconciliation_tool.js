@@ -177,7 +177,7 @@ erpnext.accounts.bankTransactionSync = class bankTransactionSync {
 	constructor(frm) {
 		this.frm = frm;
 		this.data = [];
-		this.init_config()
+		this.init_config();
 	}
 
 	init_config() {
@@ -188,8 +188,8 @@ erpnext.accounts.bankTransactionSync = class bankTransactionSync {
 				me.client_name = result.client_name;
 				me.link_token = result.link_token;
 				me.sync_transactions();
-			})
-	}
+			});
+	};
 	sync_transactions() {
 		const me = this;
 		frappe.db.get_value("Bank Account", me.frm.doc.bank_account, "bank", (r) => {
@@ -198,12 +198,12 @@ erpnext.accounts.bankTransactionSync = class bankTransactionSync {
 				bank_account: me.frm.doc.bank_account,
 				freeze: true
 			})
-			.then((result) => {
-				let result_title = (result && result.length > 0)
-					? __("{0} bank transaction(s) created", [result.length])
-					: __("This bank account is already synchronized");
-				frappe.show_alert({message: result_title, indicator: 'green'});
-			})
+				.then((result) => {
+					let result_title = (result && result.length > 0)
+						? __("{0} bank transaction(s) created", [result.length])
+						: __("This bank account is already synchronized");
+					frappe.show_alert({message: result_title, indicator: 'green'});
+				});
 		});
 	}
-}
+};
