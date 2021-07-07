@@ -189,7 +189,7 @@ erpnext.accounts.bankTransactionSync = class bankTransactionSync {
 				me.link_token = result.link_token;
 				me.sync_transactions();
 			});
-	};
+	}
 	sync_transactions() {
 		const me = this;
 		frappe.db.get_value("Bank Account", me.frm.doc.bank_account, "bank", (r) => {
