@@ -23,6 +23,7 @@
   "reference_number",
   "transaction_id",
   "payment_entries",
+  "payment_entries_references",
   "section_break_18",
   "allocated_amount",
   "amended_from",
@@ -166,10 +167,16 @@
    "fieldname": "reconcile_date",
    "fieldtype": "Date",
    "label": "Reconcile Date"
+  },
+  {
+   "fieldname": "payment_entries_references",
+   "fieldtype": "Code",
+   "label": "Payment Entries References",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2021-07-09 02:02:20.765635",
+ "modified": "2021-07-12 02:23:29.043304",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Bank Transaction",

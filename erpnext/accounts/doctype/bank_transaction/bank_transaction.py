@@ -22,6 +22,14 @@ class BankTransaction(StatusUpdater):
 		self.update_allocations()
 		self.clear_linked_payment_entries()
 		self.set_status(update=True)
+		self.update_payment_list()
+
+	def update_payment_list(self):
+		payment_entries_references = self.payment_entries_references or ""
+		for d in self.payment_entries:
+			if d.payment_entry and not d.payment_entry in payment_entries_references:
+				payment_entries_references += d.payment_entry + ","
+		frappe.db.set_value(self.doctype, self.name, "payment_entries_references", payment_entries_references)
 
 	def update_allocations(self):
 		if self.payment_entries:

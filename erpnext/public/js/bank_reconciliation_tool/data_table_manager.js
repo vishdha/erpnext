@@ -44,12 +44,12 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Party",
 				editable: false,
-				width: 150,
+				width: 250,
 			},
 			{
 				name: "Description",
 				editable: false,
-				width: 360,
+				width: 310,
 			},
 			{
 				name: "Deposit",
@@ -81,7 +81,7 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			{
 				name: "Reference Number",
 				editable: false,
-				width: 200,
+				width: 150,
 			},
 			{
 				name: "Actions",
@@ -256,25 +256,29 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 	get_dt_columns() {
 		this.columns = [
 			{
-				name: "Date of Transaction",
+				name: "Date",
 				editable: false,
-				width: 150,
+				width: 100,
 			},
-
 			{
 				name: "Bank Transaction ID",
 				editable: false,
-				width: 200,
+				width: 150,
+			},
+			{
+				name: "System Transaction ID",
+				editable: false,
+				width: 250,
 			},
 			{
 				name: "Description",
 				editable: false,
-				width: 360,
+				width: 310,
 			},
 			{
 				name: "Deposit",
 				editable: false,
-				width: 200,
+				width: 150,
 				format: (value) =>
 					"<span style='color:green;'>" +
 					format_currency(value, this.currency) +
@@ -283,7 +287,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			{
 				name: "Withdrawal",
 				editable: false,
-				width: 200,
+				width: 150,
 				format: (value) =>
 					"<span style='color:red;'>" +
 					format_currency(value, this.currency) +
@@ -323,6 +327,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 		return [
 			row["date"],
 			row["name"],
+			row["payment_entries_references"],
 			row["description"],
 			row["deposit"],
 			row["withdrawal"],
