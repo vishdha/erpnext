@@ -26,9 +26,9 @@
   "section_break_18",
   "allocated_amount",
   "amended_from",
+  "reconcile_date",
   "column_break_17",
-  "unallocated_amount",
-  "reconcile_date"
+  "unallocated_amount"
  ],
  "fields": [
   {
@@ -165,12 +165,11 @@
   {
    "fieldname": "reconcile_date",
    "fieldtype": "Date",
-   "label": "Reconcile Date",
-   "read_only": 1
+   "label": "Reconcile Date"
   }
  ],
  "is_submittable": 1,
- "modified": "2021-07-09 01:30:56.463922",
+ "modified": "2021-07-09 02:02:20.765635",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Bank Transaction",

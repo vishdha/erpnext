@@ -8,6 +8,7 @@ from erpnext.controllers.status_updater import StatusUpdater
 from frappe.utils import flt
 from six.moves import reduce
 from frappe import _
+from frappe.utils import getdate, nowdate
 
 class BankTransaction(StatusUpdater):
 	def after_insert(self):
@@ -39,6 +40,7 @@ class BankTransaction(StatusUpdater):
 		amount = self.deposit or self.withdrawal
 		if amount == self.allocated_amount:
 			frappe.db.set_value(self.doctype, self.name, "status", "Reconciled")
+			frappe.db.set_value(self.doctype, self.name, "reconcile_date", nowdate())
 
 		self.reload()
 

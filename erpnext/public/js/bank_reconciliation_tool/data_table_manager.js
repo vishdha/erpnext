@@ -264,7 +264,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			{
 				name: "Bank Transaction ID",
 				editable: false,
-				width: 150,
+				width: 200,
 			},
 			{
 				name: "Description",
@@ -274,7 +274,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			{
 				name: "Deposit",
 				editable: false,
-				width: 150,
+				width: 200,
 				format: (value) =>
 					"<span style='color:green;'>" +
 					format_currency(value, this.currency) +
@@ -283,7 +283,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			{
 				name: "Withdrawal",
 				editable: false,
-				width: 150,
+				width: 200,
 				format: (value) =>
 					"<span style='color:red;'>" +
 					format_currency(value, this.currency) +
@@ -292,7 +292,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			{
 				name: "Reconciled Amount",
 				editable: false,
-				width: 150,
+				width: 200,
 				format: (value) =>
 					"<span style='color:blue;'>" +
 					format_currency(value, this.currency) +

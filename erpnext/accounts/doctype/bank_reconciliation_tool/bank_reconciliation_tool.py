@@ -55,7 +55,7 @@ def get_reconciled_bank_transactions(bank_account, from_date = None, to_date = N
 		'Bank Transaction',
 		fields = ['date', 'deposit', 'withdrawal', 'currency',
 		'description', 'name', 'bank_account', 'company',
-		'allocated_amount', 'reference_number', 'party_type', 'party'],
+		'allocated_amount', 'reference_number', 'party_type', 'party', 'reconcile_date'],
 		filters = filters
 	)
 	return transactions
@@ -102,7 +102,7 @@ def update_bank_transaction(bank_transaction_name, reference_number, party_type=
 		fields=['date', 'deposit', 'withdrawal', 'currency',
 			'description', 'name', 'bank_account', 'company',
 			'unallocated_amount', 'reference_number',
-			 'party_type', 'party'],
+			 'party_type', 'party', 'reconcile_date'],
 	)[0]
 
 
