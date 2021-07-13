@@ -25,11 +25,11 @@ class BankTransaction(StatusUpdater):
 		self.update_payment_list()
 
 	def update_payment_list(self):
-		payment_entries_references = self.payment_entries_references or ""
+		payment_entries_references = self.payment_entries_references.split(",") if self.payment_entries_references else []
 		for d in self.payment_entries:
 			if d.payment_entry and not d.payment_entry in payment_entries_references:
-				payment_entries_references += d.payment_entry + ","
-		frappe.db.set_value(self.doctype, self.name, "payment_entries_references", payment_entries_references)
+				payment_entries_references.append(d.payment_entry)
+		frappe.db.set_value(self.doctype, self.name, "payment_entries_references", ", ".join(payment_entries_references))
 
 	def update_allocations(self):
 		if self.payment_entries:

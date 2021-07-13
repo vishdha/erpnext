@@ -133,10 +133,6 @@ erpnext.accounts.bank_reconciliation.DataTableManager = class DataTableManager {
 			checkboxColumn: false,
 			inlineFilters: true
 		};
-		// this.datatable = new frappe.DataTable(
-		// 	this.$reconciliation_tool_dt.get(0),
-		// 	datatable_options
-		// );
 		this.datatable = new DataTable(this.$reconciliation_tool_dt.get(0),
 			datatable_options
 		);
@@ -344,10 +340,6 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			checkboxColumn: false,
 			inlineFilters: true
 		};
-		// this.datatable = new frappe.DataTable(
-		// 	this.$reconciliation_tool_dt.get(0),
-		// 	datatable_options
-		// );
 		this.datatable = new DataTable(this.$reconciled_tool_dt.get(0),
 			datatable_options
 		);
