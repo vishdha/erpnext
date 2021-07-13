@@ -326,7 +326,7 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 	format_row(row) {
 		return [
 			row["date"],
-			row["name"],
+			frappe.utils.get_form_link("Bank Transaction", row["name"], " ", row["name"]),
 			row["payment_entries_references"],
 			row["description"],
 			row["deposit"],
