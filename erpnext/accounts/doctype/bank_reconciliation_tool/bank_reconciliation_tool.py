@@ -103,7 +103,7 @@ def update_bank_transaction(bank_transaction_name, reference_number, party_type=
 		fields=['date', 'deposit', 'withdrawal', 'currency',
 			'description', 'name', 'bank_account', 'company',
 			'unallocated_amount', 'reference_number',
-			 'party_type', 'party', 'reconcile_date'],
+			'party_type', 'party', 'reconcile_date'],
 	)[0]
 
 

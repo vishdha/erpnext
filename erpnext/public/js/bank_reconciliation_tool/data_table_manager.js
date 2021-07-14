@@ -244,7 +244,6 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 				me.format_data(response.message);
 				me.get_dt_columns();
 				me.get_datatable();
-				me.set_listeners();
 			},
 		});
 	}
@@ -356,41 +355,6 @@ erpnext.accounts.bank_reconciliation.DataTableManagerReconciled = class DataTabl
 			this.$reconciled_tool_dt.hide();
 			this.$no_bank_transactions.show();
 		}
-	}
-
-	set_listeners() {
-		var me = this;
-		$(`.${this.datatable.style.scopeClass} .dt-scrollable`).on(
-			"click",
-			`.btn`,
-			function () {
-				me.dialog_manager.show_dialog(
-					$(this).attr("data-name"),
-					(bank_transaction) => me.update_dt_cards(bank_transaction)
-				);
-				return true;
-			}
-		);
-	}
-
-	update_dt_cards(bank_transaction) {
-		const transaction_index = this.transaction_dt_map[
-			bank_transaction.name
-		];
-		if (bank_transaction.allocated_amount > 0) {
-			this.transactions[transaction_index] = this.format_row(
-				bank_transaction
-			);
-		} else {
-			this.transactions.splice(transaction_index, 1);
-		}
-		this.datatable.refresh(this.transactions, this.columns);
-
-		if (this.transactions.length == 0) {
-			this.$reconciled_tool_dt.hide();
-			this.$no_bank_transactions.show();
-		}
-
 	}
 };
 

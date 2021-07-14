@@ -8,7 +8,7 @@ from erpnext.controllers.status_updater import StatusUpdater
 from frappe.utils import flt
 from six.moves import reduce
 from frappe import _
-from frappe.utils import getdate, nowdate
+from frappe.utils import nowdate
 
 class BankTransaction(StatusUpdater):
 	def after_insert(self):
